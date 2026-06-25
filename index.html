@@ -150,6 +150,24 @@
     .date{margin-top:7px}
   }
 
+  /* phone mirror (rendered at the fixed desktop width): keep the two bottom corners apart */
+  @media (max-width:660px){
+    #mirror.show .r-bl{max-width:56vw}
+    #mirror.show .dep{gap:10px}
+    #mirror.show .dep .dst{max-width:30vw}
+    #mirror.show .r-br{max-width:42vw}
+    /* top-left 15% smaller */
+    #mirror.show .time{font-size:clamp(48px,13.6vmin,136px)}
+    #mirror.show .date{font-size:clamp(13px,3.6vw,22px)}
+    #mirror.show .greet{font-size:clamp(15px,4.25vw,26px)}
+    /* tighter gap between day name and weather icon */
+    #mirror.show .fc-row{grid-template-columns:2.6em 1.4em 2.2em 2.2em;gap:4px;margin-top:7px}
+    /* sunrise stacked above sunset */
+    #mirror.show .info-sun .sunr,#mirror.show .info-sun .suns{display:block}
+    #mirror.show .info-sun .suns{margin-top:5px}
+    #mirror.show .info-sun .gap{display:none}
+  }
+
   .useloc{width:100%;background:#0e0e0e;border:1px solid var(--line);color:var(--bright);
     font-family:var(--label);text-transform:uppercase;letter-spacing:.14em;font-size:13px;
     padding:13px;border-radius:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px}
@@ -397,8 +415,9 @@
         $("wxFc").innerHTML = rows;
         if(dy.sunrise && dy.sunset){
           var sr=(dy.sunrise[0]||"").slice(11,16), ss=(dy.sunset[0]||"").slice(11,16);
-          $("infoSun").innerHTML = '<i class="wi wi-sunrise"></i>'+sr
-                + '<span class="gap"></span><i class="wi wi-sunset"></i>'+ss;
+          $("infoSun").innerHTML = '<span class="sunr"><i class="wi wi-sunrise"></i>'+sr+'</span>'
+                + '<span class="gap"></span>'
+                + '<span class="suns"><i class="wi wi-sunset"></i>'+ss+'</span>';
         }
       }
     }).catch(function(){ /* keep last shown */ });
@@ -420,7 +439,7 @@
       $("busHead").textContent = d.stop || "Departures";
       var deps = d.departures || [];
       if(!deps.length){ $("busList").innerHTML = '<div class="bus-msg">'+t("noBus")+'</div>'; return; }
-      var html = deps.slice(0,4).map(function(dep){
+      var html = deps.slice(0,8).map(function(dep){
         var hhmm = (dep.time || "").slice(0,5);
         var mins = minsUntil(dep.date, dep.time);
         var when = (mins!=null && mins<=20) ? (mins<=0? t("now") : mins+" "+t("min")) : hhmm;
@@ -488,6 +507,20 @@
   });
 
   function applyAccent(){ document.documentElement.style.setProperty("--accent", state.accent || "#e9c98a"); }
+
+  // ---------- desktop-style layout on phones ----------
+  // Phones are too narrow for the corner layout, so render the MIRROR at a fixed
+  // desktop-ish width and let the browser scale it to fit — keeps the corner look,
+  // bigger than Safari's "request desktop site". Setup stays at device width so it's tappable.
+  var PHONE = Math.min(screen.width || 9999, screen.height || 9999) < 520;
+  var MIRROR_VW = 640; // smaller = bigger text (but less room); larger = smaller text
+  function setVP(wide){
+    var vp = document.querySelector('meta[name="viewport"]');
+    if(!vp) return;
+    vp.setAttribute("content", wide
+      ? "width="+MIRROR_VW+", viewport-fit=cover"
+      : "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover");
+  }
 
   // ---------- fullscreen (removes browser chrome where supported) ----------
   function goFullscreen(){
@@ -573,6 +606,7 @@
   function showMirror(){
     $("setup").classList.add("hidden");
     $("mirror").classList.add("show");
+    if(PHONE) setVP(true);
     goFullscreen();
     tick(); loadWeather(true); loadBus(true); startComp(); keepAwake();
     clearInterval(timer); timer=setInterval(tick,1000);
@@ -580,6 +614,7 @@
     clearInterval(busTimer); busTimer=setInterval(function(){loadBus(false);},30*1000);
   }
   function showSetup(){
+    setVP(false);
     $("mirror").classList.remove("show");
     $("setup").classList.remove("hidden");
     clearInterval(timer); clearInterval(wxTimer); clearInterval(busTimer);
