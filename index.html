@@ -13,6 +13,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400&family=Roboto+Condensed:wght@300;400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/weather-icons/2.0.10/css/weather-icons.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,300,0,0">
 <style>
   :root{
     --bg:#000;
@@ -124,9 +125,12 @@
   .info-sun .gap{display:inline-block;width:.9em}
 
   .bus-h{font-size:11px;margin-bottom:10px;color:var(--accent)}
-  .dep{display:flex;align-items:baseline;gap:14px;margin-bottom:8px;font-weight:300}
+  .msym{font-family:'Material Symbols Outlined';font-weight:normal;font-style:normal;line-height:1;
+    letter-spacing:normal;text-transform:none;white-space:nowrap;-webkit-font-feature-settings:'liga';font-feature-settings:'liga'}
+  .dep{display:flex;align-items:center;gap:12px;margin-bottom:8px;font-weight:300}
+  .dep .mi{font-size:1.15em;color:var(--accent);opacity:.92;flex:0 0 auto;width:1.2em;text-align:center}
   .dep .ln{font-family:var(--label);font-weight:400;min-width:2.4em;color:var(--bright)}
-  .dep .dst{color:var(--dim);font-size:clamp(14px,3.6vw,19px);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:46vw}
+  .dep .dst{color:var(--dim);font-size:clamp(14px,3.6vw,19px);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:42vw}
   .dep .tm{font-family:var(--label);color:var(--accent);letter-spacing:.04em}
   .bus-msg{font-family:var(--label);color:var(--faint);font-size:13px;letter-spacing:.04em;line-height:1.5;max-width:60vw}
 
@@ -241,20 +245,14 @@
     <button class="adv-toggle" id="advToggle"><span class="chev">›</span> Bus departures (optional)</button>
     <div id="adv">
       <div class="field">
-        <span class="label">Stop name (label)</span>
-        <input id="busName" class="input" placeholder="Brunnsparken" autocomplete="off">
+        <span class="label">Departures service URL</span>
+        <input id="busUrl" class="input" placeholder="https://your-worker.workers.dev" autocomplete="off">
       </div>
-      <div class="row">
-        <div class="field">
-          <span class="label">Stop ID</span>
-          <input id="busId" class="input" placeholder="740025000" autocomplete="off" inputmode="numeric">
-        </div>
-        <div class="field">
-          <span class="label">ResRobot key</span>
-          <input id="busKey" class="input" placeholder="API key" autocomplete="off">
-        </div>
+      <div class="field">
+        <span class="label">Specific stop ID (optional)</span>
+        <input id="busId" class="input" placeholder="leave blank for nearest stop" autocomplete="off" inputmode="numeric">
       </div>
-      <div class="hint">Live Swedish departures use Trafiklab's free ResRobot API. Get a key at trafiklab.se, then find your Stop ID. Leave blank to skip the bus panel.</div>
+      <div class="hint">Departures for your nearest stop work automatically once location is allowed. Advanced: override the service URL or pin a specific stop ID.</div>
     </div>
 
     <button class="start" id="startBtn">Start mirror</button>
@@ -296,10 +294,11 @@
   var DEFAULTS = { loc:"", lat:null, lon:null, place:"", name:"",
     unit:"celsius", clock:"24", lang:"sv", seconds:"on", comments:"on",
     awake:"on", accent:"#e9c98a",
-    busName:"", busId:"", busKey:"" };
+    busUrl:"https://still-wave-afbc.ecksquad.workers.dev", busId:"" };
   var state = Object.assign({}, DEFAULTS);
   var KEY = "mirror.config.v1";
-  function load(){ try{ var s=localStorage.getItem(KEY); if(s) state=Object.assign({},DEFAULTS,JSON.parse(s)); }catch(e){} }
+  function load(){ try{ var s=localStorage.getItem(KEY); if(s) state=Object.assign({},DEFAULTS,JSON.parse(s)); }catch(e){}
+    if(!state.busUrl) state.busUrl = DEFAULTS.busUrl; }  // always fall back to the built-in departures service
   function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} }
 
   var $ = function(id){ return document.getElementById(id); };
@@ -405,30 +404,34 @@
     }).catch(function(){ /* keep last shown */ });
   }
 
-  // ---------- bus (ResRobot v2.1 — optional, may be blocked by CORS) ----------
+  // ---------- bus (via your relay Worker: nearest stop to your coordinates) ----------
   var lastBus = 0;
   function loadBus(force){
-    if(!state.busId || !state.busKey){ $("busRegion").style.display="none"; return; }
+    if(!state.busUrl || state.lat==null){ $("busRegion").style.display="none"; return; }
     $("busRegion").style.display="block";
-    $("busHead").textContent = state.busName || "Departures";
     var now=Date.now();
     if(!force && now-lastBus < 60*1000) return; // refresh each minute
     lastBus = now;
-    var u = "https://api.resrobot.se/v2.1/departureBoard?id="+encodeURIComponent(state.busId)
-          + "&duration=60&maxJourneys=5&format=json&accessId="+encodeURIComponent(state.busKey);
+    var u = state.busUrl + (state.busUrl.indexOf("?")>=0?"&":"?")
+          + "lat="+encodeURIComponent(state.lat) + "&lon="+encodeURIComponent(state.lon)
+          + (state.busId ? "&id="+encodeURIComponent(state.busId) : "");
     fetch(u).then(function(r){return r.json();}).then(function(d){
-      var deps = (d && d.Departure) || [];
+      if(!d || d.error){ $("busHead").textContent="Departures"; $("busList").innerHTML='<div class="bus-msg">'+t("busErr")+'</div>'; return; }
+      $("busHead").textContent = d.stop || "Departures";
+      var deps = d.departures || [];
       if(!deps.length){ $("busList").innerHTML = '<div class="bus-msg">'+t("noBus")+'</div>'; return; }
       var html = deps.slice(0,4).map(function(dep){
-        var line = (dep.Product && dep.Product[0] && dep.Product[0].line) || dep.transportNumber || dep.name || "";
-        var dst = dep.direction || "";
-        var hhmm = (dep.rtTime || dep.time || "").slice(0,5);
-        var mins = minsUntil(dep.rtDate||dep.date, dep.rtTime||dep.time);
+        var hhmm = (dep.time || "").slice(0,5);
+        var mins = minsUntil(dep.date, dep.time);
         var when = (mins!=null && mins<=20) ? (mins<=0? t("now") : mins+" "+t("min")) : hhmm;
-        return '<div class="dep"><span class="ln">'+esc(line)+'</span><span class="dst">'+esc(dst)+'</span><span class="tm">'+esc(when)+'</span></div>';
+        return '<div class="dep">'+modeIcon(dep.mode)+'<span class="ln">'+esc(dep.line)+'</span><span class="dst">'+esc(dep.dir)+'</span><span class="tm">'+esc(when)+'</span></div>';
       }).join("");
       $("busList").innerHTML = html;
     }).catch(function(){ $("busList").innerHTML = '<div class="bus-msg">'+t("busErr")+'</div>'; });
+  }
+  function modeIcon(m){
+    var g = {tram:"tram", bus:"directions_bus", train:"train", metro:"subway", boat:"directions_boat"}[m] || "directions_transit";
+    return '<span class="msym mi">'+g+'</span>';
   }
   function minsUntil(date,time){
     if(!date||!time) return null;
@@ -613,11 +616,11 @@
   }
   function fillForm(){
     $("loc").value=state.loc; $("name").value=state.name;
-    $("busName").value=state.busName; $("busId").value=state.busId; $("busKey").value=state.busKey;
+    $("busUrl").value=state.busUrl||""; $("busId").value=state.busId||"";
     setSeg("unitSeg",state.unit); setSeg("clockSeg",state.clock);
     setSeg("langSeg",state.lang); setSeg("secSeg",state.seconds); setSeg("compSeg",state.comments);
     setSeg("awakeSeg",state.awake); setSeg("accentSw",state.accent); applyAccent();
-    if(state.busId||state.busKey){ $("advToggle").classList.add("open"); $("adv").classList.add("open"); }
+    if(state.busId){ $("advToggle").classList.add("open"); $("adv").classList.add("open"); }
   }
 
   // ---------- use my location (GPS) ----------
@@ -626,7 +629,7 @@
     if(!navigator.geolocation){ st.className="status err"; st.textContent="This device can't share location \u2014 type a place instead."; return; }
     // capture other fields first so they aren't lost
     state.name=$("name").value.trim();
-    state.busName=$("busName").value.trim(); state.busId=$("busId").value.trim(); state.busKey=$("busKey").value.trim();
+    state.busUrl=$("busUrl").value.trim(); state.busId=$("busId").value.trim();
     navigator.geolocation.getCurrentPosition(function(pos){
       state.lat=pos.coords.latitude; state.lon=pos.coords.longitude; state.place="Current location"; state.loc="";
       $("loc").value="";
@@ -642,7 +645,7 @@
   $("startBtn").addEventListener("click",function(){
     var st=$("status"); st.className="status"; st.textContent="";
     state.name=$("name").value.trim();
-    state.busName=$("busName").value.trim(); state.busId=$("busId").value.trim(); state.busKey=$("busKey").value.trim();
+    state.busUrl=$("busUrl").value.trim(); state.busId=$("busId").value.trim();
     var loc=$("loc").value.trim();
     if(loc){
       st.textContent="Finding location\u2026";
