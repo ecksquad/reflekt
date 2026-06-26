@@ -98,6 +98,7 @@
   .r-mc{inset:0;display:flex;align-items:center;justify-content:center;padding:0 6vw;pointer-events:none}
   .compliment{font-weight:300;font-style:italic;font-size:clamp(19px,4.4vmin,32px);line-height:1.35;
     text-align:center;max-width:680px;color:var(--bright);opacity:0;transition:opacity .6s ease}
+  .compliment.emoji{font-style:normal;font-size:clamp(64px,20vmin,180px);line-height:1}
 
   .time{font-weight:100;font-size:clamp(56px,16vmin,160px);line-height:.9;letter-spacing:-.01em}
   .time .sec{font-size:.38em;color:var(--accent);font-weight:300;margin-left:.12em;vertical-align:.55em}
@@ -231,20 +232,22 @@
       </div>
     </div>
 
-    <div class="row">
-      <div class="field">
-        <span class="label">Comments</span>
-        <div class="seg" id="compSeg">
-          <button data-v="on" class="on">On</button>
-          <button data-v="off">Off</button>
-        </div>
+    <div class="field">
+      <span class="label">Centre display</span>
+      <div class="seg" id="compSeg">
+        <button data-v="off">Off</button>
+        <button data-v="sv" class="on">Svenska</button>
+        <button data-v="en">English</button>
+        <button data-v="emoji">Emoji</button>
       </div>
-      <div class="field">
-        <span class="label">Keep screen on</span>
-        <div class="seg" id="awakeSeg">
-          <button data-v="on" class="on">On</button>
-          <button data-v="off">Off</button>
-        </div>
+      <div class="hint">Rotating one-liners in Swedish or English, or a colourful emoji.</div>
+    </div>
+
+    <div class="field">
+      <span class="label">Keep screen on</span>
+      <div class="seg" id="awakeSeg">
+        <button data-v="on" class="on">On</button>
+        <button data-v="off">Off</button>
       </div>
     </div>
 
@@ -310,13 +313,14 @@
 
   // ---------- state + storage (storage is best-effort; falls back to memory) ----------
   var DEFAULTS = { loc:"", lat:null, lon:null, place:"", name:"",
-    unit:"celsius", clock:"24", lang:"sv", seconds:"on", comments:"on",
+    unit:"celsius", clock:"24", lang:"sv", seconds:"on", comments:"sv",
     awake:"on", accent:"#e9c98a",
     busUrl:"https://still-wave-afbc.ecksquad.workers.dev", busId:"" };
   var state = Object.assign({}, DEFAULTS);
   var KEY = "mirror.config.v1";
   function load(){ try{ var s=localStorage.getItem(KEY); if(s) state=Object.assign({},DEFAULTS,JSON.parse(s)); }catch(e){}
-    if(!state.busUrl) state.busUrl = DEFAULTS.busUrl; }  // always fall back to the built-in departures service
+    if(!state.busUrl) state.busUrl = DEFAULTS.busUrl;  // always fall back to the built-in departures service
+    if(state.comments==="on") state.comments="sv"; }   // migrate old on/off to the new modes
   function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} }
 
   var $ = function(id){ return document.getElementById(id); };
@@ -582,22 +586,83 @@
     "Du är en katastrof. Men en söt en.",
     "Kör hårt. Eller lägg dig ner. Universum bryr sig inte."
   ];
+  var COMP_EN = [
+    "You survived the night. Impressive, damn it.",
+    "Up and at 'em, you tired wretch.",
+    "Congrats, you're still breathing.",
+    "Another day in hell. Coffee?",
+    "You look how you feel. Unfortunately.",
+    "Life is short. Luckily.",
+    "Smile — it confuses your enemies.",
+    "You're not old, just near your expiry date.",
+    "It'll all work out. Or not. We'll see.",
+    "The world's a mess, but your hair looks great today.",
+    "Drink water, you dehydrated houseplant.",
+    "You've got this. Probably. Maybe.",
+    "Another Monday that wants to kill you slowly.",
+    "Memento mori — but eat breakfast first.",
+    "You're unique. Just like every other sod.",
+    "Existence is suffering. But fika helps.",
+    "Time heals all. Then you die.",
+    "Good job today. Allegedly.",
+    "You're made of stardust and low self-esteem.",
+    "Gravity wins in the end. But not today.",
+    "Everything's meaningless, so relax.",
+    "You're the main character. In a tragedy.",
+    "Breathe in. Breathe out. Repeat until you die.",
+    "Nobody gets out alive. Take it easy.",
+    "You look lively for someone half-dead.",
+    "Keep fighting. Or don't. It all burns anyway.",
+    "You're a limited edition. Sadly defective.",
+    "Happiness is just a bad memory.",
+    "The sun's shining. Provocative, isn't it?",
+    "You're doing your best. It shows. Unfortunately.",
+    "Expectations are just future disappointments.",
+    "You're like fine wine: best with snacks.",
+    "Chaos is free. Embrace it.",
+    "Optimism is just a charming bug.",
+    "The clock's ticking. It hates you too.",
+    "You're not late, time's just scared of you.",
+    "Rust in peace. You're halfway there anyway.",
+    "Everything ends. Start anyway, you optimist.",
+    "Nice confidence for someone so mortal.",
+    "You're 70% water and 30% unresolved anxiety.",
+    "Death missed again. You're still here, damn it.",
+    "Another round in this cursed simulation.",
+    "You look like the coffee already gave up.",
+    "Be the unexplained noise the neighbours worry about.",
+    "Laugh now. The void laughs with you.",
+    "You've got main-character energy and an extra's budget.",
+    "It's all gone to hell, but you have lovely eyes.",
+    "Survival is your only hobby now.",
+    "You're a disaster. But a cute one.",
+    "Go hard. Or lie down. The universe doesn't care."
+  ];
+  var EMOJI = ["🌞","🌈","⭐","🌸","🚀","🎉","🍀","🌻","💫","🦊","🐳","🌍","☕","🎈","🌟","🌴","🍉","🐝","🌙","❤️"];
+  function compSet(){
+    if(state.comments==="en") return COMP_EN;
+    if(state.comments==="emoji") return EMOJI;
+    return COMP; // "sv"
+  }
   var compIdx=-1, compTimer=null;
   function rotateComp(){
     var el=$("compText");
     el.style.opacity=0;
     setTimeout(function(){
-      compIdx=(compIdx+1)%COMP.length;
-      el.textContent=COMP[compIdx];
+      var set=compSet();
+      compIdx=(compIdx+1)%set.length;
+      el.textContent=set[compIdx];
       el.style.opacity=1;
     },650);
   }
   function startComp(){
     var reg=$("compRegion"), el=$("compText");
-    if(state.comments!=="on"){ reg.style.display="none"; clearInterval(compTimer); compTimer=null; return; }
+    if(state.comments==="off"){ reg.style.display="none"; clearInterval(compTimer); compTimer=null; return; }
     reg.style.display="flex";
-    compIdx=Math.floor(Math.random()*COMP.length);
-    el.textContent=COMP[compIdx]; el.style.opacity=1;
+    el.classList.toggle("emoji", state.comments==="emoji");
+    var set=compSet();
+    compIdx=Math.floor(Math.random()*set.length);
+    el.textContent=set[compIdx]; el.style.opacity=1;
     clearInterval(compTimer); compTimer=setInterval(rotateComp,30000);
   }
 
