@@ -134,12 +134,7 @@
   .dep .dst{color:var(--dim);font-size:clamp(14px,3.6vw,19px);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:42vw}
   .dep .tm{font-family:var(--label);color:var(--accent);letter-spacing:.04em}
   .bus-msg{font-family:var(--label);color:var(--faint);font-size:13px;letter-spacing:.04em;line-height:1.5;max-width:60vw}
-  .elp-now{font-weight:200;font-size:clamp(34px,9vmin,72px);line-height:1}
-  .elp-now .elp-unit{font-family:var(--label);font-size:.3em;color:var(--dim);letter-spacing:.06em;margin-left:.2em}
-  .elp-lvl{font-family:var(--label);text-transform:uppercase;letter-spacing:.14em;color:var(--dim);font-size:clamp(12px,3vmin,16px);margin-top:5px}
-  .elp-bar{width:clamp(120px,22vmin,210px);height:6px;border-radius:3px;background:rgba(255,255,255,.12);margin-top:11px;overflow:hidden}
-  .elp-bar span{display:block;height:100%;border-radius:3px}
-  .elp-range{font-family:var(--label);color:var(--faint);font-size:clamp(11px,2.6vmin,14px);margin-top:8px;letter-spacing:.04em}
+  .elp-gauge{width:clamp(160px,34vmin,280px);height:auto;display:block;overflow:visible}
 
   .gear{position:fixed;bottom:14px;right:14px;width:26px;height:26px;border-radius:50%;
     background:rgba(255,255,255,.06);border:none;color:var(--faint);cursor:pointer;
@@ -512,15 +507,30 @@
     }).catch(function(){ $("elprisList").innerHTML='<div class="bus-msg">'+t("elprisErr")+'</div>'; });
   }
   function renderElpris(d){
-    var ore = Math.round(d.price*100);
-    var frac = (d.max>d.min) ? (d.price-d.min)/(d.max-d.min) : 0.5;
-    var col = frac<0.34 ? "#5fe3a1" : frac<0.67 ? "#e9c98a" : "#ff8a8a";
-    var lvl = frac<0.34 ? t("low") : frac<0.67 ? t("mid") : t("high");
-    $("elprisList").innerHTML =
-      '<div class="elp-now" style="color:'+col+'">'+ore+'<span class="elp-unit">öre/kWh</span></div>'
-      + '<div class="elp-lvl">'+esc(lvl)+'</div>'
-      + '<div class="elp-bar"><span style="width:'+Math.round(frac*100)+'%;background:'+col+'"></span></div>'
-      + '<div class="elp-range">'+Math.round(d.min*100)+'–'+Math.round(d.max*100)+' öre '+t("today")+'</div>';
+    var GREEN="#4cc15a", AMBER="#f4a92b", RED="#e8493b", MAX=3, T1=0.8, T2=1.3;
+    var VAL = d.price;
+    var cx=110, cy=118, r=90, w=20;
+    function pol(rr,deg){ var a=deg*Math.PI/180; return [cx+rr*Math.cos(a), cy-rr*Math.sin(a)]; }
+    function ang(v){ return 180*(1 - Math.max(0,Math.min(MAX,v))/MAX); }   // 0->180°(left), MAX->0°(right)
+    function arc(a1,a2,col){ var p1=pol(r,a1), p2=pol(r,a2), large=(a1-a2)>180?1:0;
+      return '<path d="M'+p1[0].toFixed(2)+' '+p1[1].toFixed(2)+' A'+r+' '+r+' 0 '+large+' 1 '+p2[0].toFixed(2)+' '+p2[1].toFixed(2)+'" fill="none" stroke="'+col+'" stroke-width="'+w+'"/>'; }
+    function zone(v){ return v<T1?GREEN:v<T2?AMBER:RED; }
+    var s = arc(180,ang(T1),GREEN) + arc(ang(T1),ang(T2),AMBER) + arc(ang(T2),0,RED);
+    // tick marks every 0.5
+    for(var v=0; v<=MAX+0.001; v+=0.5){
+      var ta=ang(v), o1=pol(r-w/2-3,ta), o2=pol(r-w/2-9,ta);
+      s+='<line x1="'+o1[0].toFixed(1)+'" y1="'+o1[1].toFixed(1)+'" x2="'+o2[0].toFixed(1)+'" y2="'+o2[1].toFixed(1)+'" stroke="rgba(255,255,255,.45)" stroke-width="1.4"/>';
+    }
+    // triangle needle
+    var na=ang(VAL), tip=pol(r-w/2-6,na), b1=pol(7,na+90), b2=pol(7,na-90);
+    s+='<polygon points="'+tip[0].toFixed(1)+','+tip[1].toFixed(1)+' '+b1[0].toFixed(1)+','+b1[1].toFixed(1)+' '+b2[0].toFixed(1)+','+b2[1].toFixed(1)+'" fill="#fff"/>';
+    s+='<circle cx="'+cx+'" cy="'+cy+'" r="7" fill="#fff"/>';
+    // value below + end labels
+    var col=zone(VAL);
+    s+='<text x="'+cx+'" y="'+(cy+28)+'" text-anchor="middle" fill="'+col+'" font-family="Roboto,sans-serif" font-weight="300" font-size="26">'+VAL.toFixed(2)+'<tspan font-family="Roboto Condensed,sans-serif" font-size="12" fill="rgba(255,255,255,.55)" dx="4">SEK</tspan></text>';
+    s+='<text x="'+(cx-r)+'" y="'+(cy+18)+'" text-anchor="middle" fill="rgba(255,255,255,.5)" font-family="Roboto Condensed,sans-serif" font-size="13">0</text>';
+    s+='<text x="'+(cx+r)+'" y="'+(cy+18)+'" text-anchor="middle" fill="rgba(255,255,255,.5)" font-family="Roboto Condensed,sans-serif" font-size="13">'+MAX+'</text>';
+    $("elprisList").innerHTML = '<svg viewBox="0 0 220 158" class="elp-gauge">'+s+'</svg>';
   }
 
   // ---------- bottom-left dispatcher ----------
