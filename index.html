@@ -134,6 +134,12 @@
   .dep .dst{color:var(--dim);font-size:clamp(14px,3.6vw,19px);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:42vw}
   .dep .tm{font-family:var(--label);color:var(--accent);letter-spacing:.04em}
   .bus-msg{font-family:var(--label);color:var(--faint);font-size:13px;letter-spacing:.04em;line-height:1.5;max-width:60vw}
+  .elp-now{font-weight:200;font-size:clamp(34px,9vmin,72px);line-height:1}
+  .elp-now .elp-unit{font-family:var(--label);font-size:.3em;color:var(--dim);letter-spacing:.06em;margin-left:.2em}
+  .elp-lvl{font-family:var(--label);text-transform:uppercase;letter-spacing:.14em;color:var(--dim);font-size:clamp(12px,3vmin,16px);margin-top:5px}
+  .elp-bar{width:clamp(120px,22vmin,210px);height:6px;border-radius:3px;background:rgba(255,255,255,.12);margin-top:11px;overflow:hidden}
+  .elp-bar span{display:block;height:100%;border-radius:3px}
+  .elp-range{font-family:var(--label);color:var(--faint);font-size:clamp(11px,2.6vmin,14px);margin-top:8px;letter-spacing:.04em}
 
   .gear{position:fixed;bottom:14px;right:14px;width:26px;height:26px;border-radius:50%;
     background:rgba(255,255,255,.06);border:none;color:var(--faint);cursor:pointer;
@@ -263,6 +269,26 @@
       <div class="hint">Colours the date, labels and details. The clock stays white for brightness behind glass.</div>
     </div>
 
+    <div class="field">
+      <span class="label">Bottom-left panel</span>
+      <div class="seg" id="blSeg">
+        <button data-v="off">Off</button>
+        <button data-v="bus" class="on">Bus</button>
+        <button data-v="elpris">Electricity</button>
+      </div>
+    </div>
+
+    <div class="field" id="zoneField" style="display:none">
+      <span class="label">Electricity area</span>
+      <div class="seg" id="zoneSeg">
+        <button data-v="SE1">SE1</button>
+        <button data-v="SE2">SE2</button>
+        <button data-v="SE3" class="on">SE3</button>
+        <button data-v="SE4">SE4</button>
+      </div>
+      <div class="hint">Swedish spot price for your bidding area (Gothenburg is SE3).</div>
+    </div>
+
     <button class="adv-toggle" id="advToggle"><span class="chev">›</span> Bus departures (optional)</button>
     <div id="adv">
       <div class="field">
@@ -300,6 +326,10 @@
     <div class="label bus-h" id="busHead">Departures</div>
     <div id="busList"></div>
   </div>
+  <div class="region r-bl" id="elprisRegion" style="display:none">
+    <div class="label bus-h" id="elprisHead">Elpris</div>
+    <div id="elprisList"></div>
+  </div>
   <div class="region r-br" id="infoRegion">
     <div class="info-week" id="infoWeek"></div>
     <div class="info-sun" id="infoSun"></div>
@@ -314,7 +344,7 @@
   // ---------- state + storage (storage is best-effort; falls back to memory) ----------
   var DEFAULTS = { loc:"", lat:null, lon:null, place:"", name:"",
     unit:"celsius", clock:"24", lang:"sv", seconds:"on", comments:"sv",
-    awake:"on", accent:"#e9c98a",
+    awake:"on", accent:"#e9c98a", bottomLeft:"bus", elzone:"SE3",
     busUrl:"https://still-wave-afbc.ecksquad.workers.dev", busId:"" };
   var state = Object.assign({}, DEFAULTS);
   var KEY = "mirror.config.v1";
@@ -329,10 +359,12 @@
   var T = {
     sv:{ morning:"God morgon", forenoon:"God förmiddag", afternoon:"God eftermiddag", evening:"God kväll", night:"God natt",
          min:"min", now:"nu", locale:"sv-SE", feels:"Känns som", wind:"m/s", week:"Vecka", noBus:"Inga avgångar just nu.",
-         busErr:"Kunde inte hämta avgångar. Kontrollera Stop ID och nyckel (eller blockeras anropet av CORS)." },
+         busErr:"Kunde inte hämta avgångar. Kontrollera Stop ID och nyckel (eller blockeras anropet av CORS).",
+         elpris:"Elpris", low:"Lågt", mid:"Normalt", high:"Högt", today:"idag", elprisErr:"Kunde inte hämta elpris." },
     en:{ morning:"Good morning", forenoon:"Good morning", afternoon:"Good afternoon", evening:"Good evening", night:"Good night",
          min:"min", now:"now", locale:"en-GB", feels:"Feels like", wind:"m/s", week:"Week", noBus:"No departures right now.",
-         busErr:"Couldn't load departures. Check the Stop ID and key (or the request was blocked by CORS)." }
+         busErr:"Couldn't load departures. Check the Stop ID and key (or the request was blocked by CORS).",
+         elpris:"Electricity", low:"Low", mid:"Normal", high:"High", today:"today", elprisErr:"Couldn't load prices." }
   };
   function t(k){ return (T[state.lang]||T.sv)[k]; }
 
@@ -463,6 +495,40 @@
     return Math.round((dt - new Date())/60000);
   }
   function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];}); }
+
+  // ---------- electricity price (Swedish spot price via the relay Worker) ----------
+  var lastElpris = 0, elprisCache = null;
+  function loadElpris(force){
+    if(!state.busUrl){ $("elprisRegion").style.display="none"; return; }
+    $("elprisRegion").style.display="block";
+    $("elprisHead").textContent = t("elpris");
+    var now=Date.now();
+    if(!force && now-lastElpris < 10*60*1000){ if(elprisCache) renderElpris(elprisCache); return; }
+    lastElpris = now;
+    var u = state.busUrl + (state.busUrl.indexOf("?")>=0?"&":"?") + "elpris=" + encodeURIComponent(state.elzone||"SE3");
+    fetch(u).then(function(r){return r.json();}).then(function(d){
+      if(!d || d.error || d.price==null){ $("elprisList").innerHTML='<div class="bus-msg">'+t("elprisErr")+'</div>'; return; }
+      elprisCache = d; renderElpris(d);
+    }).catch(function(){ $("elprisList").innerHTML='<div class="bus-msg">'+t("elprisErr")+'</div>'; });
+  }
+  function renderElpris(d){
+    var ore = Math.round(d.price*100);
+    var frac = (d.max>d.min) ? (d.price-d.min)/(d.max-d.min) : 0.5;
+    var col = frac<0.34 ? "#5fe3a1" : frac<0.67 ? "#e9c98a" : "#ff8a8a";
+    var lvl = frac<0.34 ? t("low") : frac<0.67 ? t("mid") : t("high");
+    $("elprisList").innerHTML =
+      '<div class="elp-now" style="color:'+col+'">'+ore+'<span class="elp-unit">öre/kWh</span></div>'
+      + '<div class="elp-lvl">'+esc(lvl)+'</div>'
+      + '<div class="elp-bar"><span style="width:'+Math.round(frac*100)+'%;background:'+col+'"></span></div>'
+      + '<div class="elp-range">'+Math.round(d.min*100)+'–'+Math.round(d.max*100)+' öre '+t("today")+'</div>';
+  }
+
+  // ---------- bottom-left dispatcher ----------
+  function refreshBottomLeft(force){
+    if(state.bottomLeft==="elpris"){ $("busRegion").style.display="none"; loadElpris(force); }
+    else if(state.bottomLeft==="bus"){ $("elprisRegion").style.display="none"; loadBus(force); }
+    else { $("busRegion").style.display="none"; $("elprisRegion").style.display="none"; }
+  }
 
   // ---------- clock / date / greeting ----------
   function greeting(h){
@@ -673,10 +739,10 @@
     $("mirror").classList.add("show");
     if(PHONE) setVP(true);
     goFullscreen();
-    tick(); loadWeather(true); loadBus(true); startComp(); keepAwake();
+    tick(); loadWeather(true); refreshBottomLeft(true); startComp(); keepAwake();
     clearInterval(timer); timer=setInterval(tick,1000);
     clearInterval(wxTimer); wxTimer=setInterval(function(){loadWeather(false);},60*1000);
-    clearInterval(busTimer); busTimer=setInterval(function(){loadBus(false);},30*1000);
+    clearInterval(busTimer); busTimer=setInterval(function(){refreshBottomLeft(false);},30*1000);
   }
   function showSetup(){
     setVP(false);
@@ -697,6 +763,10 @@
     });
   }
   seg("unitSeg","unit"); seg("clockSeg","clock"); seg("langSeg","lang"); seg("secSeg","seconds"); seg("compSeg","comments"); seg("awakeSeg","awake");
+  seg("blSeg","bottomLeft"); seg("zoneSeg","elzone");
+
+  function updateZoneVis(){ $("zoneField").style.display = state.bottomLeft==="elpris" ? "block" : "none"; }
+  $("blSeg").addEventListener("click", updateZoneVis);
 
   $("accentSw").addEventListener("click",function(e){
     var b=e.target.closest("button"); if(!b) return;
@@ -720,6 +790,7 @@
     setSeg("unitSeg",state.unit); setSeg("clockSeg",state.clock);
     setSeg("langSeg",state.lang); setSeg("secSeg",state.seconds); setSeg("compSeg",state.comments);
     setSeg("awakeSeg",state.awake); setSeg("accentSw",state.accent); applyAccent();
+    setSeg("blSeg",state.bottomLeft); setSeg("zoneSeg",state.elzone); updateZoneVis();
     if(state.busId){ $("advToggle").classList.add("open"); $("adv").classList.add("open"); }
   }
 
