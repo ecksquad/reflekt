@@ -294,7 +294,7 @@
         <button data-v="off" class="on">Off</button>
         <button data-v="on">On</button>
       </div>
-      <div class="hint">Say &ldquo;Magic Mirror&rdquo; then: show eye, show dashboard, show time, show weather. Uses the microphone; speech is processed by the browser&rsquo;s cloud voice service, not on-device.</div>
+      <div class="hint">Hands-free, fully on-device (Vosk) &mdash; no account, no cloud. Say &ldquo;show eye&rdquo;, &ldquo;show dashboard&rdquo;, &ldquo;show time&rdquo; or &ldquo;show weather&rdquo; (you may prefix &ldquo;Magic Mirror&rdquo;). Requires hosting <b>vosk-model-small-en-us-0.15.tar.gz</b> in this repo.</div>
     </div>
 
     <div class="field">
@@ -919,42 +919,51 @@
     $("focus").classList.add("show");
   }
 
-  // ---------- voice control ("Magic Mirror" + command) ----------
-  var rec=null, recOn=false, lastCmdAt=0;
-  function stopVoice(){ recOn=false; if(rec){ try{ rec.onend=null; rec.stop(); }catch(e){} rec=null; } }
+  // ---------- voice control (Vosk, fully on-device, no account) ----------
+  var voskModel=null, voskRec=null, voskAC=null, voskProc=null, voskSink=null, voskStream=null, voskStarting=false, lastCmdAt=0;
+  var VOSK_MODEL_URL="vosk-model-small-en-us-0.15.tar.gz";
+  var VOSK_GRAMMAR=["magic mirror","show eye","show dashboard","show time","show weather","[unk]"];
+  function stopVoice(){
+    voskStarting=false;
+    try{ if(voskProc){ voskProc.onaudioprocess=null; voskProc.disconnect(); voskProc=null; } }catch(e){}
+    try{ if(voskSink){ voskSink.disconnect(); voskSink=null; } }catch(e){}
+    try{ if(voskAC){ voskAC.close(); voskAC=null; } }catch(e){}
+    try{ if(voskStream){ voskStream.getTracks().forEach(function(t){t.stop();}); voskStream=null; } }catch(e){}
+    voskRec=null;                                   // keep voskModel cached to avoid re-downloading
+  }
   function startVoice(){
     if(state.voice!=="on"){ stopVoice(); return; }
-    if(recOn) return;                                   // already listening
-    var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-    if(!SR) return;
-    rec=new SR();
-    rec.continuous=true; rec.interimResults=true; rec.lang="en-US";
-    recOn=true;
-    rec.onresult=function(e){
-      var txt="";
-      for(var i=e.resultIndex;i<e.results.length;i++){ txt+=e.results[i][0].transcript; }
-      handleVoice(txt.toLowerCase());
-    };
-    rec.onerror=function(){};
-    rec.onend=function(){ if(recOn){ try{ rec.start(); }catch(e){} } };   // auto-restart
-    try{ rec.start(); }catch(e){}
+    if(voskRec || voskStarting) return;
+    if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
+    voskStarting=true;
+    import("https://cdn.jsdelivr.net/npm/vosk-browser@0.0.8/+esm").then(function(mod){
+      var createModel = mod.createModel || (mod.default && mod.default.createModel);
+      if(!createModel){ voskStarting=false; return; }
+      return (voskModel ? Promise.resolve(voskModel) : createModel(VOSK_MODEL_URL)).then(function(model){
+        voskModel=model;
+        return navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true},video:false}).then(function(stream){
+          if(state.voice!=="on"){ stream.getTracks().forEach(function(t){t.stop();}); voskStarting=false; return; }
+          voskStream=stream;
+          voskAC=new (window.AudioContext||window.webkitAudioContext)();
+          voskRec=new model.KaldiRecognizer(voskAC.sampleRate, JSON.stringify(VOSK_GRAMMAR));
+          voskRec.on("result", function(msg){ if(msg && msg.result && msg.result.text) handleCmd(msg.result.text.toLowerCase()); });
+          var src=voskAC.createMediaStreamSource(stream);
+          voskProc=voskAC.createScriptProcessor(4096,1,1);
+          voskProc.onaudioprocess=function(ev){ try{ voskRec.acceptWaveform(ev.inputBuffer); }catch(e){} };
+          voskSink=voskAC.createGain(); voskSink.gain.value=0;     // run the processor without echoing mic to speakers
+          src.connect(voskProc); voskProc.connect(voskSink); voskSink.connect(voskAC.destination);
+          voskStarting=false;
+        });
+      });
+    }).catch(function(){ voskStarting=false; stopVoice(); });
   }
-  function handleVoice(t){
-    var idx=t.lastIndexOf("magic mirror");
-    if(idx<0) return;
-    var cmd=t.slice(idx);
-    var now=Date.now(); if(now-lastCmdAt<2500) return;  // debounce repeats
-    var act=null;
-    if(/\beye\b/.test(cmd)) act="eye";
-    else if(/dashboard|home|main/.test(cmd)) act="dash";
-    else if(/\btime\b|clock/.test(cmd)) act="time";
-    else if(/weather|temp/.test(cmd)) act="weather";
-    if(!act) return;
-    lastCmdAt=now;
-    if(act==="eye") showEye();
-    else if(act==="dash") showMirror();
-    else if(act==="time") showFocus("time");
-    else if(act==="weather") showFocus("weather");
+  function handleCmd(t){
+    if(t.indexOf("mirror")<0 && t.indexOf("show")<0) return;   // soft gate against stray words
+    var now=Date.now(); if(now-lastCmdAt<1500) return; lastCmdAt=now;
+    if(/\beye\b/.test(t)) showEye();
+    else if(/dashboard|home|main/.test(t)) showMirror();
+    else if(/\btime\b|clock/.test(t)) showFocus("time");
+    else if(/weather|temp/.test(t)) showFocus("weather");
   }
 
   // ---------- segmented controls ----------
@@ -1047,6 +1056,7 @@
   // ---------- boot ----------
   load(); fillForm();
   if(state.lat!=null){ showMirror(); } else { showSetup(); }
+  window.addEventListener("load", function(){ if(state.voice==="on" && $("mirror") && $("mirror").classList.contains("show")) startVoice(); });
 })();
 </script>
 
