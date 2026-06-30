@@ -850,5 +850,34 @@
   if(state.lat!=null){ showMirror(); } else { showSetup(); }
 })();
 </script>
+
+<!-- OLED burn-in drift: slow sub-pixel orbit on the whole layout. MODE 1 = circle, 2 = Lissajous. -->
+<style>
+  body { will-change: transform; }
+</style>
+<script>
+(function () {
+  var AMP = 8;     // max shift in px (try 6-12)
+  var MODE = 2;    // 1 = circular orbit, 2 = Lissajous drift (path never repeats)
+  var P  = 200;    // mode 1: seconds per full circle
+  var PX = 181;    // mode 2: X period (s)
+  var PY = 233;    // mode 2: Y period (s)
+  var TAU = 2 * Math.PI;
+  function frame(now){
+    var t = now / 1000, x, y;
+    if (MODE === 1){
+      var a = (t / P) * TAU;
+      x = Math.sin(a) * AMP; y = Math.cos(a) * AMP;
+    } else {
+      x = Math.sin((t / PX) * TAU) * AMP;
+      y = Math.sin((t / PY) * TAU) * AMP;
+    }
+    document.body.style.transform = "translate(" + x.toFixed(2) + "px," + y.toFixed(2) + "px)";
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+</script>
+
 </body>
 </html>
