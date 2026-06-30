@@ -268,12 +268,16 @@
 
     <div class="field">
       <span class="label">Business top image</span>
-      <input id="bizTop" class="input" placeholder="logo.png   (or https://…)" autocomplete="off">
+      <input id="bizTop" class="input" placeholder="paste a URL, or choose a file" autocomplete="off">
+      <input id="bizTopFile" type="file" accept="image/*" style="display:none">
+      <button class="start ghost" id="bizTopPick" type="button">Choose from device</button>
     </div>
 
     <div class="field">
       <span class="label">Business middle image (optional)</span>
-      <input id="bizMid" class="input" placeholder="banner.gif   (leave blank for none)" autocomplete="off">
+      <input id="bizMid" class="input" placeholder="paste a URL, or choose a file" autocomplete="off">
+      <input id="bizMidFile" type="file" accept="image/*" style="display:none">
+      <button class="start ghost" id="bizMidPick" type="button">Choose from device</button>
     </div>
 
     <div class="field">
@@ -920,13 +924,26 @@
   }
 
   // ---------- business mode (image banner + time/date + weather) ----------
-  var bizTimer=null;
+  var bizTimer=null, bizTopObj=null, bizMidObj=null;
+  function idbOpen(){ return new Promise(function(res,rej){ try{ var r=indexedDB.open("reflekt",1); r.onupgradeneeded=function(){ r.result.createObjectStore("kv"); }; r.onsuccess=function(){res(r.result);}; r.onerror=function(){rej(r.error);}; }catch(e){ rej(e); } }); }
+  function idbSet(k,v){ return idbOpen().then(function(db){ return new Promise(function(res,rej){ var tx=db.transaction("kv","readwrite"); tx.objectStore("kv").put(v,k); tx.oncomplete=function(){res();}; tx.onerror=function(){rej(tx.error);}; }); }); }
+  function idbGet(k){ return idbOpen().then(function(db){ return new Promise(function(res,rej){ var tx=db.transaction("kv","readonly"); var rq=tx.objectStore("kv").get(k); rq.onsuccess=function(){res(rq.result);}; rq.onerror=function(){rej(rq.error);}; }); }); }
+  function setBizImg(img, val, key, which){
+    if(val==="idb"){
+      idbGet(key).then(function(blob){
+        if(blob){ var u=URL.createObjectURL(blob);
+          if(which==="top"){ if(bizTopObj) URL.revokeObjectURL(bizTopObj); bizTopObj=u; } else { if(bizMidObj) URL.revokeObjectURL(bizMidObj); bizMidObj=u; }
+          img.src=u; img.style.display="block";
+        } else { img.removeAttribute("src"); img.style.display="none"; }
+      }).catch(function(){ img.style.display="none"; });
+    } else if(val){ if(img.getAttribute("src")!==val) img.src=val; img.style.display="block"; }
+    else { img.removeAttribute("src"); img.style.display="none"; }
+  }
   function stopBiz(){ $("biz").classList.remove("show"); clearInterval(bizTimer); bizTimer=null; }
   function startBiz(){
     if(state.biz!=="on"){ stopBiz(); return; }
-    var top=$("bizTopImg"), mid=$("bizMidImg");
-    if(state.bizTop){ if(top.getAttribute("src")!==state.bizTop) top.src=state.bizTop; top.style.display="block"; } else { top.removeAttribute("src"); top.style.display="none"; }
-    if(state.bizMid){ if(mid.getAttribute("src")!==state.bizMid) mid.src=state.bizMid; mid.style.display="block"; } else { mid.removeAttribute("src"); mid.style.display="none"; }
+    setBizImg($("bizTopImg"), state.bizTop, "bizTopBlob", "top");
+    setBizImg($("bizMidImg"), state.bizMid, "bizMidBlob", "mid");
     function paint(){
       $("bizTime").innerHTML = (($("mTime")||{}).innerHTML)||"";
       $("bizDate").textContent = (($("mDate")||{}).textContent)||"";
@@ -936,6 +953,14 @@
     paint();
     clearInterval(bizTimer); bizTimer=setInterval(paint,1000);
     $("biz").classList.add("show");
+  }
+  function bizPick(fileEl, key, urlEl, stateKey){
+    var f=fileEl.files && fileEl.files[0]; if(!f){ return; }
+    idbSet(key, f).then(function(){
+      state[stateKey]="idb"; if(urlEl) urlEl.value=""; save();
+      if($("mirror").classList.contains("show")) startBiz();
+    }).catch(function(){ alert("Couldn't store that image (too large or storage blocked)."); });
+    fileEl.value="";
   }
 
   // ---------- focus views (big time / weather) ----------
@@ -992,7 +1017,7 @@
   }
   function fillForm(){
     $("loc").value=state.loc; $("name").value=state.name;
-    $("busUrl").value=state.busUrl||""; $("busId").value=state.busId||""; $("bizTop").value=state.bizTop||""; $("bizMid").value=state.bizMid||"";
+    $("busUrl").value=state.busUrl||""; $("busId").value=state.busId||""; $("bizTop").value=(state.bizTop&&state.bizTop!=="idb")?state.bizTop:""; $("bizMid").value=(state.bizMid&&state.bizMid!=="idb")?state.bizMid:"";
     setSeg("unitSeg",state.unit); setSeg("clockSeg",state.clock);
     setSeg("langSeg",state.lang); setSeg("secSeg",state.seconds); setSeg("compSeg",state.comments);
     setSeg("awakeSeg",state.awake); setSeg("accentSw",state.accent); applyAccent();
@@ -1007,7 +1032,7 @@
     if(!navigator.geolocation){ st.className="status err"; st.textContent="This device can't share location \u2014 type a place instead."; return; }
     // capture other fields first so they aren't lost
     state.name=$("name").value.trim();
-    state.busUrl=$("busUrl").value.trim(); state.busId=$("busId").value.trim(); state.bizTop=$("bizTop").value.trim(); state.bizMid=$("bizMid").value.trim();
+    state.busUrl=$("busUrl").value.trim(); state.busId=$("busId").value.trim();
     navigator.geolocation.getCurrentPosition(function(pos){
       state.lat=pos.coords.latitude; state.lon=pos.coords.longitude; state.place="Current location"; state.loc="";
       $("loc").value="";
@@ -1023,7 +1048,7 @@
   $("startBtn").addEventListener("click",function(){
     var st=$("status"); st.className="status"; st.textContent="";
     state.name=$("name").value.trim();
-    state.busUrl=$("busUrl").value.trim(); state.busId=$("busId").value.trim(); state.bizTop=$("bizTop").value.trim(); state.bizMid=$("bizMid").value.trim();
+    state.busUrl=$("busUrl").value.trim(); state.busId=$("busId").value.trim();
     var loc=$("loc").value.trim();
     if(loc){
       st.textContent="Finding location\u2026";
@@ -1044,6 +1069,12 @@
   $("eyeBtn").addEventListener("click",function(){ save(); showEye(); });
   $("eyesaver").addEventListener("click",function(){ $("eyesaver").classList.remove("show"); showMirror(); });
   $("focus").addEventListener("click",showMirror);
+  $("bizTopPick").addEventListener("click",function(){ $("bizTopFile").click(); });
+  $("bizTopFile").addEventListener("change",function(){ bizPick($("bizTopFile"),"bizTopBlob",$("bizTop"),"bizTop"); });
+  $("bizMidPick").addEventListener("click",function(){ $("bizMidFile").click(); });
+  $("bizMidFile").addEventListener("change",function(){ bizPick($("bizMidFile"),"bizMidBlob",$("bizMid"),"bizMid"); });
+  $("bizTop").addEventListener("input",function(){ state.bizTop=$("bizTop").value.trim(); save(); });
+  $("bizMid").addEventListener("input",function(){ state.bizMid=$("bizMid").value.trim(); save(); });
 
   // ---------- boot ----------
   load(); fillForm();
