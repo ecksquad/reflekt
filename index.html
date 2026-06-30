@@ -284,6 +284,15 @@
     </div>
 
     <div class="field">
+      <span class="label">Voice control</span>
+      <div class="seg" id="voiceSeg">
+        <button data-v="off" class="on">Off</button>
+        <button data-v="on">On</button>
+      </div>
+      <div class="hint">Say &ldquo;Magic Mirror&rdquo; then: show eye, show dashboard, show time, show weather. Uses the microphone; speech is processed by the browser&rsquo;s cloud voice service, not on-device.</div>
+    </div>
+
+    <div class="field">
       <span class="label">Accent colour</span>
       <div class="swatches" id="accentSw">
         <button data-v="#e9c98a" style="--c:#e9c98a" class="on" aria-label="Gold"></button>
@@ -329,6 +338,7 @@
     </div>
 
     <button class="start" id="startBtn">Start mirror</button>
+    <button class="start ghost" id="eyeBtn">Eye screensaver</button>
     <div class="status" id="status"></div>
   </div>
 </div>
@@ -370,7 +380,7 @@
   // ---------- state + storage (storage is best-effort; falls back to memory) ----------
   var DEFAULTS = { loc:"", lat:null, lon:null, place:"", name:"",
     unit:"celsius", clock:"24", lang:"sv", seconds:"on", comments:"sv",
-    awake:"on", motion:"off", motionFor:"60", motionSens:"med", accent:"#e9c98a", bottomLeft:"bus", elzone:"SE3",
+    awake:"on", motion:"off", motionFor:"60", motionSens:"med", voice:"off", accent:"#e9c98a", bottomLeft:"bus", elzone:"SE3",
     busUrl:"https://still-wave-afbc.ecksquad.workers.dev", busId:"" };
   var state = Object.assign({}, DEFAULTS);
   var KEY = "mirror.config.v1";
@@ -831,23 +841,107 @@
   // ---------- view switching ----------
   var timer=null, wxTimer=null, busTimer=null;
   function showMirror(){
+    $("eyesaver").classList.remove("show");
+    unlockOrient();
     $("setup").classList.add("hidden");
     $("mirror").classList.add("show");
     if(PHONE) setVP(true);
     goFullscreen();
-    tick(); loadWeather(true); refreshBottomLeft(true); startComp(); keepAwake(); startMotion();
+    $("focus").classList.remove("show"); clearInterval(focusTimer); focusTimer=null;
+    tick(); loadWeather(true); refreshBottomLeft(true); startComp(); keepAwake(); startMotion(); startVoice();
     clearInterval(timer); timer=setInterval(tick,1000);
     clearInterval(wxTimer); wxTimer=setInterval(function(){loadWeather(false);},60*1000);
     clearInterval(busTimer); busTimer=setInterval(function(){refreshBottomLeft(false);},30*1000);
   }
   function showSetup(){
+    $("eyesaver").classList.remove("show");
+    unlockOrient();
     setVP(false);
     $("mirror").classList.remove("show");
     $("setup").classList.remove("hidden");
     clearInterval(timer); clearInterval(wxTimer); clearInterval(busTimer);
     clearInterval(compTimer); compTimer=null;
     if(wl){ try{wl.release();}catch(e){} wl=null; }
+    stopMotion(); stopVoice();
+    $("focus").classList.remove("show"); clearInterval(focusTimer); focusTimer=null;
+  }
+
+  function showEye(){
+    $("setup").classList.add("hidden");
+    $("mirror").classList.remove("show");
+    clearInterval(timer); clearInterval(wxTimer); clearInterval(busTimer);
+    clearInterval(compTimer); compTimer=null;
     stopMotion();
+    $("focus").classList.remove("show"); clearInterval(focusTimer); focusTimer=null;
+    $("eyesaver").classList.add("show");
+    setVP(false);                       // portrait, device width
+    var el=document.documentElement;
+    var rf=el.requestFullscreen||el.webkitRequestFullscreen||el.mozRequestFullScreen;
+    if(rf){ try{ var pr=rf.call(el); if(pr&&pr.then){ pr.then(lockPortrait,lockPortrait); } else { lockPortrait(); } }catch(e){ lockPortrait(); } }
+    else { lockPortrait(); }
+    keepAwake(); startVoice();
+  }
+  function lockPortrait(){
+    try{ if(screen.orientation && screen.orientation.lock){ var p=screen.orientation.lock("portrait"); if(p&&p.catch) p.catch(function(){}); } }catch(e){}
+  }
+  function unlockOrient(){
+    try{ if(screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); }catch(e){}
+  }
+
+  // ---------- focus views (big time / weather) ----------
+  var focusTimer=null;
+  function showFocus(kind){
+    showMirror();                       // keep data + timers live underneath
+    $("focus").setAttribute("data-kind",kind);
+    function paint(){
+      if(kind==="time"){
+        $("focusInner").innerHTML='<div class="f-time">'+((($("mTime")||{}).textContent)||"")+'</div>';
+      } else {
+        var t=(($("wxTemp")||{}).textContent)||"", c=(($("wxCond")||{}).textContent)||"";
+        $("focusInner").innerHTML='<div class="f-wx">'+t+'</div><div class="f-wxc">'+c+'</div>';
+      }
+    }
+    paint();
+    clearInterval(focusTimer); focusTimer=setInterval(paint,1000);
+    $("focus").classList.add("show");
+  }
+
+  // ---------- voice control ("Magic Mirror" + command) ----------
+  var rec=null, recOn=false, lastCmdAt=0;
+  function stopVoice(){ recOn=false; if(rec){ try{ rec.onend=null; rec.stop(); }catch(e){} rec=null; } }
+  function startVoice(){
+    if(state.voice!=="on"){ stopVoice(); return; }
+    if(recOn) return;                                   // already listening
+    var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+    if(!SR) return;
+    rec=new SR();
+    rec.continuous=true; rec.interimResults=true; rec.lang="en-US";
+    recOn=true;
+    rec.onresult=function(e){
+      var txt="";
+      for(var i=e.resultIndex;i<e.results.length;i++){ txt+=e.results[i][0].transcript; }
+      handleVoice(txt.toLowerCase());
+    };
+    rec.onerror=function(){};
+    rec.onend=function(){ if(recOn){ try{ rec.start(); }catch(e){} } };   // auto-restart
+    try{ rec.start(); }catch(e){}
+  }
+  function handleVoice(t){
+    var idx=t.lastIndexOf("magic mirror");
+    if(idx<0) return;
+    var cmd=t.slice(idx);
+    var now=Date.now(); if(now-lastCmdAt<2500) return;  // debounce repeats
+    var act=null;
+    if(/\beye\b/.test(cmd)) act="eye";
+    else if(/dashboard|home|main/.test(cmd)) act="dash";
+    else if(/\btime\b|clock/.test(cmd)) act="time";
+    else if(/weather|temp/.test(cmd)) act="weather";
+    if(!act) return;
+    lastCmdAt=now;
+    if(act==="eye") showEye();
+    else if(act==="dash") showMirror();
+    else if(act==="time") showFocus("time");
+    else if(act==="weather") showFocus("weather");
   }
 
   // ---------- segmented controls ----------
@@ -861,7 +955,7 @@
   }
   seg("unitSeg","unit"); seg("clockSeg","clock"); seg("langSeg","lang"); seg("secSeg","seconds"); seg("compSeg","comments"); seg("awakeSeg","awake");
   seg("blSeg","bottomLeft"); seg("zoneSeg","elzone");
-  seg("motionSeg","motion"); seg("motionTimeoutSeg","motionFor"); seg("motionSensSeg","motionSens");
+  seg("motionSeg","motion"); seg("motionTimeoutSeg","motionFor"); seg("motionSensSeg","motionSens"); seg("voiceSeg","voice");
 
   function updateZoneVis(){ $("zoneField").style.display = state.bottomLeft==="elpris" ? "block" : "none"; }
   $("blSeg").addEventListener("click", updateZoneVis);
@@ -889,7 +983,7 @@
     setSeg("langSeg",state.lang); setSeg("secSeg",state.seconds); setSeg("compSeg",state.comments);
     setSeg("awakeSeg",state.awake); setSeg("accentSw",state.accent); applyAccent();
     setSeg("blSeg",state.bottomLeft); setSeg("zoneSeg",state.elzone); updateZoneVis();
-    setSeg("motionSeg",state.motion); setSeg("motionTimeoutSeg",state.motionFor); setSeg("motionSensSeg",state.motionSens);
+    setSeg("motionSeg",state.motion); setSeg("motionTimeoutSeg",state.motionFor); setSeg("motionSensSeg",state.motionSens); setSeg("voiceSeg",state.voice);
     if(state.busId){ $("advToggle").classList.add("open"); $("adv").classList.add("open"); }
   }
 
@@ -933,6 +1027,9 @@
     }
   });
   $("gear").addEventListener("click",showSetup);
+  $("eyeBtn").addEventListener("click",function(){ save(); showEye(); });
+  $("eyesaver").addEventListener("click",function(){ $("eyesaver").classList.remove("show"); showMirror(); });
+  $("focus").addEventListener("click",showMirror);
 
   // ---------- boot ----------
   load(); fillForm();
@@ -945,8 +1042,20 @@
   body { will-change: transform; }
   #sleepveil{position:fixed;inset:-24px;background:#000;z-index:9999;opacity:0;pointer-events:none;transition:opacity 1.2s ease}
   #sleepveil.on{opacity:1}
+  #eyesaver{position:fixed;inset:0;background:#000;z-index:9000;display:none;align-items:center;justify-content:center;overflow:hidden}
+  #eyesaver.show{display:flex}
+  #eyesaver img{max-width:100%;max-height:100%;object-fit:contain;transform:scale(2);filter:contrast(1.4) brightness(1.15)}
+  .start.ghost{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.35);margin-top:8px}
+  .start.ghost:active{opacity:.7}
+  #focus{position:fixed;inset:0;background:#000;z-index:8000;display:none;align-items:center;justify-content:center;text-align:center;flex-direction:column}
+  #focus.show{display:flex}
+  #focus .f-time{font-family:'Roboto',sans-serif;font-weight:200;font-size:32vw;line-height:1;color:#fff}
+  #focus .f-wx{font-family:'Roboto',sans-serif;font-weight:200;font-size:30vw;line-height:1;color:#fff}
+  #focus .f-wxc{font-family:'Roboto Condensed',sans-serif;font-size:6vw;color:#fff;opacity:.85;margin-top:2vh;text-transform:capitalize}
 </style>
 <div id="sleepveil"></div>
+<div id="focus"><div id="focusInner"></div></div>
+<div id="eyesaver"><img src="https://media4.giphy.com/media/v1.Y2lkPTZjMDliOTUyeTloMmF1Y2hicDQyeDlpcHh0b2J5Y3FwMW1jem9heGJvemIyeDZobyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3ohs4CacylzFaHjMM8/giphy.gif" alt="Eye"></div>
 <script>
 (function () {
   var AMP = 8;     // max shift in px (try 6-12)
