@@ -184,6 +184,14 @@
 <div id="sleepveil"></div>
 <div id="focus"><div id="focusInner"></div></div>
 <div id="eyesaver"><img src="https://media4.giphy.com/media/v1.Y2lkPTZjMDliOTUyeTloMmF1Y2hicDQyeDlpcHh0b2J5Y3FwMW1jem9heGJvemIyeDZobyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3ohs4CacylzFaHjMM8/giphy.gif" alt="Eye"></div>
+<div id="biz">
+  <img id="bizTopImg" class="biz-img" alt="">
+  <div class="biz-middle"><img id="bizMidImg" class="biz-img" alt=""></div>
+  <div class="biz-foot">
+    <div class="biz-foot-l"><div id="bizTime" class="biz-time"></div><div id="bizDate" class="biz-date"></div></div>
+    <div id="bizWx" class="biz-wx"></div>
+  </div>
+</div>
 
 <div id="setup">
   <div class="card">
@@ -250,6 +258,25 @@
     </div>
 
     <div class="field">
+      <span class="label">Business mode</span>
+      <div class="seg" id="bizSeg">
+        <button data-v="off" class="on">Off</button>
+        <button data-v="on">On</button>
+      </div>
+      <div class="hint">Full-width image on top, an optional full-width image in the middle, and time/date (left) with weather (right) along the bottom. Host images in this repo or paste a URL.</div>
+    </div>
+
+    <div class="field">
+      <span class="label">Business top image</span>
+      <input id="bizTop" class="input" placeholder="logo.png   (or https://…)" autocomplete="off">
+    </div>
+
+    <div class="field">
+      <span class="label">Business middle image (optional)</span>
+      <input id="bizMid" class="input" placeholder="banner.gif   (leave blank for none)" autocomplete="off">
+    </div>
+
+    <div class="field">
       <span class="label">Keep screen on</span>
       <div class="seg" id="awakeSeg">
         <button data-v="on" class="on">On</button>
@@ -286,15 +313,6 @@
         <button data-v="max">Max</button>
       </div>
       <div class="hint">How much movement wakes the screen. High trips easily; Low needs bigger movement.</div>
-    </div>
-
-    <div class="field">
-      <span class="label">Voice control</span>
-      <div class="seg" id="voiceSeg">
-        <button data-v="off" class="on">Off</button>
-        <button data-v="on">On</button>
-      </div>
-      <div class="hint">Hands-free, fully on-device (Vosk) &mdash; no account, no cloud. Say &ldquo;show eye&rdquo;, &ldquo;show dashboard&rdquo;, &ldquo;show time&rdquo; or &ldquo;show weather&rdquo; (you may prefix &ldquo;Magic Mirror&rdquo;). Requires hosting <b>vosk-model-small-en-us-0.15.tar.gz</b> in this repo.</div>
     </div>
 
     <div class="field">
@@ -385,7 +403,7 @@
   // ---------- state + storage (storage is best-effort; falls back to memory) ----------
   var DEFAULTS = { loc:"", lat:null, lon:null, place:"", name:"",
     unit:"celsius", clock:"24", lang:"sv", seconds:"on", comments:"sv",
-    awake:"on", motion:"off", motionFor:"60", motionSens:"med", voice:"off", accent:"#e9c98a", bottomLeft:"bus", elzone:"SE3",
+    awake:"on", motion:"off", motionFor:"60", motionSens:"med", biz:"off", bizTop:"", bizMid:"", accent:"#e9c98a", bottomLeft:"bus", elzone:"SE3",
     busUrl:"https://still-wave-afbc.ecksquad.workers.dev", busId:"" };
   var state = Object.assign({}, DEFAULTS);
   var KEY = "mirror.config.v1";
@@ -861,7 +879,7 @@
     if(PHONE) setVP(true);
     goFullscreen();
     $("focus").classList.remove("show"); clearInterval(focusTimer); focusTimer=null;
-    tick(); loadWeather(true); refreshBottomLeft(true); startComp(); keepAwake(); startMotion(); startVoice();
+    tick(); loadWeather(true); refreshBottomLeft(true); startComp(); keepAwake(); startMotion(); startBiz();
     clearInterval(timer); timer=setInterval(tick,1000);
     clearInterval(wxTimer); wxTimer=setInterval(function(){loadWeather(false);},60*1000);
     clearInterval(busTimer); busTimer=setInterval(function(){refreshBottomLeft(false);},30*1000);
@@ -875,7 +893,7 @@
     clearInterval(timer); clearInterval(wxTimer); clearInterval(busTimer);
     clearInterval(compTimer); compTimer=null;
     if(wl){ try{wl.release();}catch(e){} wl=null; }
-    stopMotion(); stopVoice();
+    stopMotion(); stopBiz();
     $("focus").classList.remove("show"); clearInterval(focusTimer); focusTimer=null;
   }
 
@@ -892,13 +910,32 @@
     var rf=el.requestFullscreen||el.webkitRequestFullscreen||el.mozRequestFullScreen;
     if(rf){ try{ var pr=rf.call(el); if(pr&&pr.then){ pr.then(lockPortrait,lockPortrait); } else { lockPortrait(); } }catch(e){ lockPortrait(); } }
     else { lockPortrait(); }
-    keepAwake(); startVoice();
+    keepAwake();
   }
   function lockPortrait(){
     try{ if(screen.orientation && screen.orientation.lock){ var p=screen.orientation.lock("portrait"); if(p&&p.catch) p.catch(function(){}); } }catch(e){}
   }
   function unlockOrient(){
     try{ if(screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); }catch(e){}
+  }
+
+  // ---------- business mode (image banner + time/date + weather) ----------
+  var bizTimer=null;
+  function stopBiz(){ $("biz").classList.remove("show"); clearInterval(bizTimer); bizTimer=null; }
+  function startBiz(){
+    if(state.biz!=="on"){ stopBiz(); return; }
+    var top=$("bizTopImg"), mid=$("bizMidImg");
+    if(state.bizTop){ if(top.getAttribute("src")!==state.bizTop) top.src=state.bizTop; top.style.display="block"; } else { top.removeAttribute("src"); top.style.display="none"; }
+    if(state.bizMid){ if(mid.getAttribute("src")!==state.bizMid) mid.src=state.bizMid; mid.style.display="block"; } else { mid.removeAttribute("src"); mid.style.display="none"; }
+    function paint(){
+      $("bizTime").innerHTML = (($("mTime")||{}).innerHTML)||"";
+      $("bizDate").textContent = (($("mDate")||{}).textContent)||"";
+      var temp=(($("wxTemp")||{}).innerHTML)||"", cond=(($("wxCond")||{}).textContent)||"";
+      $("bizWx").innerHTML = temp + (cond?'<span class="biz-wxc">'+cond+'</span>':"");
+    }
+    paint();
+    clearInterval(bizTimer); bizTimer=setInterval(paint,1000);
+    $("biz").classList.add("show");
   }
 
   // ---------- focus views (big time / weather) ----------
@@ -919,52 +956,7 @@
     $("focus").classList.add("show");
   }
 
-  // ---------- voice control (Vosk, fully on-device, no account) ----------
-  var voskModel=null, voskRec=null, voskAC=null, voskProc=null, voskSink=null, voskStream=null, voskStarting=false, lastCmdAt=0;
-  var VOSK_MODEL_URL="vosk-model-small-en-us-0.15.tar.gz";
-  var VOSK_GRAMMAR=["magic mirror","show eye","show dashboard","show time","show weather","[unk]"];
-  function stopVoice(){
-    voskStarting=false;
-    try{ if(voskProc){ voskProc.onaudioprocess=null; voskProc.disconnect(); voskProc=null; } }catch(e){}
-    try{ if(voskSink){ voskSink.disconnect(); voskSink=null; } }catch(e){}
-    try{ if(voskAC){ voskAC.close(); voskAC=null; } }catch(e){}
-    try{ if(voskStream){ voskStream.getTracks().forEach(function(t){t.stop();}); voskStream=null; } }catch(e){}
-    voskRec=null;                                   // keep voskModel cached to avoid re-downloading
-  }
-  function startVoice(){
-    if(state.voice!=="on"){ stopVoice(); return; }
-    if(voskRec || voskStarting) return;
-    if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
-    voskStarting=true;
-    import("https://cdn.jsdelivr.net/npm/vosk-browser@0.0.8/+esm").then(function(mod){
-      var createModel = mod.createModel || (mod.default && mod.default.createModel);
-      if(!createModel){ voskStarting=false; return; }
-      return (voskModel ? Promise.resolve(voskModel) : createModel(VOSK_MODEL_URL)).then(function(model){
-        voskModel=model;
-        return navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true},video:false}).then(function(stream){
-          if(state.voice!=="on"){ stream.getTracks().forEach(function(t){t.stop();}); voskStarting=false; return; }
-          voskStream=stream;
-          voskAC=new (window.AudioContext||window.webkitAudioContext)();
-          voskRec=new model.KaldiRecognizer(voskAC.sampleRate, JSON.stringify(VOSK_GRAMMAR));
-          voskRec.on("result", function(msg){ if(msg && msg.result && msg.result.text) handleCmd(msg.result.text.toLowerCase()); });
-          var src=voskAC.createMediaStreamSource(stream);
-          voskProc=voskAC.createScriptProcessor(4096,1,1);
-          voskProc.onaudioprocess=function(ev){ try{ voskRec.acceptWaveform(ev.inputBuffer); }catch(e){} };
-          voskSink=voskAC.createGain(); voskSink.gain.value=0;     // run the processor without echoing mic to speakers
-          src.connect(voskProc); voskProc.connect(voskSink); voskSink.connect(voskAC.destination);
-          voskStarting=false;
-        });
-      });
-    }).catch(function(){ voskStarting=false; stopVoice(); });
-  }
-  function handleCmd(t){
-    if(t.indexOf("mirror")<0 && t.indexOf("show")<0) return;   // soft gate against stray words
-    var now=Date.now(); if(now-lastCmdAt<1500) return; lastCmdAt=now;
-    if(/\beye\b/.test(t)) showEye();
-    else if(/dashboard|home|main/.test(t)) showMirror();
-    else if(/\btime\b|clock/.test(t)) showFocus("time");
-    else if(/weather|temp/.test(t)) showFocus("weather");
-  }
+
 
   // ---------- segmented controls ----------
   function seg(id, prop){
@@ -977,7 +969,7 @@
   }
   seg("unitSeg","unit"); seg("clockSeg","clock"); seg("langSeg","lang"); seg("secSeg","seconds"); seg("compSeg","comments"); seg("awakeSeg","awake");
   seg("blSeg","bottomLeft"); seg("zoneSeg","elzone");
-  seg("motionSeg","motion"); seg("motionTimeoutSeg","motionFor"); seg("motionSensSeg","motionSens"); seg("voiceSeg","voice");
+  seg("motionSeg","motion"); seg("motionTimeoutSeg","motionFor"); seg("motionSensSeg","motionSens"); seg("bizSeg","biz");
 
   function updateZoneVis(){ $("zoneField").style.display = state.bottomLeft==="elpris" ? "block" : "none"; }
   $("blSeg").addEventListener("click", updateZoneVis);
@@ -1000,12 +992,12 @@
   }
   function fillForm(){
     $("loc").value=state.loc; $("name").value=state.name;
-    $("busUrl").value=state.busUrl||""; $("busId").value=state.busId||"";
+    $("busUrl").value=state.busUrl||""; $("busId").value=state.busId||""; $("bizTop").value=state.bizTop||""; $("bizMid").value=state.bizMid||"";
     setSeg("unitSeg",state.unit); setSeg("clockSeg",state.clock);
     setSeg("langSeg",state.lang); setSeg("secSeg",state.seconds); setSeg("compSeg",state.comments);
     setSeg("awakeSeg",state.awake); setSeg("accentSw",state.accent); applyAccent();
     setSeg("blSeg",state.bottomLeft); setSeg("zoneSeg",state.elzone); updateZoneVis();
-    setSeg("motionSeg",state.motion); setSeg("motionTimeoutSeg",state.motionFor); setSeg("motionSensSeg",state.motionSens); setSeg("voiceSeg",state.voice);
+    setSeg("motionSeg",state.motion); setSeg("motionTimeoutSeg",state.motionFor); setSeg("motionSensSeg",state.motionSens); setSeg("bizSeg",state.biz);
     if(state.busId){ $("advToggle").classList.add("open"); $("adv").classList.add("open"); }
   }
 
@@ -1015,7 +1007,7 @@
     if(!navigator.geolocation){ st.className="status err"; st.textContent="This device can't share location \u2014 type a place instead."; return; }
     // capture other fields first so they aren't lost
     state.name=$("name").value.trim();
-    state.busUrl=$("busUrl").value.trim(); state.busId=$("busId").value.trim();
+    state.busUrl=$("busUrl").value.trim(); state.busId=$("busId").value.trim(); state.bizTop=$("bizTop").value.trim(); state.bizMid=$("bizMid").value.trim();
     navigator.geolocation.getCurrentPosition(function(pos){
       state.lat=pos.coords.latitude; state.lon=pos.coords.longitude; state.place="Current location"; state.loc="";
       $("loc").value="";
@@ -1031,7 +1023,7 @@
   $("startBtn").addEventListener("click",function(){
     var st=$("status"); st.className="status"; st.textContent="";
     state.name=$("name").value.trim();
-    state.busUrl=$("busUrl").value.trim(); state.busId=$("busId").value.trim();
+    state.busUrl=$("busUrl").value.trim(); state.busId=$("busId").value.trim(); state.bizTop=$("bizTop").value.trim(); state.bizMid=$("bizMid").value.trim();
     var loc=$("loc").value.trim();
     if(loc){
       st.textContent="Finding location\u2026";
@@ -1056,7 +1048,6 @@
   // ---------- boot ----------
   load(); fillForm();
   if(state.lat!=null){ showMirror(); } else { showSetup(); }
-  window.addEventListener("load", function(){ if(state.voice==="on" && $("mirror") && $("mirror").classList.contains("show")) startVoice(); });
 })();
 </script>
 
@@ -1075,6 +1066,15 @@
   #focus .f-time{font-family:'Roboto',sans-serif;font-weight:200;font-size:32vw;line-height:1;color:#fff}
   #focus .f-wx{font-family:'Roboto',sans-serif;font-weight:200;font-size:30vw;line-height:1;color:#fff}
   #focus .f-wxc{font-family:'Roboto Condensed',sans-serif;font-size:6vw;color:#fff;opacity:.85;margin-top:2vh;text-transform:capitalize}
+  #biz{position:fixed;inset:0;background:var(--bg);z-index:7000;display:none;flex-direction:column;padding:clamp(14px,3vw,34px);box-sizing:border-box}
+  #biz.show{display:flex}
+  #biz .biz-img{width:100%;height:auto;display:block}
+  #biz .biz-middle{flex:1 1 auto;display:flex;align-items:center;justify-content:center;min-height:0}
+  #biz .biz-foot{flex:0 0 auto;display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-top:18px}
+  #biz .biz-time{font-family:var(--label);font-weight:300;line-height:1;color:var(--bright);font-size:clamp(40px,9vw,104px)}
+  #biz .biz-date{font-family:var(--label);text-transform:uppercase;letter-spacing:.14em;color:var(--faint);margin-top:8px;font-size:clamp(12px,2.6vw,20px)}
+  #biz .biz-wx{font-family:var(--label);font-weight:300;line-height:1;color:var(--bright);text-align:right;font-size:clamp(34px,7.5vw,84px)}
+  #biz .biz-wx .biz-wxc{display:block;font-size:clamp(11px,2.2vw,16px);color:var(--faint);letter-spacing:.12em;text-transform:uppercase;margin-top:6px}
 </style>
 <script>
 (function () {
