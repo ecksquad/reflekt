@@ -253,6 +253,36 @@
     </div>
 
     <div class="field">
+      <span class="label">Motion wake</span>
+      <div class="seg" id="motionSeg">
+        <button data-v="off" class="on">Off</button>
+        <button data-v="on">On</button>
+      </div>
+      <div class="hint">Uses the front camera to detect movement and wake the screen; it sleeps to black when no one is around. Frames are processed on-device and never stored or sent anywhere.</div>
+    </div>
+
+    <div class="field">
+      <span class="label">Stay awake for</span>
+      <div class="seg" id="motionTimeoutSeg">
+        <button data-v="30">30s</button>
+        <button data-v="60" class="on">1 min</button>
+        <button data-v="180">3 min</button>
+        <button data-v="300">5 min</button>
+      </div>
+      <div class="hint">How long the screen stays on after the last movement.</div>
+    </div>
+
+    <div class="field">
+      <span class="label">Motion sensitivity</span>
+      <div class="seg" id="motionSensSeg">
+        <button data-v="low">Low</button>
+        <button data-v="med" class="on">Medium</button>
+        <button data-v="high">High</button>
+      </div>
+      <div class="hint">How much movement wakes the screen. High trips easily; Low needs bigger movement.</div>
+    </div>
+
+    <div class="field">
       <span class="label">Accent colour</span>
       <div class="swatches" id="accentSw">
         <button data-v="#e9c98a" style="--c:#e9c98a" class="on" aria-label="Gold"></button>
@@ -339,7 +369,7 @@
   // ---------- state + storage (storage is best-effort; falls back to memory) ----------
   var DEFAULTS = { loc:"", lat:null, lon:null, place:"", name:"",
     unit:"celsius", clock:"24", lang:"sv", seconds:"on", comments:"sv",
-    awake:"on", accent:"#e9c98a", bottomLeft:"bus", elzone:"SE3",
+    awake:"on", motion:"off", motionFor:"60", motionSens:"med", accent:"#e9c98a", bottomLeft:"bus", elzone:"SE3",
     busUrl:"https://still-wave-afbc.ecksquad.workers.dev", busId:"" };
   var state = Object.assign({}, DEFAULTS);
   var KEY = "mirror.config.v1";
@@ -510,16 +540,19 @@
     var GREEN="#4cc15a", AMBER="#f4a92b", RED="#c93a2e", MAX=3, T1=0.8, T2=1.3;
     var VAL = d.price;
     var cx=110, cy=118, r=90, w=16;
-    var DIM=0.16;                                  // inactive zones faint -> red rarely fully lit
     function pol(rr,deg){ var a=deg*Math.PI/180; return [cx+rr*Math.cos(a), cy-rr*Math.sin(a)]; }
     function ang(v){ return 180*(1 - Math.max(0,Math.min(MAX,v))/MAX); }   // 0->180deg(left), MAX->0deg(right)
     function arc(a1,a2,col,op){ var p1=pol(r,a1), p2=pol(r,a2), large=(a1-a2)>180?1:0;
       return '<path d="M'+p1[0].toFixed(2)+' '+p1[1].toFixed(2)+' A'+r+' '+r+' 0 '+large+' 1 '+p2[0].toFixed(2)+' '+p2[1].toFixed(2)+'" fill="none" stroke="'+col+'" stroke-opacity="'+op+'" stroke-width="'+w+'"/>'; }
     function zone(v){ return v<T1?GREEN:v<T2?AMBER:RED; }
-    var az = VAL<T1?0 : VAL<T2?1 : 2;              // active zone index
-    var s = arc(180,ang(T1),GREEN, az===0?1:DIM)
-          + arc(ang(T1),ang(T2),AMBER, az===1?1:DIM)
-          + arc(ang(T2),0,RED, az===2?1:DIM);
+    var TRACK=0.22;                                // faint reference track; no zone ever fully lit
+    var s = arc(180,ang(T1),GREEN,TRACK)
+          + arc(ang(T1),ang(T2),AMBER,TRACK)
+          + arc(ang(T2),0,RED,TRACK);
+    // short bright highlight riding the current value (moves with price, so nothing stays lit)
+    var hcol=zone(VAL), hna=ang(VAL), hw=9;
+    var h1=Math.min(180,hna+hw), h2=Math.max(0,hna-hw);
+    s += arc(h1,h2,hcol,1);
     // tick marks every 0.5
     for(var v=0; v<=MAX+0.001; v+=0.5){
       var ta=ang(v), o1=pol(r-w/2-3,ta), o2=pol(r-w/2-9,ta);
@@ -589,6 +622,53 @@
   document.addEventListener("visibilitychange",function(){
     if(document.visibilityState==="visible" && $("mirror").classList.contains("show")) keepAwake();
   });
+
+  // ---------- motion-gated display (camera presence -> wake; idle -> true black) ----------
+  var mStream=null, mRAF=null, mTimer=null, mPrev=null, mCv=null, mCtx=null, mVid=null;
+  function setSleep(on){ var v=$("sleepveil"); if(v) v.classList.toggle("on", on); }
+  function wakeScreen(){
+    setSleep(false);
+    clearTimeout(mTimer);
+    var ms=(parseInt(state.motionFor,10)||60)*1000;
+    mTimer=setTimeout(function(){ setSleep(true); }, ms);
+  }
+  function stopMotion(){
+    if(mRAF){ cancelAnimationFrame(mRAF); mRAF=null; }
+    clearTimeout(mTimer); mTimer=null;
+    if(mStream){ mStream.getTracks().forEach(function(t){t.stop();}); mStream=null; }
+    mPrev=null; setSleep(false);
+  }
+  function startMotion(){
+    stopMotion();
+    if(state.motion!=="on") return;
+    if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
+    navigator.mediaDevices.getUserMedia({video:{facingMode:"user"},audio:false}).then(function(stream){
+      mStream=stream;
+      mVid=document.createElement("video"); mVid.muted=true; mVid.playsInline=true;
+      mVid.srcObject=stream; mVid.play().catch(function(){});
+      mCv=document.createElement("canvas"); mCv.width=64; mCv.height=48;
+      mCtx=mCv.getContext("2d",{willReadFrequently:true});
+      wakeScreen();
+      var THRESH = state.motionSens==="high" ? 6 : state.motionSens==="low" ? 22 : 12;
+      var last=0;
+      function loop(ts){
+        mRAF=requestAnimationFrame(loop);
+        if(ts-last<200) return; last=ts;                 // ~5 fps
+        if(mVid.readyState<2) return;
+        var cur;
+        try{ mCtx.drawImage(mVid,0,0,64,48); cur=mCtx.getImageData(0,0,64,48).data; }catch(e){ return; }
+        if(mPrev){
+          var changed=0;
+          for(var i=0;i<cur.length;i+=16){ if(Math.abs(cur[i]-mPrev[i])>24) changed++; }
+          if(changed>THRESH) wakeScreen();               // movement detected
+        }
+        mPrev=cur;
+      }
+      mRAF=requestAnimationFrame(loop);
+    }).catch(function(){ setSleep(false); });             // denied / no camera -> never sleep
+  }
+  // a tap anywhere also wakes the screen
+  document.addEventListener("pointerdown",function(){ if(state.motion==="on") wakeScreen(); });
 
   function applyAccent(){ document.documentElement.style.setProperty("--accent", state.accent || "#e9c98a"); }
 
@@ -753,7 +833,7 @@
     $("mirror").classList.add("show");
     if(PHONE) setVP(true);
     goFullscreen();
-    tick(); loadWeather(true); refreshBottomLeft(true); startComp(); keepAwake();
+    tick(); loadWeather(true); refreshBottomLeft(true); startComp(); keepAwake(); startMotion();
     clearInterval(timer); timer=setInterval(tick,1000);
     clearInterval(wxTimer); wxTimer=setInterval(function(){loadWeather(false);},60*1000);
     clearInterval(busTimer); busTimer=setInterval(function(){refreshBottomLeft(false);},30*1000);
@@ -765,6 +845,7 @@
     clearInterval(timer); clearInterval(wxTimer); clearInterval(busTimer);
     clearInterval(compTimer); compTimer=null;
     if(wl){ try{wl.release();}catch(e){} wl=null; }
+    stopMotion();
   }
 
   // ---------- segmented controls ----------
@@ -778,6 +859,7 @@
   }
   seg("unitSeg","unit"); seg("clockSeg","clock"); seg("langSeg","lang"); seg("secSeg","seconds"); seg("compSeg","comments"); seg("awakeSeg","awake");
   seg("blSeg","bottomLeft"); seg("zoneSeg","elzone");
+  seg("motionSeg","motion"); seg("motionTimeoutSeg","motionFor"); seg("motionSensSeg","motionSens");
 
   function updateZoneVis(){ $("zoneField").style.display = state.bottomLeft==="elpris" ? "block" : "none"; }
   $("blSeg").addEventListener("click", updateZoneVis);
@@ -805,6 +887,7 @@
     setSeg("langSeg",state.lang); setSeg("secSeg",state.seconds); setSeg("compSeg",state.comments);
     setSeg("awakeSeg",state.awake); setSeg("accentSw",state.accent); applyAccent();
     setSeg("blSeg",state.bottomLeft); setSeg("zoneSeg",state.elzone); updateZoneVis();
+    setSeg("motionSeg",state.motion); setSeg("motionTimeoutSeg",state.motionFor); setSeg("motionSensSeg",state.motionSens);
     if(state.busId){ $("advToggle").classList.add("open"); $("adv").classList.add("open"); }
   }
 
@@ -858,7 +941,10 @@
 <!-- OLED burn-in drift: slow sub-pixel orbit on the whole layout. MODE 1 = circle, 2 = Lissajous. -->
 <style>
   body { will-change: transform; }
+  #sleepveil{position:fixed;inset:-24px;background:#000;z-index:9999;opacity:0;pointer-events:none;transition:opacity 1.2s ease}
+  #sleepveil.on{opacity:1}
 </style>
+<div id="sleepveil"></div>
 <script>
 (function () {
   var AMP = 8;     // max shift in px (try 6-12)
