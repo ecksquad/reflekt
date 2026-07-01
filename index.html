@@ -8,6 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#000000">
 <link rel="manifest" href='data:application/manifest+json,{"name":"Mirror","short_name":"Mirror","display":"fullscreen","orientation":"any","background_color":"%23000000","theme_color":"%23000000","start_url":"."}'>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <title>Mirror</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -191,6 +192,7 @@
     <div class="biz-foot-l"><div id="bizTime" class="biz-time"></div><div id="bizDate" class="biz-date"></div></div>
     <div id="bizWx" class="biz-wx"></div>
   </div>
+  <div id="bizPdf"><canvas id="bizPdfCanvas"></canvas></div>
   <button class="gear" id="bizGear" title="Settings">&#9881;</button>
 </div>
 
@@ -200,6 +202,14 @@
     <div class="tagline">Set up your display</div>
 
     <div class="field">
+      <span class="label">Mode</span>
+      <div class="seg" id="modeSeg">
+        <button data-v="off" class="on">Home</button>
+        <button data-v="on">Business</button>
+      </div>
+    </div>
+
+    <div class="field opt-home">
       <span class="label">Location</span>
       <button class="useloc" id="useLoc"><span class="x">&#9678;</span> Use my location</button>
       <div class="or">or enter a place</div>
@@ -207,12 +217,12 @@
       <div class="hint" id="locHint">Used for weather only.</div>
     </div>
 
-    <div class="field">
+    <div class="field opt-home">
       <span class="label">Name (optional)</span>
       <input id="name" class="input" placeholder="Cameron" autocomplete="off">
     </div>
 
-    <div class="row">
+    <div class="row opt-home">
       <div class="field">
         <span class="label">Units</span>
         <div class="seg" id="unitSeg">
@@ -229,7 +239,7 @@
       </div>
     </div>
 
-    <div class="row">
+    <div class="row opt-home">
       <div class="field">
         <span class="label">Language</span>
         <div class="seg" id="langSeg">
@@ -246,7 +256,7 @@
       </div>
     </div>
 
-    <div class="field">
+    <div class="field opt-home">
       <span class="label">Centre display</span>
       <div class="seg" id="compSeg">
         <button data-v="off">Off</button>
@@ -258,27 +268,26 @@
       <div class="hint">Rotating one-liners in Swedish or English, a colourful emoji, or the eye.</div>
     </div>
 
-    <div class="field">
-      <span class="label">Business mode</span>
-      <div class="seg" id="bizSeg">
-        <button data-v="off" class="on">Off</button>
-        <button data-v="on">On</button>
-      </div>
-      <div class="hint">Full-width image on top, an optional full-width image in the middle, and time/date (left) with weather (right) along the bottom. Host images in this repo or paste a URL.</div>
-    </div>
-
-    <div class="field">
+    <div class="field opt-biz">
       <span class="label">Business top image</span>
       <input id="bizTop" class="input" placeholder="paste a URL, or choose a file" autocomplete="off">
       <input id="bizTopFile" type="file" accept="image/*" style="display:none">
       <button class="start ghost" id="bizTopPick" type="button">Choose from device</button>
     </div>
 
-    <div class="field">
+    <div class="field opt-biz">
       <span class="label">Business middle image (optional)</span>
       <input id="bizMid" class="input" placeholder="paste a URL, or choose a file" autocomplete="off">
       <input id="bizMidFile" type="file" accept="image/*" style="display:none">
       <button class="start ghost" id="bizMidPick" type="button">Choose from device</button>
+    </div>
+
+    <div class="field opt-biz">
+      <span class="label">Business PDF (full screen, optional)</span>
+      <input id="bizPdfFile" type="file" accept="application/pdf" style="display:none">
+      <button class="start ghost" id="bizPdfPick" type="button">Choose PDF from device</button>
+      <button class="start ghost" id="bizPdfClear" type="button">Clear PDF</button>
+      <div class="hint">If set, the business screen shows this PDF full-screen instead of the images.</div>
     </div>
 
     <div class="field">
@@ -320,7 +329,7 @@
       <div class="hint">How much movement wakes the screen. High trips easily; Low needs bigger movement.</div>
     </div>
 
-    <div class="field">
+    <div class="field opt-home">
       <span class="label">Accent colour</span>
       <div class="swatches" id="accentSw">
         <button data-v="#e9c98a" style="--c:#e9c98a" class="on" aria-label="Gold"></button>
@@ -332,7 +341,7 @@
       <div class="hint">Colours the date, labels and details. The clock stays white for brightness behind glass.</div>
     </div>
 
-    <div class="field">
+    <div class="field opt-home">
       <span class="label">Bottom-left panel</span>
       <div class="seg" id="blSeg">
         <button data-v="off">Off</button>
@@ -341,7 +350,7 @@
       </div>
     </div>
 
-    <div class="field" id="zoneField" style="display:none">
+    <div class="field opt-home" id="zoneField" style="display:none">
       <span class="label">Electricity area</span>
       <div class="seg" id="zoneSeg">
         <button data-v="SE1">SE1</button>
@@ -352,8 +361,8 @@
       <div class="hint">Swedish spot price for your bidding area (Gothenburg is SE3).</div>
     </div>
 
-    <button class="adv-toggle" id="advToggle"><span class="chev">›</span> Bus departures (optional)</button>
-    <div id="adv">
+    <button class="adv-toggle opt-home" id="advToggle"><span class="chev">›</span> Bus departures (optional)</button>
+    <div id="adv" class="opt-home">
       <div class="field">
         <span class="label">Departures service URL</span>
         <input id="busUrl" class="input" placeholder="https://your-worker.workers.dev" autocomplete="off">
@@ -408,7 +417,7 @@
   // ---------- state + storage (storage is best-effort; falls back to memory) ----------
   var DEFAULTS = { loc:"", lat:null, lon:null, place:"", name:"",
     unit:"celsius", clock:"24", lang:"sv", seconds:"on", comments:"sv",
-    awake:"on", motion:"off", motionFor:"60", motionSens:"med", biz:"off", bizTop:"", bizMid:"", accent:"#e9c98a", bottomLeft:"bus", elzone:"SE3",
+    awake:"on", motion:"off", motionFor:"60", motionSens:"med", biz:"off", bizTop:"", bizMid:"", bizPdf:"", accent:"#e9c98a", bottomLeft:"bus", elzone:"SE3",
     busUrl:"https://still-wave-afbc.ecksquad.workers.dev", busId:"" };
   var state = Object.assign({}, DEFAULTS);
   var KEY = "mirror.config.v1";
@@ -943,6 +952,14 @@
   function stopBiz(){ $("biz").classList.remove("show"); clearInterval(bizTimer); bizTimer=null; }
   function startBiz(){
     if(state.biz!=="on"){ stopBiz(); return; }
+    var pdfOn = state.bizPdf==="idb";
+    $("bizPdf").style.display = pdfOn ? "flex" : "none";
+    if(pdfOn){
+      clearInterval(bizTimer); bizTimer=null;
+      idbGet("bizPdfBlob").then(function(blob){ if(blob) renderPdf(blob); });
+      $("biz").classList.add("show");
+      return;
+    }
     setBizImg($("bizTopImg"), state.bizTop, "bizTopBlob", "top");
     setBizImg($("bizMidImg"), state.bizMid, "bizMidBlob", "mid");
     function paint(){
@@ -962,6 +979,22 @@
       if($("mirror").classList.contains("show")) startBiz();
     }).catch(function(){ alert("Couldn't store that image (too large or storage blocked)."); });
     fileEl.value="";
+  }
+  function applyMode(){ var st=$("setup"); if(!st) return; var b=state.biz==="on"; st.classList.toggle("mode-biz",b); st.classList.toggle("mode-home",!b); }
+  function idbDel(k){ return idbOpen().then(function(db){ return new Promise(function(res){ var tx=db.transaction("kv","readwrite"); tx.objectStore("kv").delete(k); tx.oncomplete=function(){res();}; tx.onerror=function(){res();}; }); }); }
+  function renderPdf(blob){
+    if(!window.pdfjsLib) return;
+    try{ if(!pdfjsLib.GlobalWorkerOptions.workerSrc) pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"; }catch(e){}
+    var url=URL.createObjectURL(blob);
+    pdfjsLib.getDocument(url).promise.then(function(pdf){ return pdf.getPage(1); }).then(function(page){
+      var cv=$("bizPdfCanvas"), box=$("bizPdf").getBoundingClientRect();
+      var v1=page.getViewport({scale:1}), dpr=window.devicePixelRatio||1;
+      var fit=Math.min(box.width/v1.width, box.height/v1.height);
+      var vp=page.getViewport({scale:fit*dpr});
+      cv.width=vp.width; cv.height=vp.height;
+      cv.style.width=(vp.width/dpr)+"px"; cv.style.height=(vp.height/dpr)+"px";
+      return page.render({canvasContext:cv.getContext("2d"), viewport:vp}).promise;
+    }).then(function(){ try{URL.revokeObjectURL(url);}catch(e){} }).catch(function(){ try{URL.revokeObjectURL(url);}catch(e){} });
   }
 
   // ---------- focus views (big time / weather) ----------
@@ -995,7 +1028,7 @@
   }
   seg("unitSeg","unit"); seg("clockSeg","clock"); seg("langSeg","lang"); seg("secSeg","seconds"); seg("compSeg","comments"); seg("awakeSeg","awake");
   seg("blSeg","bottomLeft"); seg("zoneSeg","elzone");
-  seg("motionSeg","motion"); seg("motionTimeoutSeg","motionFor"); seg("motionSensSeg","motionSens"); seg("bizSeg","biz");
+  seg("motionSeg","motion"); seg("motionTimeoutSeg","motionFor"); seg("motionSensSeg","motionSens"); seg("modeSeg","biz");
 
   function updateZoneVis(){ $("zoneField").style.display = state.bottomLeft==="elpris" ? "block" : "none"; }
   $("blSeg").addEventListener("click", updateZoneVis);
@@ -1023,7 +1056,7 @@
     setSeg("langSeg",state.lang); setSeg("secSeg",state.seconds); setSeg("compSeg",state.comments);
     setSeg("awakeSeg",state.awake); setSeg("accentSw",state.accent); applyAccent();
     setSeg("blSeg",state.bottomLeft); setSeg("zoneSeg",state.elzone); updateZoneVis();
-    setSeg("motionSeg",state.motion); setSeg("motionTimeoutSeg",state.motionFor); setSeg("motionSensSeg",state.motionSens); setSeg("bizSeg",state.biz);
+    setSeg("motionSeg",state.motion); setSeg("motionTimeoutSeg",state.motionFor); setSeg("motionSensSeg",state.motionSens); setSeg("modeSeg",state.biz); applyMode();
     if(state.busId){ $("advToggle").classList.add("open"); $("adv").classList.add("open"); }
   }
 
@@ -1077,6 +1110,10 @@
   $("bizMidFile").addEventListener("change",function(){ bizPick($("bizMidFile"),"bizMidBlob",$("bizMid"),"bizMid"); });
   $("bizTop").addEventListener("input",function(){ state.bizTop=$("bizTop").value.trim(); save(); });
   $("bizMid").addEventListener("input",function(){ state.bizMid=$("bizMid").value.trim(); save(); });
+  $("modeSeg").addEventListener("click",function(){ setTimeout(function(){ applyMode(); if($("mirror").classList.contains("show")) startBiz(); },0); });
+  $("bizPdfPick").addEventListener("click",function(){ $("bizPdfFile").click(); });
+  $("bizPdfFile").addEventListener("change",function(){ var f=$("bizPdfFile").files&&$("bizPdfFile").files[0]; if(!f){return;} idbSet("bizPdfBlob",f).then(function(){ state.bizPdf="idb"; save(); if($("mirror").classList.contains("show")) startBiz(); }).catch(function(){ alert("Couldn't store that PDF (too large or blocked)."); }); $("bizPdfFile").value=""; });
+  $("bizPdfClear").addEventListener("click",function(){ state.bizPdf=""; idbDel("bizPdfBlob"); save(); if($("mirror").classList.contains("show")) startBiz(); });
 
   // ---------- boot ----------
   load(); fillForm();
@@ -1102,9 +1139,13 @@
   #biz{position:fixed;inset:0;background:var(--bg);z-index:7000;display:none;flex-direction:column;padding:clamp(14px,3vw,34px);box-sizing:border-box}
   #biz.show{display:flex}
   #biz #bizGear{z-index:3}
-  #biz .biz-img{width:100%;height:auto;display:block}
-  #biz .biz-middle{flex:1 1 auto;display:flex;align-items:center;justify-content:center;min-height:0}
-  #biz .biz-foot{flex:0 0 auto;display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-top:18px}
+  #setup.mode-home .opt-biz{display:none}
+  #setup.mode-biz .opt-home{display:none}
+  #biz #bizPdf{position:absolute;inset:0;background:var(--bg);display:none;align-items:center;justify-content:center;z-index:1}
+  #biz #bizPdf canvas{max-width:100%;max-height:100%;display:block}
+  #biz .biz-img{width:100%;height:auto;display:block;position:relative;z-index:1}
+  #biz .biz-middle{flex:0 0 auto;display:flex;justify-content:center;margin-top:14px}
+  #biz .biz-foot{flex:0 0 auto;display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-top:auto;padding-top:18px}
   #biz .biz-time{font-family:var(--label);font-weight:300;line-height:1;color:var(--bright);font-size:clamp(40px,9vw,104px)}
   #biz .biz-time .sec{display:none}
   #biz .biz-date{font-family:var(--label);text-transform:uppercase;letter-spacing:.14em;color:var(--faint);margin-top:8px;font-size:clamp(12px,2.6vw,20px)}
