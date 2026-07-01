@@ -103,6 +103,14 @@
     text-align:center;max-width:680px;color:var(--bright);opacity:0;transition:opacity .6s ease}
   .compliment.emoji{font-style:normal;font-size:clamp(64px,20vmin,180px);line-height:1}
   .compliment .comp-eye{max-width:min(58vw,440px);max-height:42vh;object-fit:contain;filter:contrast(1.4) brightness(1.15)}
+  .stock{width:92vw;text-align:center;font-family:var(--label)}
+  .stock .stk-head{display:flex;gap:14px;align-items:baseline;justify-content:center;flex-wrap:wrap}
+  .stock .stk-sym{font-weight:600;letter-spacing:.04em;color:var(--bright);font-size:clamp(20px,4vw,34px)}
+  .stock .stk-price{font-weight:300;color:var(--bright);font-size:clamp(22px,4.6vw,38px)}
+  .stock .stk-chg{font-size:clamp(13px,2.4vw,18px)}
+  .stock .stk-canvas{display:block;width:92vw;height:22vh;margin-top:10px}
+  .stock .stk-range{color:var(--faint);letter-spacing:.14em;margin-top:6px;font-size:clamp(11px,2vw,14px)}
+  .stock .stk-msg{color:var(--faint);font-size:clamp(13px,2.4vw,18px)}
 
   .time{font-weight:100;font-size:clamp(56px,16vmin,160px);line-height:.9;letter-spacing:-.01em}
   .time .sec{font-size:.38em;color:var(--accent);font-weight:300;margin-left:.12em;vertical-align:.55em}
@@ -265,9 +273,26 @@
         <button data-v="sv" class="on">Svenska</button>
         <button data-v="en">English</button>
         <button data-v="emoji">Emoji</button>
-        <button data-v="eye">Eye</button>
+        <button data-v="stock">Stock</button>
       </div>
-      <div class="hint">Rotating one-liners in Swedish or English, a colourful emoji, or the eye.</div>
+      <div class="hint">Rotating one-liners (Swedish/English), an emoji, or a full-width live stock chart.</div>
+    </div>
+
+    <div class="field opt-home">
+      <span class="label">Stock symbol</span>
+      <input id="stockSym" class="input" placeholder="e.g. AAPL, TSLA, MSFT" autocomplete="off">
+      <div class="hint">Live prices via your relay Worker (the Departures service URL) &mdash; no key, no cap.</div>
+    </div>
+
+    <div class="field opt-home">
+      <span class="label">Stock range</span>
+      <div class="seg" id="stockRangeSeg">
+        <button data-v="day">Day</button>
+        <button data-v="week">Week</button>
+        <button data-v="month" class="on">Month</button>
+        <button data-v="year">Year</button>
+        <button data-v="all">All</button>
+      </div>
     </div>
 
     <div class="field opt-biz">
@@ -419,7 +444,7 @@
   // ---------- state + storage (storage is best-effort; falls back to memory) ----------
   var DEFAULTS = { loc:"", lat:null, lon:null, place:"", name:"",
     unit:"celsius", clock:"24", lang:"sv", seconds:"on", comments:"sv",
-    awake:"on", motion:"off", motionFor:"60", motionSens:"med", biz:"off", bizTop:"", bizMid:"", bizPdf:"", accent:"#e9c98a", bottomLeft:"bus", elzone:"SE3",
+    awake:"on", motion:"off", motionFor:"60", motionSens:"med", biz:"off", bizTop:"", bizMid:"", bizPdf:"", stockSym:"AAPL", stockRange:"month", accent:"#e9c98a", bottomLeft:"bus", elzone:"SE3",
     busUrl:"https://still-wave-afbc.ecksquad.workers.dev", busId:"" };
   var state = Object.assign({}, DEFAULTS);
   var KEY = "mirror.config.v1";
@@ -871,11 +896,11 @@
     var reg=$("compRegion"), el=$("compText");
     if(state.comments==="off"){ reg.style.display="none"; clearInterval(compTimer); compTimer=null; return; }
     reg.style.display="flex";
-    if(state.comments==="eye"){
+    if(state.comments==="stock"){
       clearInterval(compTimer); compTimer=null;
       el.classList.remove("emoji");
-      el.innerHTML='<img class="comp-eye" src="https://media4.giphy.com/media/v1.Y2lkPTZjMDliOTUyeTloMmF1Y2hicDQyeDlpcHh0b2J5Y3FwMW1jem9heGJvemIyeDZobyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3ohs4CacylzFaHjMM8/giphy.gif" alt="">';
-      el.style.opacity=1;
+      loadStock();
+      compTimer=setInterval(loadStock, 60*1000);
       return;
     }
     el.classList.toggle("emoji", state.comments==="emoji");
@@ -883,6 +908,50 @@
     compIdx=Math.floor(Math.random()*set.length);
     el.textContent=set[compIdx]; el.style.opacity=1;
     clearInterval(compTimer); compTimer=setInterval(rotateComp,30000);
+  }
+  function stockCfg(){
+    var r=state.stockRange;
+    if(r==="day")  return {range:"1d",  interval:"5m",  lbl:"1D"};
+    if(r==="week") return {range:"5d",  interval:"30m", lbl:"1W"};
+    if(r==="year") return {range:"1y",  interval:"1d",  lbl:"1Y"};
+    if(r==="all")  return {range:"max", interval:"1mo", lbl:"MAX"};
+    return {range:"1mo", interval:"1d", lbl:"1M"};
+  }
+  function loadStock(){
+    var el=$("compText"); if(!el) return;
+    var sym=(state.stockSym||"AAPL").toUpperCase();
+    var base=state.busUrl;
+    if(!base){ el.innerHTML='<div class="stock"><div class="stk-msg">Set the relay URL (Departures service URL) in settings</div></div>'; el.style.opacity=1; return; }
+    var c=stockCfg();
+    var u=base + (base.indexOf("?")>=0?"&":"?") + "stock="+encodeURIComponent(sym)+"&range="+c.range+"&interval="+c.interval;
+    fetch(u).then(function(r){return r.json();}).then(function(d){
+      var closes=(d&&d.closes)?d.closes.filter(function(x){return x!=null&&!isNaN(x);}):[];
+      if(!closes.length){ el.innerHTML='<div class="stock"><div class="stk-msg">'+((d&&d.message)||("No data for "+sym))+'</div></div>'; el.style.opacity=1; return; }
+      var last=(d.price!=null?Number(d.price):closes[closes.length-1]), first=closes[0];
+      var chg=last-first, pct=first?(chg/first*100):0, up=chg>=0, col=up?"#4cc15a":"#e0533f";
+      el.innerHTML='<div class="stock">'
+        +'<div class="stk-head"><span class="stk-sym">'+sym+'</span>'
+        +'<span class="stk-price">'+last.toFixed(2)+'</span>'
+        +'<span class="stk-chg" style="color:'+col+'">'+(up?"+":"")+chg.toFixed(2)+' ('+(up?"+":"")+pct.toFixed(2)+'%)</span></div>'
+        +'<canvas class="stk-canvas" id="stkCanvas"></canvas>'
+        +'<div class="stk-range">'+c.lbl+'</div></div>';
+      el.style.opacity=1;
+      requestAnimationFrame(function(){ drawStock(closes, col); });
+    }).catch(function(){ el.innerHTML='<div class="stock"><div class="stk-msg">Couldn\'t load stock</div></div>'; el.style.opacity=1; });
+  }
+  function drawStock(closes, col){
+    var cv=$("stkCanvas"); if(!cv) return;
+    var w=cv.clientWidth||600, h=cv.clientHeight||160, dpr=window.devicePixelRatio||1;
+    cv.width=w*dpr; cv.height=h*dpr;
+    var ctx=cv.getContext("2d"); ctx.scale(dpr,dpr);
+    var min=Math.min.apply(null,closes), max=Math.max.apply(null,closes), rng=(max-min)||1, n=closes.length, pad=6;
+    function X(i){ return pad+(w-2*pad)*(i/(n-1)); }
+    function Y(v){ return pad+(h-2*pad)*(1-(v-min)/rng); }
+    ctx.beginPath(); ctx.moveTo(X(0),Y(closes[0]));
+    for(var i=1;i<n;i++) ctx.lineTo(X(i),Y(closes[i]));
+    ctx.strokeStyle=col; ctx.lineWidth=2; ctx.lineJoin="round"; ctx.stroke();
+    ctx.lineTo(X(n-1),h-pad); ctx.lineTo(X(0),h-pad); ctx.closePath();
+    ctx.globalAlpha=0.13; ctx.fillStyle=col; ctx.fill(); ctx.globalAlpha=1;
   }
 
   // ---------- view switching ----------
@@ -1030,7 +1099,7 @@
   }
   seg("unitSeg","unit"); seg("clockSeg","clock"); seg("langSeg","lang"); seg("secSeg","seconds"); seg("compSeg","comments"); seg("awakeSeg","awake");
   seg("blSeg","bottomLeft"); seg("zoneSeg","elzone");
-  seg("motionSeg","motion"); seg("motionTimeoutSeg","motionFor"); seg("motionSensSeg","motionSens"); seg("modeSeg","biz");
+  seg("motionSeg","motion"); seg("motionTimeoutSeg","motionFor"); seg("motionSensSeg","motionSens"); seg("modeSeg","biz"); seg("stockRangeSeg","stockRange");
 
   function updateZoneVis(){ $("zoneField").style.display = state.bottomLeft==="elpris" ? "block" : "none"; }
   $("blSeg").addEventListener("click", updateZoneVis);
@@ -1053,12 +1122,12 @@
   }
   function fillForm(){
     $("loc").value=state.loc; $("name").value=state.name;
-    $("busUrl").value=state.busUrl||""; $("busId").value=state.busId||""; $("bizTop").value=(state.bizTop&&state.bizTop!=="idb")?state.bizTop:""; $("bizMid").value=(state.bizMid&&state.bizMid!=="idb")?state.bizMid:"";
+    $("busUrl").value=state.busUrl||""; $("busId").value=state.busId||""; $("stockSym").value=state.stockSym||""; $("bizTop").value=(state.bizTop&&state.bizTop!=="idb")?state.bizTop:""; $("bizMid").value=(state.bizMid&&state.bizMid!=="idb")?state.bizMid:"";
     setSeg("unitSeg",state.unit); setSeg("clockSeg",state.clock);
     setSeg("langSeg",state.lang); setSeg("secSeg",state.seconds); setSeg("compSeg",state.comments);
     setSeg("awakeSeg",state.awake); setSeg("accentSw",state.accent); applyAccent();
     setSeg("blSeg",state.bottomLeft); setSeg("zoneSeg",state.elzone); updateZoneVis();
-    setSeg("motionSeg",state.motion); setSeg("motionTimeoutSeg",state.motionFor); setSeg("motionSensSeg",state.motionSens); setSeg("modeSeg",state.biz); applyMode();
+    setSeg("motionSeg",state.motion); setSeg("motionTimeoutSeg",state.motionFor); setSeg("motionSensSeg",state.motionSens); setSeg("modeSeg",state.biz); setSeg("stockRangeSeg",state.stockRange); applyMode();
     if(state.busId){ $("advToggle").classList.add("open"); $("adv").classList.add("open"); }
   }
 
@@ -1068,7 +1137,7 @@
     if(!navigator.geolocation){ st.className="status err"; st.textContent="This device can't share location \u2014 type a place instead."; return; }
     // capture other fields first so they aren't lost
     state.name=$("name").value.trim();
-    state.busUrl=$("busUrl").value.trim(); state.busId=$("busId").value.trim();
+    state.busUrl=$("busUrl").value.trim(); state.busId=$("busId").value.trim(); state.stockSym=$("stockSym").value.trim().toUpperCase();
     navigator.geolocation.getCurrentPosition(function(pos){
       state.lat=pos.coords.latitude; state.lon=pos.coords.longitude; state.place="Current location"; state.loc="";
       $("loc").value="";
@@ -1084,7 +1153,7 @@
   $("startBtn").addEventListener("click",function(){
     var st=$("status"); st.className="status"; st.textContent="";
     state.name=$("name").value.trim();
-    state.busUrl=$("busUrl").value.trim(); state.busId=$("busId").value.trim();
+    state.busUrl=$("busUrl").value.trim(); state.busId=$("busId").value.trim(); state.stockSym=$("stockSym").value.trim().toUpperCase();
     var loc=$("loc").value.trim();
     if(loc){
       st.textContent="Finding location\u2026";
