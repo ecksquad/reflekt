@@ -198,7 +198,7 @@
 
 <div id="setup">
   <div class="card">
-    <div class="brand">mini mirror<b>.</b></div>
+    <div class="brand">mirror<b>.</b></div>
     <div class="tagline">Set up your display</div>
 
     <div class="field">
@@ -939,8 +939,6 @@
   function idbSet(k,v){ return idbOpen().then(function(db){ return new Promise(function(res,rej){ var tx=db.transaction("kv","readwrite"); tx.objectStore("kv").put(v,k); tx.oncomplete=function(){res();}; tx.onerror=function(){rej(tx.error);}; }); }); }
   function idbGet(k){ return idbOpen().then(function(db){ return new Promise(function(res,rej){ var tx=db.transaction("kv","readonly"); var rq=tx.objectStore("kv").get(k); rq.onsuccess=function(){res(rq.result);}; rq.onerror=function(){rej(rq.error);}; }); }); }
   function setBizImg(img, val, key, which){
-    img.onerror=function(){ img.style.display="none"; };   // never show a broken-image box
-    img.onload=function(){ img.style.display="block"; };
     if(val==="idb"){
       idbGet(key).then(function(blob){
         if(blob){ var u=URL.createObjectURL(blob);
