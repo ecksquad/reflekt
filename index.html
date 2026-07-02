@@ -388,6 +388,7 @@
         <button data-v="on">On</button>
       </div>
       <div class="hint">On the mirror tablet: set On to allow live camera viewing from another device using the same Mirror ID. Video streams directly device-to-device &mdash; the relay is only used to set up the connection. To view: open this page on another device with <code>?cam=1</code> added to the URL.</div>
+      <div class="hint" id="camShareStatus" style="color:var(--accent)">Status: idle</div>
     </div>
 
     <div class="field">
@@ -524,7 +525,10 @@
         cPc.addTransceiver("video",{direction:"recvonly"});
         cPc.ontrack=function(ev){
           var v=document.getElementById("camVideo");
-          if(v && v.srcObject!==ev.streams[0]){ v.srcObject=ev.streams[0]; v.play().catch(function(){}); cStatus("Live"); }
+          if(v && v.srcObject!==ev.streams[0]){
+            v.srcObject=ev.streams[0]; v.play().catch(function(){});
+            v.onloadedmetadata=function(){ cStatus("Live"); };
+          }
         };
         cPc.onicecandidate=function(ev){
           if(ev.candidate){
@@ -532,7 +536,8 @@
           }
         };
         cPc.onconnectionstatechange=function(){
-          if(cPc.connectionState==="connected") cStatus("Live");
+          var v=document.getElementById("camVideo");
+          if(cPc.connectionState==="connected" && !(v&&v.srcObject)) cStatus("Connected, waiting for video\u2026");
           else if(cPc.connectionState==="failed"||cPc.connectionState==="disconnected") cStatus("Connection lost \u2014 tap to retry");
         };
         return cPc.createOffer().then(function(offer){ return cPc.setLocalDescription(offer).then(function(){ return offer; }); });
@@ -882,16 +887,19 @@
   var rtcPC=null, rtcPollT=null, rtcIcePollT=null, rtcLastOfferSeen=null;
   function rtcUrl(params){ var b=state.busUrl; if(!b) return null; return b + (b.indexOf("?")>=0?"&":"?") + params; }
   function rtcId(){ return encodeURIComponent(state.mirrorId||"main"); }
+  function camStatus(t){ var el=$("camShareStatus"); if(el) el.textContent="Status: "+t; }
   function stopCamShare(){
     clearInterval(rtcPollT); rtcPollT=null;
     clearInterval(rtcIcePollT); rtcIcePollT=null;
     if(rtcPC){ try{ rtcPC.close(); }catch(e){} rtcPC=null; }
     rtcLastOfferSeen=null;
+    camStatus("idle");
   }
   function startCamShare(){
     stopCamShare();
     if(state.camShare!=="on") return;
-    if(!rtcUrl("x=1")) return;
+    if(!rtcUrl("x=1")){ camStatus("no relay URL set (Departures service URL)"); return; }
+    camStatus("waiting for a viewer to connect");
     checkForOffer();
     rtcPollT=setInterval(checkForOffer, 3000);
   }
@@ -903,15 +911,18 @@
       if(sig===rtcLastOfferSeen) return;
       rtcLastOfferSeen=sig;
       answerOffer(offer);
-    }).catch(function(){});
+    }).catch(function(e){ camStatus("couldn't reach relay ("+(e&&e.message?e.message:"error")+")"); });
   }
   function getCamStream(){
     if(mStream) return Promise.resolve(mStream);
-    if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return Promise.reject(new Error("no camera"));
+    if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return Promise.reject(new Error("camera API not available (needs HTTPS)"));
+    camStatus("requesting camera\u2026");
     return navigator.mediaDevices.getUserMedia({video:{facingMode:"user"},audio:false});
   }
   function answerOffer(offer){
+    camStatus("viewer connecting\u2026");
     getCamStream().then(function(stream){
+      camStatus("camera acquired, answering\u2026");
       if(rtcPC){ try{ rtcPC.close(); }catch(e){} }
       rtcPC=new RTCPeerConnection({iceServers:[{urls:"stun:stun.l.google.com:19302"}]});
       rtcPC.onicecandidate=function(ev){
@@ -920,14 +931,26 @@
           fetch(u,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(ev.candidate)}).catch(function(){});
         }
       };
+      rtcPC.onconnectionstatechange=function(){
+        var cs=rtcPC.connectionState;
+        if(cs==="connected") camStatus("streaming (connected)");
+        else if(cs==="failed") camStatus("connection failed \u2014 try again");
+        else if(cs==="disconnected") camStatus("viewer disconnected");
+      };
       return rtcPC.setRemoteDescription({type:"offer", sdp:offer.sdp})
-        .then(function(){ stream.getTracks().forEach(function(tr){ try{ rtcPC.addTrack(tr, stream); }catch(e){} }); return rtcPC.createAnswer(); })
+        .then(function(){
+          var tracks=stream.getTracks();
+          if(!tracks.length) throw new Error("camera stream has no tracks");
+          tracks.forEach(function(tr){ rtcPC.addTrack(tr, stream); });
+          return rtcPC.createAnswer();
+        })
         .then(function(answer){ return rtcPC.setLocalDescription(answer).then(function(){ return answer; }); })
         .then(function(answer){
           var u=rtcUrl("rtc=sdp&role=answer&id="+rtcId()); if(!u) return;
           return fetch(u,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"answer",sdp:answer.sdp,_ts:Date.now()})});
         })
         .then(function(){
+          camStatus("answer sent, connecting\u2026");
           var since=0;
           clearInterval(rtcIcePollT);
           rtcIcePollT=setInterval(function(){
@@ -939,7 +962,7 @@
             }).catch(function(){});
           }, 2000);
         });
-    }).catch(function(){});
+    }).catch(function(e){ camStatus("error: "+(e&&e.message?e.message:"couldn't get camera")); });
   }
 
   function applyAccent(){ document.documentElement.style.setProperty("--accent", state.accent || "#e9c98a"); }
