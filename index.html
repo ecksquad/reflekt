@@ -114,12 +114,12 @@
   .stock .stk-range{color:var(--faint);letter-spacing:.14em;margin-top:10px;font-size:clamp(13px,2.2vw,16px)}
   .stock .stk-msg{color:var(--faint);font-size:clamp(13px,2.4vw,18px)}
   .stockrows{display:flex;flex-direction:column;gap:clamp(10px,1.8vh,20px);align-items:center;font-family:var(--label);width:94vw}
-  .stockrows .srow{width:100%}
+  .stockrows .srow{width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:14px;padding:14px 20px}
   .stockrows .srow-top{display:flex;align-items:baseline;justify-content:center;gap:clamp(14px,2.4vw,28px)}
   .stockrows .ssym{font-weight:600;letter-spacing:.04em;color:var(--bright);font-size:clamp(18px,3.2vw,30px);min-width:3.6em;text-align:right}
   .stockrows .sprice{font-weight:300;color:var(--bright);font-size:clamp(20px,3.6vw,34px);min-width:4.4em;text-align:right}
   .stockrows .schg{font-size:clamp(12px,2vw,17px);min-width:7em;text-align:left}
-  .stockrows .srow-canvas{display:block;width:94vw;height:9vh;margin-top:4px}
+  .stockrows .srow-canvas{display:block;width:100%;height:9vh;margin-top:8px}
   .stockrows .stk-msg{color:var(--faint);font-size:clamp(13px,2.4vw,18px);text-align:center}
 
   .time{font-weight:100;font-size:clamp(56px,16vmin,160px);line-height:.9;letter-spacing:-.01em}
@@ -970,30 +970,23 @@
     var el=$("compText"); if(!el) return;
     var sym=(state.stockSym||"AAPL").toUpperCase();
     var base=state.busUrl;
-    if(!base){ el.innerHTML='<div class="stock"><div class="stk-msg">Set the relay URL (Departures service URL) in settings</div></div>'; el.style.opacity=1; return; }
+    if(!base){ el.innerHTML='<div class="stockrows"><div class="srow-top"><span class="stk-msg">Set the relay URL (Departures service URL) in settings</span></div></div>'; el.style.opacity=1; return; }
     var c=stockCfg();
     var u=base + (base.indexOf("?")>=0?"&":"?") + "stock="+encodeURIComponent(sym)+"&range="+c.range+"&interval="+c.interval;
     fetch(u).then(function(r){return r.json();}).then(function(d){
-      var rawC=(d&&d.closes)||[], rawT=(d&&d.t)||[];
-      var closes=[], times=[];
-      for(var k=0;k<rawC.length;k++){ var cvn=parseFloat(rawC[k]); if(!isNaN(cvn)){ closes.push(cvn); times.push(rawT[k]!=null?rawT[k]:null); } }
-      if(closes.length<2){ el.innerHTML='<div class="stock"><div class="stk-msg">'+((d&&d.message)||("No data for "+sym))+'</div></div>'; el.style.opacity=1; return; }
-      var haveT=times.some(function(x){return x!=null;});
+      var rawC=(d&&d.closes)||[];
+      var closes=[]; for(var k=0;k<rawC.length;k++){ var cvn=parseFloat(rawC[k]); if(!isNaN(cvn)) closes.push(cvn); }
+      if(closes.length<2){ el.innerHTML='<div class="stockrows"><div class="srow-top"><span class="stk-msg">'+((d&&d.message)||("No data for "+sym))+'</span></div></div>'; el.style.opacity=1; return; }
       var last=(d.price!=null?Number(d.price):closes[closes.length-1]), first=closes[0];
       var chg=last-first, pct=first?(chg/first*100):0, up=chg>=0, col=up?"#4cc15a":"#e0533f";
-      var hi=Math.max.apply(null,closes), lo=Math.min.apply(null,closes);
-      el.innerHTML='<div class="stock">'
-        +'<div class="stk-top"><span class="stk-sym">'+sym+'</span><span class="stk-price">'+last.toFixed(2)+'</span></div>'
-        +'<div class="stk-metrics">'
-          +'<div>Chg <b style="color:'+col+'">'+(up?"+":"")+chg.toFixed(2)+' ('+(up?"+":"")+pct.toFixed(2)+'%)</b></div>'
-          +'<div>High <b>'+hi.toFixed(2)+'</b></div>'
-          +'<div>Low <b>'+lo.toFixed(2)+'</b></div>'
-        +'</div>'
-        +'<canvas class="stk-canvas" id="stkCanvas"></canvas>'
-        +'<div class="stk-range">'+c.lbl+'</div></div>';
+      el.innerHTML='<div class="stockrows"><div class="srow">'
+        +'<div class="srow-top"><span class="ssym">'+sym+'</span><span class="sprice">'+last.toFixed(2)+'</span>'
+        +'<span class="schg" style="color:'+col+'">'+(up?"+":"")+chg.toFixed(2)+' ('+(up?"+":"")+pct.toFixed(2)+'%)</span></div>'
+        +'<canvas class="srow-canvas" id="stkCanvas"></canvas>'
+        +'</div></div>';
       el.style.opacity=1;
-      requestAnimationFrame(function(){ drawStock(closes, haveT?times:null, state.stockRange); });
-    }).catch(function(){ el.innerHTML='<div class="stock"><div class="stk-msg">Couldn\'t load stock</div></div>'; el.style.opacity=1; });
+      requestAnimationFrame(function(){ drawMiniStock("stkCanvas", closes); });
+    }).catch(function(){ el.innerHTML='<div class="stockrows"><div class="srow-top"><span class="stk-msg">Couldn\'t load stock</span></div></div>'; el.style.opacity=1; });
   }
   function stkLabel(sec, range){
     var d=new Date(sec*1000);
