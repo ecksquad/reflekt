@@ -675,14 +675,10 @@
     function arc(a1,a2,col,op){ var p1=pol(r,a1), p2=pol(r,a2), large=(a1-a2)>180?1:0;
       return '<path d="M'+p1[0].toFixed(2)+' '+p1[1].toFixed(2)+' A'+r+' '+r+' 0 '+large+' 1 '+p2[0].toFixed(2)+' '+p2[1].toFixed(2)+'" fill="none" stroke="'+col+'" stroke-opacity="'+op+'" stroke-width="'+w+'"/>'; }
     function zone(v){ return v<T1?GREEN:v<T2?AMBER:RED; }
-    var TRACK=0;                                    // no background zones lit; only the needle position shows color
+    var TRACK=1;                                    // whole arc fully visible, no fading
     var s = arc(180,ang(T1),GREEN,TRACK)
           + arc(ang(T1),ang(T2),AMBER,TRACK)
           + arc(ang(T2),0,RED,TRACK);
-    // short bright highlight riding the current value (moves with price, so nothing stays lit)
-    var hcol=zone(VAL), hna=ang(VAL), hw=9;
-    var h1=Math.min(180,hna+hw), h2=Math.max(0,hna-hw);
-    s += arc(h1,h2,hcol,1);
     // tick marks every 0.5
     for(var v=0; v<=MAX+0.001; v+=0.5){
       var ta=ang(v), o1=pol(r-w/2-3,ta), o2=pol(r-w/2-9,ta);
