@@ -103,12 +103,14 @@
     text-align:center;max-width:680px;color:var(--bright);opacity:0;transition:opacity .6s ease}
   .compliment.emoji{font-style:normal;font-size:clamp(64px,20vmin,180px);line-height:1}
   .compliment .comp-eye{max-width:min(58vw,440px);max-height:42vh;object-fit:contain;filter:contrast(1.4) brightness(1.15)}
-  .stock{width:92vw;text-align:center;font-family:var(--label)}
-  .stock .stk-head{display:flex;gap:14px;align-items:baseline;justify-content:center;flex-wrap:wrap}
-  .stock .stk-sym{font-weight:600;letter-spacing:.04em;color:var(--bright);font-size:clamp(20px,4vw,34px)}
-  .stock .stk-price{font-weight:300;color:var(--bright);font-size:clamp(22px,4.6vw,38px)}
-  .stock .stk-chg{font-size:clamp(13px,2.4vw,18px)}
-  .stock .stk-canvas{display:block;width:92vw;height:22vh;margin-top:10px}
+  .stock{width:92vw;text-align:left;font-family:var(--label)}
+  .stock .stk-top{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:10px}
+  .stock .stk-sym{font-weight:600;letter-spacing:.04em;color:var(--bright);font-size:clamp(20px,4vw,30px)}
+  .stock .stk-price{font-weight:300;color:var(--bright);font-size:clamp(22px,4.4vw,34px)}
+  .stock .stk-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+  .stock .stk-metrics div{color:var(--faint);letter-spacing:.14em;text-transform:uppercase;font-size:clamp(10px,1.8vw,13px)}
+  .stock .stk-metrics b{display:block;color:var(--bright);font-weight:300;letter-spacing:0;text-transform:none;font-size:clamp(14px,2.8vw,20px);margin-top:3px}
+  .stock .stk-canvas{display:block;width:92vw;height:18vh;margin-top:14px}
   .stock .stk-range{color:var(--faint);letter-spacing:.14em;margin-top:6px;font-size:clamp(11px,2vw,14px)}
   .stock .stk-msg{color:var(--faint);font-size:clamp(13px,2.4vw,18px)}
 
@@ -953,10 +955,14 @@
       var haveT=times.some(function(x){return x!=null;});
       var last=(d.price!=null?Number(d.price):closes[closes.length-1]), first=closes[0];
       var chg=last-first, pct=first?(chg/first*100):0, up=chg>=0, col=up?"#4cc15a":"#e0533f";
+      var hi=Math.max.apply(null,closes), lo=Math.min.apply(null,closes);
       el.innerHTML='<div class="stock">'
-        +'<div class="stk-head"><span class="stk-sym">'+sym+'</span>'
-        +'<span class="stk-price">'+last.toFixed(2)+'</span>'
-        +'<span class="stk-chg" style="color:'+col+'">'+(up?"+":"")+chg.toFixed(2)+' ('+(up?"+":"")+pct.toFixed(2)+'%)</span></div>'
+        +'<div class="stk-top"><span class="stk-sym">'+sym+'</span><span class="stk-price">'+last.toFixed(2)+'</span></div>'
+        +'<div class="stk-metrics">'
+          +'<div>Chg <b style="color:'+col+'">'+(up?"+":"")+chg.toFixed(2)+' ('+(up?"+":"")+pct.toFixed(2)+'%)</b></div>'
+          +'<div>High <b>'+hi.toFixed(2)+'</b></div>'
+          +'<div>Low <b>'+lo.toFixed(2)+'</b></div>'
+        +'</div>'
         +'<canvas class="stk-canvas" id="stkCanvas"></canvas>'
         +'<div class="stk-range">'+c.lbl+'</div></div>';
       el.style.opacity=1;
