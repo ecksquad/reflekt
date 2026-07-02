@@ -21,8 +21,8 @@
   :root{
     --bg:#000;
     --bright:#ffffff;
-    --dim:rgba(255,255,255,.62);
-    --faint:rgba(255,255,255,.38);
+    --dim:#ffffff;
+    --faint:#ffffff;
     --line:rgba(255,255,255,.12);
     --accent:#e9c98a;
     --disp:'Roboto', system-ui, sans-serif;
@@ -135,7 +135,7 @@
   .wx-meta{font-family:var(--label);color:var(--faint);letter-spacing:.08em;font-size:clamp(11px,2.8vmin,14px);margin-top:6px}
   .fc{display:inline-block;text-align:left;margin-top:15px}
   .fc-row{display:grid;grid-template-columns:3.4em 1.5em 2.3em 2.3em;align-items:center;gap:6px;margin-top:8px}
-  .fc-d{font-family:var(--label);text-transform:uppercase;letter-spacing:.1em;color:var(--accent);opacity:.85;font-size:clamp(11px,2.6vmin,14px)}
+  .fc-d{font-family:var(--label);text-transform:uppercase;letter-spacing:.1em;color:var(--accent);font-size:clamp(11px,2.6vmin,14px)}
   .fc-i{font-size:clamp(14px,3.4vmin,18px);text-align:center}
   .fc-hi{font-weight:300;color:var(--bright);text-align:right;font-size:clamp(13px,3vmin,17px)}
   .fc-lo{font-weight:300;color:var(--faint);text-align:right;font-size:clamp(13px,3vmin,17px)}
@@ -148,10 +148,11 @@
   .info-sun .gap{display:inline-block;width:.9em}
 
   .bus-h{font-size:11px;margin-bottom:10px;color:var(--accent)}
+  #elprisHead{font-weight:700}
   .msym{font-family:'Material Symbols Outlined';font-weight:normal;font-style:normal;line-height:1;
     letter-spacing:normal;text-transform:none;white-space:nowrap;-webkit-font-feature-settings:'liga';font-feature-settings:'liga'}
   .dep{display:flex;align-items:center;gap:12px;margin-bottom:8px;font-weight:300}
-  .dep .mi{font-size:1.15em;color:var(--accent);opacity:.92;flex:0 0 auto;width:1.2em;text-align:center}
+  .dep .mi{font-size:1.15em;color:var(--accent);flex:0 0 auto;width:1.2em;text-align:center}
   .dep .ln{font-family:var(--label);font-weight:400;min-width:2.4em;color:var(--bright)}
   .dep .dst{color:var(--dim);font-size:clamp(14px,3.6vw,19px);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:42vw}
   .dep .tm{font-family:var(--label);color:var(--accent);letter-spacing:.04em}
@@ -674,7 +675,7 @@
     function arc(a1,a2,col,op){ var p1=pol(r,a1), p2=pol(r,a2), large=(a1-a2)>180?1:0;
       return '<path d="M'+p1[0].toFixed(2)+' '+p1[1].toFixed(2)+' A'+r+' '+r+' 0 '+large+' 1 '+p2[0].toFixed(2)+' '+p2[1].toFixed(2)+'" fill="none" stroke="'+col+'" stroke-opacity="'+op+'" stroke-width="'+w+'"/>'; }
     function zone(v){ return v<T1?GREEN:v<T2?AMBER:RED; }
-    var TRACK=0.264;                                // faint reference track; no zone ever fully lit
+    var TRACK=0;                                    // no background zones lit; only the needle position shows color
     var s = arc(180,ang(T1),GREEN,TRACK)
           + arc(ang(T1),ang(T2),AMBER,TRACK)
           + arc(ang(T2),0,RED,TRACK);
@@ -685,17 +686,17 @@
     // tick marks every 0.5
     for(var v=0; v<=MAX+0.001; v+=0.5){
       var ta=ang(v), o1=pol(r-w/2-3,ta), o2=pol(r-w/2-9,ta);
-      s+='<line x1="'+o1[0].toFixed(1)+'" y1="'+o1[1].toFixed(1)+'" x2="'+o2[0].toFixed(1)+'" y2="'+o2[1].toFixed(1)+'" stroke="rgba(255,255,255,.45)" stroke-width="1.4"/>';
+      s+='<line x1="'+o1[0].toFixed(1)+'" y1="'+o1[1].toFixed(1)+'" x2="'+o2[0].toFixed(1)+'" y2="'+o2[1].toFixed(1)+'" stroke="#fff" stroke-width="1.4"/>';
     }
-    // triangle needle (tip sweeps with price); pivot shrunk + dimmed so the page drift can protect it
+    // triangle needle (tip sweeps with price)
     var na=ang(VAL), tip=pol(r-w/2-6,na), b1=pol(5,na+90), b2=pol(5,na-90);
-    s+='<polygon points="'+tip[0].toFixed(1)+','+tip[1].toFixed(1)+' '+b1[0].toFixed(1)+','+b1[1].toFixed(1)+' '+b2[0].toFixed(1)+','+b2[1].toFixed(1)+'" fill="rgba(255,255,255,.85)"/>';
-    s+='<circle cx="'+cx+'" cy="'+cy+'" r="4" fill="rgba(255,255,255,.7)"/>';
+    s+='<polygon points="'+tip[0].toFixed(1)+','+tip[1].toFixed(1)+' '+b1[0].toFixed(1)+','+b1[1].toFixed(1)+' '+b2[0].toFixed(1)+','+b2[1].toFixed(1)+'" fill="#fff"/>';
+    s+='<circle cx="'+cx+'" cy="'+cy+'" r="4" fill="#fff"/>';
     // value below + end labels
     var col=zone(VAL);
-    s+='<text x="'+cx+'" y="'+(cy+28)+'" text-anchor="middle" fill="'+col+'" font-family="Roboto,sans-serif" font-weight="300" font-size="26">'+VAL.toFixed(2)+'<tspan font-family="Roboto Condensed,sans-serif" font-size="12" fill="rgba(255,255,255,.55)" dx="4">SEK</tspan></text>';
-    s+='<text x="'+(cx-r)+'" y="'+(cy+18)+'" text-anchor="middle" fill="rgba(255,255,255,.5)" font-family="Roboto Condensed,sans-serif" font-size="13">0</text>';
-    s+='<text x="'+(cx+r)+'" y="'+(cy+18)+'" text-anchor="middle" fill="rgba(255,255,255,.5)" font-family="Roboto Condensed,sans-serif" font-size="13">'+MAX+'</text>';
+    s+='<text x="'+cx+'" y="'+(cy+28)+'" text-anchor="middle" fill="'+col+'" font-family="Roboto,sans-serif" font-weight="300" font-size="26">'+VAL.toFixed(2)+'<tspan font-family="Roboto Condensed,sans-serif" font-size="12" fill="#fff" dx="4">SEK</tspan></text>';
+    s+='<text x="'+(cx-r)+'" y="'+(cy+18)+'" text-anchor="middle" fill="#fff" font-family="Roboto Condensed,sans-serif" font-size="13">0</text>';
+    s+='<text x="'+(cx+r)+'" y="'+(cy+18)+'" text-anchor="middle" fill="#fff" font-family="Roboto Condensed,sans-serif" font-size="13">'+MAX+'</text>';
     $("elprisList").innerHTML = '<svg viewBox="0 0 220 158" class="elp-gauge">'+s+'</svg>';
   }
 
@@ -1399,7 +1400,7 @@
   #focus.show{display:flex}
   #focus .f-time{font-family:'Roboto',sans-serif;font-weight:200;font-size:32vw;line-height:1;color:#fff}
   #focus .f-wx{font-family:'Roboto',sans-serif;font-weight:200;font-size:30vw;line-height:1;color:#fff}
-  #focus .f-wxc{font-family:'Roboto Condensed',sans-serif;font-size:6vw;color:#fff;opacity:.85;margin-top:2vh;text-transform:capitalize}
+  #focus .f-wxc{font-family:'Roboto Condensed',sans-serif;font-size:6vw;color:#fff;margin-top:2vh;text-transform:capitalize}
   #biz{position:fixed;inset:0;background:var(--bg);z-index:7000;display:none;flex-direction:column;padding:clamp(14px,3vw,34px);box-sizing:border-box}
   #biz.show{display:flex}
   #biz #bizGear{z-index:3}
