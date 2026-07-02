@@ -508,7 +508,7 @@
   if(new URLSearchParams(location.search).get("cam")==="1"){
     document.title="Mirror camera";
     document.body.innerHTML='<div id="camView" style="position:fixed;inset:0;background:#000;display:flex;align-items:center;justify-content:center;overflow:hidden">'
-      +'<video id="camVideo" autoplay playsinline style="width:100%;height:100%;object-fit:contain;background:#000"></video>'
+      +'<video id="camVideo" autoplay playsinline muted style="width:100%;height:100%;object-fit:contain;background:#000"></video>'
       +'<div id="camStatus" style="position:absolute;bottom:24px;left:0;right:0;text-align:center;color:#fff;font-family:\'Roboto Condensed\',sans-serif;font-size:14px;letter-spacing:.08em;text-transform:uppercase">Connecting&hellip;</div>'
       +'</div>';
     var qs=new URLSearchParams(location.search);
@@ -524,7 +524,7 @@
         cPc.addTransceiver("video",{direction:"recvonly"});
         cPc.ontrack=function(ev){
           var v=document.getElementById("camVideo");
-          if(v && v.srcObject!==ev.streams[0]){ v.srcObject=ev.streams[0]; cStatus("Live"); }
+          if(v && v.srcObject!==ev.streams[0]){ v.srcObject=ev.streams[0]; v.play().catch(function(){}); cStatus("Live"); }
         };
         cPc.onicecandidate=function(ev){
           if(ev.candidate){
@@ -563,6 +563,8 @@
       }).catch(function(){ cStatus("Couldn't connect \u2014 check the relay URL and Mirror ID"); });
     }
     document.getElementById("camView").addEventListener("click",function(){
+      var v=document.getElementById("camVideo");
+      if(v && v.srcObject && v.paused){ v.play().catch(function(){}); }
       if(cPc && cPc.connectionState==="connected") return;
       clearInterval(cIceT); clearInterval(cAnsT);
       if(cPc){ try{cPc.close();}catch(e){} }
