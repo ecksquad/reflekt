@@ -103,15 +103,15 @@
     text-align:center;max-width:680px;color:var(--bright);opacity:0;transition:opacity .6s ease}
   .compliment.emoji{font-style:normal;font-size:clamp(64px,20vmin,180px);line-height:1}
   .compliment .comp-eye{max-width:min(58vw,440px);max-height:42vh;object-fit:contain;filter:contrast(1.4) brightness(1.15)}
-  .stock{width:92vw;text-align:left;font-family:var(--label)}
+  .stock{width:94vw;text-align:left;font-family:var(--label)}
   .stock .stk-top{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:10px}
-  .stock .stk-sym{font-weight:600;letter-spacing:.04em;color:var(--bright);font-size:clamp(20px,4vw,30px)}
-  .stock .stk-price{font-weight:300;color:var(--bright);font-size:clamp(22px,4.4vw,34px)}
-  .stock .stk-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
-  .stock .stk-metrics div{color:var(--faint);letter-spacing:.14em;text-transform:uppercase;font-size:clamp(10px,1.8vw,13px)}
-  .stock .stk-metrics b{display:block;color:var(--bright);font-weight:300;letter-spacing:0;text-transform:none;font-size:clamp(14px,2.8vw,20px);margin-top:3px}
-  .stock .stk-canvas{display:block;width:92vw;height:18vh;margin-top:14px}
-  .stock .stk-range{color:var(--faint);letter-spacing:.14em;margin-top:6px;font-size:clamp(11px,2vw,14px)}
+  .stock .stk-sym{font-weight:600;letter-spacing:.04em;color:var(--bright);font-size:clamp(28px,5.6vw,54px)}
+  .stock .stk-price{font-weight:300;color:var(--bright);font-size:clamp(32px,7vw,72px)}
+  .stock .stk-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:18px}
+  .stock .stk-metrics div{color:var(--faint);letter-spacing:.14em;text-transform:uppercase;font-size:clamp(13px,2.2vw,18px)}
+  .stock .stk-metrics b{display:block;color:var(--bright);font-weight:300;letter-spacing:0;text-transform:none;font-size:clamp(20px,4vw,34px);margin-top:4px}
+  .stock .stk-canvas{display:block;width:94vw;height:46vh;margin-top:22px}
+  .stock .stk-range{color:var(--faint);letter-spacing:.14em;margin-top:10px;font-size:clamp(13px,2.2vw,16px)}
   .stock .stk-msg{color:var(--faint);font-size:clamp(13px,2.4vw,18px)}
   .stockrows{display:flex;flex-direction:column;gap:clamp(14px,2.4vh,26px);align-items:center;font-family:var(--label)}
   .stockrows .srow{display:flex;align-items:baseline;justify-content:center;gap:clamp(14px,2.4vw,28px)}
@@ -204,12 +204,10 @@
 <div id="focus"><div id="focusInner"></div></div>
 <div id="eyesaver"><img src="https://media4.giphy.com/media/v1.Y2lkPTZjMDliOTUyeTloMmF1Y2hicDQyeDlpcHh0b2J5Y3FwMW1jem9heGJvemIyeDZobyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3ohs4CacylzFaHjMM8/giphy.gif" alt="Eye"></div>
 <div id="biz">
+  <div class="biz-tl"><div id="bizTime" class="biz-time"></div><div id="bizDate" class="biz-date"></div></div>
+  <div class="biz-tr"><div id="bizWx" class="biz-wx"></div></div>
   <img id="bizTopImg" class="biz-img" alt="">
   <div class="biz-middle"><img id="bizMidImg" class="biz-img" alt=""></div>
-  <div class="biz-foot">
-    <div class="biz-foot-l"><div id="bizTime" class="biz-time"></div><div id="bizDate" class="biz-date"></div></div>
-    <div id="bizWx" class="biz-wx"></div>
-  </div>
   <div id="bizPdf"><canvas id="bizPdfCanvas"></canvas></div>
   <button class="gear" id="bizGear" title="Settings">&#9881;</button>
 </div>
@@ -1377,7 +1375,8 @@
   .sizerow input[type=range]{flex:1}
   #biz .biz-img{width:100%;height:auto;display:block}
   #biz .biz-middle{flex:1 1 auto;display:flex;align-items:center;justify-content:center;min-height:0}
-  #biz .biz-foot{flex:0 0 auto;display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-top:18px}
+  #biz .biz-tl{position:absolute;top:clamp(22px,5vw,60px);left:clamp(22px,5vw,60px);z-index:2}
+  #biz .biz-tr{position:absolute;top:clamp(22px,5vw,60px);right:clamp(22px,5vw,60px);z-index:2;text-align:right}
   #biz .biz-time{font-family:var(--label);font-weight:300;line-height:1;color:var(--bright);font-size:clamp(40px,9vw,104px)}
   #biz .biz-time .sec{display:none}
   #biz .biz-date{font-family:var(--label);text-transform:uppercase;letter-spacing:.14em;color:var(--faint);margin-top:8px;font-size:clamp(12px,2.6vw,20px)}
