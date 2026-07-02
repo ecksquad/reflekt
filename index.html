@@ -113,6 +113,12 @@
   .stock .stk-canvas{display:block;width:92vw;height:18vh;margin-top:14px}
   .stock .stk-range{color:var(--faint);letter-spacing:.14em;margin-top:6px;font-size:clamp(11px,2vw,14px)}
   .stock .stk-msg{color:var(--faint);font-size:clamp(13px,2.4vw,18px)}
+  .stockrows{display:flex;flex-direction:column;gap:clamp(14px,2.4vh,26px);align-items:center;font-family:var(--label)}
+  .stockrows .srow{display:flex;align-items:baseline;justify-content:center;gap:clamp(14px,2.4vw,28px)}
+  .stockrows .ssym{font-weight:600;letter-spacing:.04em;color:var(--bright);font-size:clamp(20px,4vw,36px);min-width:3.6em;text-align:right}
+  .stockrows .sprice{font-weight:300;color:var(--bright);font-size:clamp(22px,4.4vw,40px);min-width:4.4em;text-align:right}
+  .stockrows .schg{font-size:clamp(13px,2.2vw,20px);min-width:7em;text-align:left}
+  .stockrows .stk-msg{color:var(--faint);font-size:clamp(13px,2.4vw,18px);text-align:center}
 
   .time{font-weight:100;font-size:clamp(56px,16vmin,160px);line-height:.9;letter-spacing:-.01em}
   .time .sec{font-size:.38em;color:var(--accent);font-weight:300;margin-left:.12em;vertical-align:.55em}
@@ -218,6 +224,7 @@
       <div class="seg" id="modeSeg">
         <button data-v="off" class="on">Home</button>
         <button data-v="on">Business</button>
+        <button data-v="stock">Stock</button>
       </div>
     </div>
 
@@ -286,7 +293,7 @@
       <div class="hint">Live prices via your relay Worker (the Departures service URL) &mdash; no key, no cap.</div>
     </div>
 
-    <div class="field opt-home">
+    <div class="field stock-range-field">
       <span class="label">Stock range</span>
       <div class="seg" id="stockRangeSeg">
         <button data-v="day">Day</button>
@@ -295,6 +302,17 @@
         <button data-v="year">Year</button>
         <button data-v="all">All</button>
       </div>
+      <div class="hint">Applies to the centre stock chart (Home) and all rows below (Stock mode).</div>
+    </div>
+
+    <div class="field opt-stock">
+      <span class="label">Stock rows (up to 5)</span>
+      <input id="stock1" class="input" placeholder="e.g. AAPL" autocomplete="off" style="margin-bottom:8px">
+      <input id="stock2" class="input" placeholder="e.g. TSLA" autocomplete="off" style="margin-bottom:8px">
+      <input id="stock3" class="input" placeholder="e.g. MSFT" autocomplete="off" style="margin-bottom:8px">
+      <input id="stock4" class="input" placeholder="optional" autocomplete="off" style="margin-bottom:8px">
+      <input id="stock5" class="input" placeholder="optional" autocomplete="off">
+      <div class="hint">Leave a row blank to hide it. Shown full-screen below the clock and weather.</div>
     </div>
 
     <div class="field opt-biz">
@@ -445,6 +463,9 @@
   <div class="region r-mc" id="compRegion" style="display:none">
     <div class="compliment" id="compText"></div>
   </div>
+  <div class="region r-mc" id="stockRowsRegion" style="display:none">
+    <div class="stockrows" id="stockRowsList"></div>
+  </div>
   <div class="region r-bl" id="busRegion" style="display:none">
     <div class="label bus-h" id="busHead">Departures</div>
     <div id="busList"></div>
@@ -467,7 +488,7 @@
   // ---------- state + storage (storage is best-effort; falls back to memory) ----------
   var DEFAULTS = { loc:"", lat:null, lon:null, place:"", name:"",
     unit:"celsius", clock:"24", lang:"sv", seconds:"on", comments:"sv",
-    awake:"on", motion:"off", motionFor:"60", motionSens:"med", biz:"off", bizTop:"", bizMid:"", bizPdf:"", bizTopScale:100, bizMidScale:100, stockSym:"AAPL", stockRange:"month", remoteSync:"off", mirrorId:"main", accent:"#e9c98a", bottomLeft:"bus", elzone:"SE3",
+    awake:"on", motion:"off", motionFor:"60", motionSens:"med", biz:"off", bizTop:"", bizMid:"", bizPdf:"", bizTopScale:100, bizMidScale:100, stockSym:"AAPL", stockRange:"month", stock1:"", stock2:"", stock3:"", stock4:"", stock5:"", remoteSync:"off", mirrorId:"main", accent:"#e9c98a", bottomLeft:"bus", elzone:"SE3",
     busUrl:"https://still-wave-afbc.ecksquad.workers.dev", busId:"" };
   var state = Object.assign({}, DEFAULTS);
   var KEY = "mirror.config.v1";
@@ -904,7 +925,7 @@
     if(state.comments==="emoji") return EMOJI;
     return COMP; // "sv"
   }
-  var compIdx=-1, compTimer=null;
+  var compIdx=-1, compTimer=null, stockRowsTimer=null;
   function rotateComp(){
     var el=$("compText");
     el.style.opacity=0;
@@ -917,6 +938,7 @@
   }
   function startComp(){
     var reg=$("compRegion"), el=$("compText");
+    if(state.biz==="stock"){ reg.style.display="none"; clearInterval(compTimer); compTimer=null; return; }
     if(state.comments==="off"){ reg.style.display="none"; clearInterval(compTimer); compTimer=null; return; }
     reg.style.display="flex";
     if(state.comments==="stock"){
@@ -1005,6 +1027,43 @@
     ctx.textAlign="right"; ctx.fillText(lbl1, w-padR, h-7);
   }
 
+  function loadStockRows(){
+    var reg=$("stockRowsRegion"), list=$("stockRowsList"); if(!reg||!list) return;
+    var syms=[state.stock1,state.stock2,state.stock3,state.stock4,state.stock5]
+      .map(function(s){return (s||"").trim().toUpperCase();}).filter(Boolean);
+    if(!syms.length){ list.innerHTML='<div class="stk-msg">Add up to 5 stock symbols in settings</div>'; return; }
+    var base=state.busUrl;
+    if(!base){ list.innerHTML='<div class="stk-msg">Set the relay URL (Departures service URL) in settings</div>'; return; }
+    var c=stockCfg();
+    Promise.all(syms.map(function(sym){
+      var u=base+(base.indexOf("?")>=0?"&":"?")+"stock="+encodeURIComponent(sym)+"&range="+c.range+"&interval="+c.interval;
+      return fetch(u).then(function(r){return r.json();}).then(function(d){
+        var rawC=(d&&d.closes)||[];
+        var closes=[]; for(var k=0;k<rawC.length;k++){ var cvn=parseFloat(rawC[k]); if(!isNaN(cvn)) closes.push(cvn); }
+        if(closes.length<2) return {sym:sym, err:true};
+        var last=(d.price!=null?Number(d.price):closes[closes.length-1]), first=closes[0];
+        var chg=last-first, pct=first?(chg/first*100):0;
+        return {sym:sym, last:last, chg:chg, pct:pct};
+      }).catch(function(){ return {sym:sym, err:true}; });
+    })).then(function(results){
+      list.innerHTML = results.map(function(r){
+        if(r.err) return '<div class="srow"><span class="ssym">'+r.sym+'</span><span class="stk-msg">No data</span></div>';
+        var up=r.chg>=0, col=up?"#4cc15a":"#e0533f";
+        return '<div class="srow"><span class="ssym">'+r.sym+'</span><span class="sprice">'+r.last.toFixed(2)+'</span>'
+          +'<span class="schg" style="color:'+col+'">'+(up?"+":"")+r.chg.toFixed(2)+' ('+(up?"+":"")+r.pct.toFixed(2)+'%)</span></div>';
+      }).join("");
+    });
+  }
+  function stopStockRows(){ var reg=$("stockRowsRegion"); if(reg) reg.style.display="none"; clearInterval(stockRowsTimer); stockRowsTimer=null; }
+  function startStockRows(){
+    var reg=$("stockRowsRegion"); if(!reg) return;
+    if(state.biz!=="stock"){ stopStockRows(); return; }
+    reg.style.display="flex";
+    loadStockRows();
+    clearInterval(stockRowsTimer);
+    stockRowsTimer=setInterval(loadStockRows, 60*1000);
+  }
+
   // ---------- remote settings sync (via the relay Worker + KV) ----------
   var lastCfgTs=0, remoteTimer=null;
   function pushConfig(){
@@ -1049,7 +1108,7 @@
     if(PHONE) setVP(true);
     goFullscreen();
     $("focus").classList.remove("show"); clearInterval(focusTimer); focusTimer=null;
-    tick(); loadWeather(true); refreshBottomLeft(true); startComp(); keepAwake(); startMotion(); startBiz(); startRemote();
+    tick(); loadWeather(true); refreshBottomLeft(true); startComp(); startStockRows(); keepAwake(); startMotion(); startBiz(); startRemote();
     clearInterval(timer); timer=setInterval(tick,1000);
     clearInterval(wxTimer); wxTimer=setInterval(function(){loadWeather(false);},60*1000);
     clearInterval(busTimer); busTimer=setInterval(function(){refreshBottomLeft(false);},30*1000);
@@ -1062,6 +1121,7 @@
     $("setup").classList.remove("hidden");
     clearInterval(timer); clearInterval(wxTimer); clearInterval(busTimer);
     clearInterval(compTimer); compTimer=null;
+    stopStockRows();
     releaseAwake();
     stopMotion(); stopBiz(); clearInterval(remoteTimer); remoteTimer=null;
     $("focus").classList.remove("show"); clearInterval(focusTimer); focusTimer=null;
@@ -1072,6 +1132,7 @@
     $("mirror").classList.remove("show");
     clearInterval(timer); clearInterval(wxTimer); clearInterval(busTimer);
     clearInterval(compTimer); compTimer=null;
+    stopStockRows();
     stopMotion();
     $("focus").classList.remove("show"); clearInterval(focusTimer); focusTimer=null;
     $("eyesaver").classList.add("show");
@@ -1138,7 +1199,7 @@
     }).catch(function(){ alert("Couldn't store that image (too large or storage blocked)."); });
     fileEl.value="";
   }
-  function applyMode(){ var st=$("setup"); if(!st) return; var b=state.biz==="on"; st.classList.toggle("mode-biz",b); st.classList.toggle("mode-home",!b); }
+  function applyMode(){ var st=$("setup"); if(!st) return; st.classList.toggle("mode-biz", state.biz==="on"); st.classList.toggle("mode-home", state.biz==="off"); st.classList.toggle("mode-stock", state.biz==="stock"); }
   function idbDel(k){ return idbOpen().then(function(db){ return new Promise(function(res){ var tx=db.transaction("kv","readwrite"); tx.objectStore("kv").delete(k); tx.oncomplete=function(){res();}; tx.onerror=function(){res();}; }); }); }
   function renderPdf(blob){
     if(!window.pdfjsLib) return;
@@ -1209,7 +1270,7 @@
   }
   function fillForm(){
     $("loc").value=state.loc; $("name").value=state.name;
-    $("busUrl").value=state.busUrl||""; $("busId").value=state.busId||""; $("stockSym").value=state.stockSym||""; $("mirrorId").value=state.mirrorId||"main"; $("bizTop").value=(state.bizTop&&state.bizTop!=="idb")?state.bizTop:""; $("bizMid").value=(state.bizMid&&state.bizMid!=="idb")?state.bizMid:""; $("bizTopScale").value=state.bizTopScale||100; $("bizTopScaleVal").textContent=(state.bizTopScale||100)+"%"; $("bizMidScale").value=state.bizMidScale||100; $("bizMidScaleVal").textContent=(state.bizMidScale||100)+"%";
+    $("busUrl").value=state.busUrl||""; $("busId").value=state.busId||""; $("stockSym").value=state.stockSym||""; $("stock1").value=state.stock1||""; $("stock2").value=state.stock2||""; $("stock3").value=state.stock3||""; $("stock4").value=state.stock4||""; $("stock5").value=state.stock5||""; $("mirrorId").value=state.mirrorId||"main"; $("bizTop").value=(state.bizTop&&state.bizTop!=="idb")?state.bizTop:""; $("bizMid").value=(state.bizMid&&state.bizMid!=="idb")?state.bizMid:""; $("bizTopScale").value=state.bizTopScale||100; $("bizTopScaleVal").textContent=(state.bizTopScale||100)+"%"; $("bizMidScale").value=state.bizMidScale||100; $("bizMidScaleVal").textContent=(state.bizMidScale||100)+"%";
     setSeg("unitSeg",state.unit); setSeg("clockSeg",state.clock);
     setSeg("langSeg",state.lang); setSeg("secSeg",state.seconds); setSeg("compSeg",state.comments);
     setSeg("awakeSeg",state.awake); setSeg("accentSw",state.accent); applyAccent();
@@ -1224,7 +1285,7 @@
     if(!navigator.geolocation){ st.className="status err"; st.textContent="This device can't share location \u2014 type a place instead."; return; }
     // capture other fields first so they aren't lost
     state.name=$("name").value.trim();
-    state.busUrl=$("busUrl").value.trim(); state.busId=$("busId").value.trim(); state.stockSym=$("stockSym").value.trim().toUpperCase(); state.mirrorId=($("mirrorId").value.trim()||"main");
+    state.busUrl=$("busUrl").value.trim(); state.busId=$("busId").value.trim(); state.stockSym=$("stockSym").value.trim().toUpperCase(); state.stock1=$("stock1").value.trim().toUpperCase(); state.stock2=$("stock2").value.trim().toUpperCase(); state.stock3=$("stock3").value.trim().toUpperCase(); state.stock4=$("stock4").value.trim().toUpperCase(); state.stock5=$("stock5").value.trim().toUpperCase(); state.mirrorId=($("mirrorId").value.trim()||"main");
     navigator.geolocation.getCurrentPosition(function(pos){
       state.lat=pos.coords.latitude; state.lon=pos.coords.longitude; state.place="Current location"; state.loc="";
       $("loc").value="";
@@ -1240,7 +1301,7 @@
   $("startBtn").addEventListener("click",function(){
     var st=$("status"); st.className="status"; st.textContent="";
     state.name=$("name").value.trim();
-    state.busUrl=$("busUrl").value.trim(); state.busId=$("busId").value.trim(); state.stockSym=$("stockSym").value.trim().toUpperCase(); state.mirrorId=($("mirrorId").value.trim()||"main");
+    state.busUrl=$("busUrl").value.trim(); state.busId=$("busId").value.trim(); state.stockSym=$("stockSym").value.trim().toUpperCase(); state.stock1=$("stock1").value.trim().toUpperCase(); state.stock2=$("stock2").value.trim().toUpperCase(); state.stock3=$("stock3").value.trim().toUpperCase(); state.stock4=$("stock4").value.trim().toUpperCase(); state.stock5=$("stock5").value.trim().toUpperCase(); state.mirrorId=($("mirrorId").value.trim()||"main");
     var loc=$("loc").value.trim();
     if(loc){
       st.textContent="Finding location\u2026";
@@ -1268,7 +1329,7 @@
   $("bizMidFile").addEventListener("change",function(){ bizPick($("bizMidFile"),"bizMidBlob",$("bizMid"),"bizMid"); });
   $("bizTop").addEventListener("input",function(){ state.bizTop=$("bizTop").value.trim(); save(); });
   $("bizMid").addEventListener("input",function(){ state.bizMid=$("bizMid").value.trim(); save(); });
-  $("modeSeg").addEventListener("click",function(){ setTimeout(function(){ applyMode(); if($("mirror").classList.contains("show")) startBiz(); },0); });
+  $("modeSeg").addEventListener("click",function(){ setTimeout(function(){ applyMode(); if($("mirror").classList.contains("show")){ startBiz(); startComp(); startStockRows(); } },0); });
   $("bizPdfPick").addEventListener("click",function(){ $("bizPdfFile").click(); });
   $("bizPdfFile").addEventListener("change",function(){ var f=$("bizPdfFile").files&&$("bizPdfFile").files[0]; if(!f){return;} idbSet("bizPdfBlob",f).then(function(){ state.bizPdf="idb"; save(); if($("mirror").classList.contains("show")) startBiz(); }).catch(function(){ alert("Couldn't store that PDF (too large or blocked)."); }); $("bizPdfFile").value=""; });
   $("bizPdfClear").addEventListener("click",function(){ state.bizPdf=""; idbDel("bizPdfBlob"); save(); if($("mirror").classList.contains("show")) startBiz(); });
@@ -1302,6 +1363,13 @@
   #biz #bizGear{z-index:3}
   #setup.mode-home .opt-biz{display:none}
   #setup.mode-biz .opt-home{display:none}
+  #setup.mode-home .opt-stock{display:none}
+  #setup.mode-biz .opt-stock{display:none}
+  #setup.mode-stock .opt-home{display:none}
+  #setup.mode-stock .opt-biz{display:none}
+  #setup .stock-range-field{display:none}
+  #setup.mode-home .stock-range-field{display:block}
+  #setup.mode-stock .stock-range-field{display:block}
   #biz #bizPdf{position:absolute;inset:0;background:var(--bg);display:none;align-items:center;justify-content:center;z-index:1}
   #biz #bizPdf canvas{max-width:100%;max-height:100%;display:block}
   #biz #bizTopImg{align-self:center}
