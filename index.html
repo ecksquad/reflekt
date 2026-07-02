@@ -451,7 +451,7 @@
 </div>
 
 <div id="mirror">
-  <div class="region r-tl">
+  <div class="region r-tl" id="clockRegion">
     <div class="time" id="mTime">--:--</div>
     <div class="date" id="mDate"></div>
     <div class="greet" id="mGreet"></div>
@@ -479,6 +479,13 @@
   <div class="region r-br" id="infoRegion">
     <div class="info-week" id="infoWeek"></div>
     <div class="info-sun" id="infoSun"></div>
+  </div>
+  <div class="region r-bl" id="stockTimeRegion" style="display:none">
+    <div class="biz-time" id="stockTime"></div>
+    <div class="biz-date" id="stockDate"></div>
+  </div>
+  <div class="region r-br" id="stockWxRegion" style="display:none">
+    <div class="biz-wx" id="stockWx"></div>
   </div>
   <button class="gear" id="gear" title="Settings">&#9881;</button>
 </div>
@@ -929,7 +936,7 @@
     if(state.comments==="emoji") return EMOJI;
     return COMP; // "sv"
   }
-  var compIdx=-1, compTimer=null, stockRowsTimer=null;
+  var compIdx=-1, compTimer=null, stockRowsTimer=null, stockFootTimer=null;
   function rotateComp(){
     var el=$("compText");
     el.style.opacity=0;
@@ -1069,7 +1076,15 @@
     for(var i=1;i<n;i++) ctx.lineTo(X(i),Y(closes[i]));
     ctx.strokeStyle="#fff"; ctx.lineWidth=2; ctx.lineJoin="round"; ctx.stroke();
   }
-  function stopStockRows(){ var reg=$("stockRowsRegion"); if(reg) reg.style.display="none"; clearInterval(stockRowsTimer); stockRowsTimer=null; }
+  function stopStockRows(){
+    var reg=$("stockRowsRegion"); if(reg) reg.style.display="none";
+    clearInterval(stockRowsTimer); stockRowsTimer=null;
+    clearInterval(stockFootTimer); stockFootTimer=null;
+    $("stockTimeRegion").style.display="none";
+    $("stockWxRegion").style.display="none";
+    $("clockRegion").style.display="";
+    $("wxRegion").style.display="";
+  }
   function startStockRows(){
     var reg=$("stockRowsRegion"); if(!reg) return;
     if(state.biz!=="stock"){ stopStockRows(); return; }
@@ -1077,6 +1092,18 @@
     loadStockRows();
     clearInterval(stockRowsTimer);
     stockRowsTimer=setInterval(loadStockRows, 60*1000);
+    $("clockRegion").style.display="none";
+    $("wxRegion").style.display="none";
+    $("stockTimeRegion").style.display="";
+    $("stockWxRegion").style.display="";
+    function paintFoot(){
+      $("stockTime").innerHTML = (($("mTime")||{}).innerHTML)||"";
+      $("stockDate").textContent = (($("mDate")||{}).textContent)||"";
+      var temp=(($("wxTemp")||{}).innerHTML)||"", cond=(($("wxCond")||{}).textContent)||"";
+      $("stockWx").innerHTML = temp + (cond?'<span class="biz-wxc">'+cond+'</span>':"");
+    }
+    paintFoot();
+    clearInterval(stockFootTimer); stockFootTimer=setInterval(paintFoot,1000);
   }
 
   // ---------- remote settings sync (via the relay Worker + KV) ----------
@@ -1393,11 +1420,11 @@
   #biz .biz-img{width:100%;height:auto;display:block}
   #biz .biz-middle{flex:1 1 auto;display:flex;align-items:center;justify-content:center;min-height:0}
   #biz .biz-foot{flex:0 0 auto;display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-top:18px}
-  #biz .biz-time{font-family:var(--label);font-weight:300;line-height:1;color:var(--bright);font-size:clamp(40px,9vw,104px)}
-  #biz .biz-time .sec{display:none}
-  #biz .biz-date{font-family:var(--label);text-transform:uppercase;letter-spacing:.14em;color:var(--faint);margin-top:8px;font-size:clamp(12px,2.6vw,20px)}
-  #biz .biz-wx{font-family:var(--label);font-weight:300;line-height:1;color:var(--bright);text-align:right;font-size:clamp(34px,7.5vw,84px)}
-  #biz .biz-wx .biz-wxc{display:block;font-size:clamp(11px,2.2vw,16px);color:var(--faint);letter-spacing:.12em;text-transform:uppercase;margin-top:6px}
+  .biz-time{font-family:var(--label);font-weight:300;line-height:1;color:var(--bright);font-size:clamp(40px,9vw,104px)}
+  .biz-time .sec{display:none}
+  .biz-date{font-family:var(--label);text-transform:uppercase;letter-spacing:.14em;color:var(--faint);margin-top:8px;font-size:clamp(12px,2.6vw,20px)}
+  .biz-wx{font-family:var(--label);font-weight:300;line-height:1;color:var(--bright);text-align:right;font-size:clamp(34px,7.5vw,84px)}
+  .biz-wx .biz-wxc{display:block;font-size:clamp(11px,2.2vw,16px);color:var(--faint);letter-spacing:.12em;text-transform:uppercase;margin-top:6px}
 </style>
 <script>
 (function () {
