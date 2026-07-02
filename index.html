@@ -113,11 +113,13 @@
   .stock .stk-canvas{display:block;width:94vw;height:46vh;margin-top:22px}
   .stock .stk-range{color:var(--faint);letter-spacing:.14em;margin-top:10px;font-size:clamp(13px,2.2vw,16px)}
   .stock .stk-msg{color:var(--faint);font-size:clamp(13px,2.4vw,18px)}
-  .stockrows{display:flex;flex-direction:column;gap:clamp(14px,2.4vh,26px);align-items:center;font-family:var(--label)}
-  .stockrows .srow{display:flex;align-items:baseline;justify-content:center;gap:clamp(14px,2.4vw,28px)}
-  .stockrows .ssym{font-weight:600;letter-spacing:.04em;color:var(--bright);font-size:clamp(20px,4vw,36px);min-width:3.6em;text-align:right}
-  .stockrows .sprice{font-weight:300;color:var(--bright);font-size:clamp(22px,4.4vw,40px);min-width:4.4em;text-align:right}
-  .stockrows .schg{font-size:clamp(13px,2.2vw,20px);min-width:7em;text-align:left}
+  .stockrows{display:flex;flex-direction:column;gap:clamp(10px,1.8vh,20px);align-items:center;font-family:var(--label);width:94vw}
+  .stockrows .srow{width:100%}
+  .stockrows .srow-top{display:flex;align-items:baseline;justify-content:center;gap:clamp(14px,2.4vw,28px)}
+  .stockrows .ssym{font-weight:600;letter-spacing:.04em;color:var(--bright);font-size:clamp(18px,3.2vw,30px);min-width:3.6em;text-align:right}
+  .stockrows .sprice{font-weight:300;color:var(--bright);font-size:clamp(20px,3.6vw,34px);min-width:4.4em;text-align:right}
+  .stockrows .schg{font-size:clamp(12px,2vw,17px);min-width:7em;text-align:left}
+  .stockrows .srow-canvas{display:block;width:94vw;height:9vh;margin-top:4px}
   .stockrows .stk-msg{color:var(--faint);font-size:clamp(13px,2.4vw,18px);text-align:center}
 
   .time{font-weight:100;font-size:clamp(56px,16vmin,160px);line-height:.9;letter-spacing:-.01em}
@@ -690,6 +692,7 @@
 
   // ---------- bottom-left dispatcher ----------
   function refreshBottomLeft(force){
+    if(state.biz==="stock"){ $("busRegion").style.display="none"; $("elprisRegion").style.display="none"; return; }
     if(state.bottomLeft==="elpris"){ $("busRegion").style.display="none"; loadElpris(force); }
     else if(state.bottomLeft==="bus"){ $("elprisRegion").style.display="none"; loadBus(force); }
     else { $("busRegion").style.display="none"; $("elprisRegion").style.display="none"; }
@@ -728,6 +731,7 @@
     var g = greeting(h);
     $("mGreet").textContent = state.name ? g+", "+state.name : g;
     $("infoWeek").textContent = t("week")+" "+isoWeek(d);
+    $("infoRegion").style.display = (state.biz==="stock") ? "none" : "";
   }
 
   // ---------- wake lock (keep screen on; honours the toggle) ----------
@@ -1041,16 +1045,34 @@
         if(closes.length<2) return {sym:sym, err:true};
         var last=(d.price!=null?Number(d.price):closes[closes.length-1]), first=closes[0];
         var chg=last-first, pct=first?(chg/first*100):0;
-        return {sym:sym, last:last, chg:chg, pct:pct};
+        return {sym:sym, last:last, chg:chg, pct:pct, closes:closes};
       }).catch(function(){ return {sym:sym, err:true}; });
     })).then(function(results){
-      list.innerHTML = results.map(function(r){
-        if(r.err) return '<div class="srow"><span class="ssym">'+r.sym+'</span><span class="stk-msg">No data</span></div>';
+      list.innerHTML = results.map(function(r,i){
+        if(r.err) return '<div class="srow"><div class="srow-top"><span class="ssym">'+r.sym+'</span><span class="stk-msg">No data</span></div></div>';
         var up=r.chg>=0, col=up?"#4cc15a":"#e0533f";
-        return '<div class="srow"><span class="ssym">'+r.sym+'</span><span class="sprice">'+r.last.toFixed(2)+'</span>'
-          +'<span class="schg" style="color:'+col+'">'+(up?"+":"")+r.chg.toFixed(2)+' ('+(up?"+":"")+r.pct.toFixed(2)+'%)</span></div>';
+        return '<div class="srow">'
+          +'<div class="srow-top"><span class="ssym">'+r.sym+'</span><span class="sprice">'+r.last.toFixed(2)+'</span>'
+          +'<span class="schg" style="color:'+col+'">'+(up?"+":"")+r.chg.toFixed(2)+' ('+(up?"+":"")+r.pct.toFixed(2)+'%)</span></div>'
+          +'<canvas class="srow-canvas" id="srowCanvas'+i+'"></canvas>'
+          +'</div>';
       }).join("");
+      requestAnimationFrame(function(){
+        results.forEach(function(r,i){ if(!r.err) drawMiniStock("srowCanvas"+i, r.closes); });
+      });
     });
+  }
+  function drawMiniStock(canvasId, closes){
+    var cv=$(canvasId); if(!cv||!closes||closes.length<2) return;
+    var w=cv.clientWidth||300, h=cv.clientHeight||60, dpr=window.devicePixelRatio||1;
+    cv.width=w*dpr; cv.height=h*dpr;
+    var ctx=cv.getContext("2d"); ctx.scale(dpr,dpr);
+    var min=Math.min.apply(null,closes), max=Math.max.apply(null,closes), rng=(max-min)||1, n=closes.length;
+    function X(i){ return w*(n>1?i/(n-1):0); }
+    function Y(v){ return 4+(h-8)*(1-(v-min)/rng); }
+    ctx.beginPath(); ctx.moveTo(X(0),Y(closes[0]));
+    for(var i=1;i<n;i++) ctx.lineTo(X(i),Y(closes[i]));
+    ctx.strokeStyle="#fff"; ctx.lineWidth=2; ctx.lineJoin="round"; ctx.stroke();
   }
   function stopStockRows(){ var reg=$("stockRowsRegion"); if(reg) reg.style.display="none"; clearInterval(stockRowsTimer); stockRowsTimer=null; }
   function startStockRows(){
@@ -1327,7 +1349,7 @@
   $("bizMidFile").addEventListener("change",function(){ bizPick($("bizMidFile"),"bizMidBlob",$("bizMid"),"bizMid"); });
   $("bizTop").addEventListener("input",function(){ state.bizTop=$("bizTop").value.trim(); save(); });
   $("bizMid").addEventListener("input",function(){ state.bizMid=$("bizMid").value.trim(); save(); });
-  $("modeSeg").addEventListener("click",function(){ setTimeout(function(){ applyMode(); if($("mirror").classList.contains("show")){ startBiz(); startComp(); startStockRows(); } },0); });
+  $("modeSeg").addEventListener("click",function(){ setTimeout(function(){ applyMode(); if($("mirror").classList.contains("show")){ startBiz(); startComp(); startStockRows(); refreshBottomLeft(true); } },0); });
   $("bizPdfPick").addEventListener("click",function(){ $("bizPdfFile").click(); });
   $("bizPdfFile").addEventListener("change",function(){ var f=$("bizPdfFile").files&&$("bizPdfFile").files[0]; if(!f){return;} idbSet("bizPdfBlob",f).then(function(){ state.bizPdf="idb"; save(); if($("mirror").classList.contains("show")) startBiz(); }).catch(function(){ alert("Couldn't store that PDF (too large or blocked)."); }); $("bizPdfFile").value=""; });
   $("bizPdfClear").addEventListener("click",function(){ state.bizPdf=""; idbDel("bizPdfBlob"); save(); if($("mirror").classList.contains("show")) startBiz(); });
