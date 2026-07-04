@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" font-family="Segoe UI, system-ui, sans-serif">
+  <rect width="800" height="600" fill="#0d0d0d"/>
+  <!-- floor line / surface -->
+  <rect x="0" y="520" width="800" height="80" fill="#111111"/>
+  <line x1="0" y1="520" x2="800" y2="520" stroke="#242424" stroke-width="2"/>
+  <!-- stand leg (behind, angled) -->
+  <polygon points="470,200 510,190 555,516 515,516" fill="#191919" stroke="#2c2c2c" stroke-width="2"/>
+  <!-- stand base -->
+  <ellipse cx="430" cy="518" rx="170" ry="14" fill="#181818" stroke="#2a2a2a" stroke-width="2"/>
+  <!-- mirror, slight lean -->
+  <g transform="rotate(-4 400 300)">
+    <rect x="250" y="80" width="300" height="430" rx="14" fill="#151515" stroke="#2c2c2c" stroke-width="3"/>
+    <rect x="262" y="92" width="276" height="406" rx="8" fill="#0a0a0c"/>
+    <text x="288" y="164" font-size="44" font-weight="700" fill="#f5f5f5">07:42</text>
+    <text x="290" y="188" font-size="13" font-weight="600" fill="#ffdd00">Fredag 4 juli</text>
+    <text x="512" y="152" font-size="26" font-weight="700" fill="#ffdd00" text-anchor="end">18°</text>
+    <text x="512" y="172" font-size="11" fill="#9a9a9a" text-anchor="end">Halvklart</text>
+    <text x="288" y="452" font-size="9" font-weight="600" fill="#ffdd00" letter-spacing="1.5">BUSS</text>
+    <text x="288" y="470" font-size="10" fill="#a5a5a5">6 · 3 min &#160; 8 · 7 min</text>
+    <text x="512" y="452" font-size="9" font-weight="600" fill="#ffdd00" letter-spacing="1.5" text-anchor="end">ELPRIS</text>
+    <text x="512" y="470" font-size="10" fill="#a5a5a5" text-anchor="end">42 öre/kWh</text>
+    <linearGradient id="g2" x1="0" y1="0" x2="1" y2="1">
+      <stop offset=".4" stop-color="#fff" stop-opacity="0"/>
+      <stop offset=".5" stop-color="#fff" stop-opacity=".05"/>
+      <stop offset=".6" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+    <rect x="262" y="92" width="276" height="406" rx="8" fill="url(#g2)"/>
+  </g>
+  <text x="788" y="588" font-size="11" fill="#333" text-anchor="end">sample visual — replace with photo</text>
+</svg>

@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 800" font-family="Segoe UI, system-ui, sans-serif">
+  <rect width="600" height="800" fill="#0d0d0d"/>
+  <!-- frame -->
+  <rect x="90" y="50" width="420" height="700" rx="18" fill="#151515" stroke="#2c2c2c" stroke-width="3"/>
+  <rect x="106" y="66" width="388" height="668" rx="10" fill="url(#glass)"/>
+  <defs>
+    <linearGradient id="glass" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#101012"/>
+      <stop offset=".55" stop-color="#0a0a0c"/>
+      <stop offset="1" stop-color="#070708"/>
+    </linearGradient>
+    <linearGradient id="glare" x1="0" y1="0" x2="1" y2="1">
+      <stop offset=".42" stop-color="#ffffff" stop-opacity="0"/>
+      <stop offset=".5" stop-color="#ffffff" stop-opacity=".05"/>
+      <stop offset=".58" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <!-- clock -->
+  <text x="140" y="160" font-size="72" font-weight="700" fill="#f5f5f5">07:42</text>
+  <text x="142" y="192" font-size="19" font-weight="600" fill="#ffdd00">Fredag 4 juli · v.27</text>
+  <text x="142" y="218" font-size="16" fill="#8a8a8a">God morgon, Cameron</text>
+  <!-- weather -->
+  <text x="460" y="150" font-size="44" font-weight="700" fill="#ffdd00" text-anchor="end">18°</text>
+  <text x="460" y="176" font-size="15" fill="#9a9a9a" text-anchor="end">Halvklart</text>
+  <text x="460" y="198" font-size="13" fill="#6a6a6a" text-anchor="end">Lör 21° · Sön 19° · Mån 22°</text>
+  <!-- centre line -->
+  <text x="300" y="420" font-size="17" fill="#7a7a7a" text-anchor="middle" font-style="italic">”Små steg varje dag.”</text>
+  <!-- bottom left: bus -->
+  <text x="140" y="640" font-size="12" font-weight="600" fill="#ffdd00" letter-spacing="2">BUSS · KORSVÄGEN</text>
+  <text x="140" y="664" font-size="14" fill="#bdbdbd">6 &#160;Länsmansgården &#160;&#160;3 min</text>
+  <text x="140" y="686" font-size="14" fill="#bdbdbd">8 &#160;Angered &#160;&#160;7 min</text>
+  <!-- bottom right: elpris -->
+  <text x="460" y="640" font-size="12" font-weight="600" fill="#ffdd00" letter-spacing="2" text-anchor="end">ELPRIS SE3</text>
+  <text x="460" y="664" font-size="14" fill="#bdbdbd" text-anchor="end">Nu 42 öre/kWh</text>
+  <text x="460" y="686" font-size="14" fill="#bdbdbd" text-anchor="end">Billigast 03–05</text>
+  <!-- glare -->
+  <rect x="106" y="66" width="388" height="668" rx="10" fill="url(#glare)"/>
+  <text x="588" y="788" font-size="11" fill="#333" text-anchor="end">sample visual — replace with photo</text>
+</svg>

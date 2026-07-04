@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" font-family="Segoe UI, system-ui, sans-serif">
+  <rect width="800" height="600" fill="#101010"/>
+  <!-- wall panelling -->
+  <line x1="140" y1="0" x2="140" y2="600" stroke="#181818" stroke-width="2"/>
+  <line x1="660" y1="0" x2="660" y2="600" stroke="#181818" stroke-width="2"/>
+  <!-- sideboard -->
+  <rect x="90" y="470" width="620" height="18" rx="4" fill="#1c1c1c"/>
+  <rect x="130" y="488" width="14" height="90" fill="#161616"/>
+  <rect x="656" y="488" width="14" height="90" fill="#161616"/>
+  <!-- plant -->
+  <g stroke="#233023" stroke-width="5" stroke-linecap="round" fill="none">
+    <path d="M660 468 q-6 -50 18 -78"/>
+    <path d="M662 468 q10 -40 -8 -66"/>
+    <path d="M658 468 q-24 -30 -34 -44"/>
+  </g>
+  <rect x="640" y="452" width="44" height="26" rx="5" fill="#1e1e1e"/>
+  <!-- mirror on wall -->
+  <rect x="310" y="90" width="220" height="330" rx="12" fill="#151515" stroke="#2c2c2c" stroke-width="3"/>
+  <rect x="320" y="100" width="200" height="310" rx="7" fill="#0a0a0c"/>
+  <text x="340" y="158" font-size="34" font-weight="700" fill="#f5f5f5">07:42</text>
+  <text x="341" y="178" font-size="10" font-weight="600" fill="#ffdd00">Fredag 4 juli</text>
+  <text x="500" y="150" font-size="20" font-weight="700" fill="#ffdd00" text-anchor="end">18°</text>
+  <text x="500" y="166" font-size="9" fill="#9a9a9a" text-anchor="end">Halvklart</text>
+  <text x="340" y="372" font-size="8" font-weight="600" fill="#ffdd00" letter-spacing="1.2">BUSS</text>
+  <text x="340" y="387" font-size="9" fill="#a5a5a5">6 · 3 min</text>
+  <text x="500" y="372" font-size="8" font-weight="600" fill="#ffdd00" letter-spacing="1.2" text-anchor="end">ELPRIS</text>
+  <text x="500" y="387" font-size="9" fill="#a5a5a5" text-anchor="end">42 öre</text>
+  <!-- soft reflection of the room in the glass -->
+  <rect x="320" y="100" width="200" height="310" rx="7" fill="#ffffff" opacity=".02"/>
+  <text x="788" y="588" font-size="11" fill="#333" text-anchor="end">sample visual — replace with photo</text>
+</svg>
