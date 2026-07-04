@@ -56,20 +56,20 @@
   .field{margin-bottom:20px}
   .field > .label{display:block;font-size:11px;margin-bottom:8px}
   .input,.select{
-    width:100%;background:#0e0e0e;border:1px solid var(--line);
+    width:100%;background:#1b1b1b;border:1px solid #2c2c2c;
     color:var(--bright);font-family:var(--disp);font-weight:300;font-size:17px;
-    padding:13px 14px;border-radius:11px;outline:none;
+    padding:13px 14px;border-radius:10px;outline:none;
   }
-  .input:focus,.select:focus{border-color:rgba(255,255,255,.4)}
+  .input:focus,.select:focus{border-color:#ffdd00}
   .input::placeholder{color:var(--faint)}
   .row{display:flex;gap:12px}
   .row .field{flex:1}
   .hint{font-family:var(--label);color:var(--faint);font-size:12px;margin-top:7px;line-height:1.5}
-  .seg{display:flex;border:1px solid var(--line);border-radius:11px;overflow:hidden}
-  .seg button{flex:1;background:#0e0e0e;border:none;color:var(--dim);
+  .seg{display:flex;border:1px solid #2c2c2c;border-radius:10px;overflow:hidden}
+  .seg button{flex:1;background:#1b1b1b;border:none;color:var(--dim);
     font-family:var(--label);text-transform:uppercase;letter-spacing:.12em;font-size:13px;
     padding:13px 0;cursor:pointer}
-  .seg button.on{background:#fff;color:#000}
+  .seg button.on{background:#ffdd00;color:#000}
   .swatches{display:flex;gap:12px}
   .swatches button{width:38px;height:38px;border-radius:50%;border:2px solid transparent;
     background:var(--c);cursor:pointer;padding:0;transition:transform .12s}
@@ -82,10 +82,19 @@
   .adv-toggle.open .chev{transform:rotate(90deg)}
   #adv{display:none}
   #adv.open{display:block}
-  .start{width:100%;margin-top:14px;background:#fff;color:#000;border:none;
-    font-family:var(--label);text-transform:uppercase;letter-spacing:.18em;font-weight:400;font-size:15px;
-    padding:16px;border-radius:11px;cursor:pointer}
+  .start{width:100%;margin-top:14px;background:#ffdd00;color:#000;border:none;
+    font-family:var(--label);text-transform:uppercase;letter-spacing:.18em;font-weight:700;font-size:15px;
+    padding:16px;border-radius:10px;cursor:pointer}
   .start:active{opacity:.85}
+  /* Mirror 3-style collapsible settings sections */
+  .m3sec{margin-bottom:12px}
+  .m3sec-h{width:100%;display:flex;align-items:center;gap:9px;background:none;border:none;cursor:pointer;
+    font-family:var(--label);text-transform:uppercase;letter-spacing:.1em;font-size:13px;font-weight:700;
+    color:#ffdd00;padding:10px 2px;text-align:left}
+  .m3sec-h .chev{transition:transform .2s;display:inline-block}
+  .m3sec.open .m3sec-h .chev{transform:rotate(90deg)}
+  .m3sec-b{display:none;background:#131313;border:1px solid #222222;border-radius:14px;padding:20px 18px 6px}
+  .m3sec.open .m3sec-b{display:block}
   .status{font-family:var(--label);font-size:12px;margin-top:12px;min-height:16px;color:var(--faint);letter-spacing:.04em}
   .status.err{color:#ff8a8a}
   .status.ok{color:#8affb0}
@@ -193,7 +202,7 @@
     #mirror.show .info-sun .gap{display:none}
   }
 
-  .useloc{width:100%;background:#0e0e0e;border:1px solid var(--line);color:var(--bright);
+  .useloc{width:100%;background:#1b1b1b;border:1px solid #2c2c2c;color:var(--bright);
     font-family:var(--label);text-transform:uppercase;letter-spacing:.14em;font-size:13px;
     padding:13px;border-radius:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px}
   .useloc:active{background:#1a1a1a}
@@ -222,6 +231,10 @@
     <div class="brand">mini mirror<b>.</b></div>
     <div class="tagline">Set up your display</div>
 
+    <div class="m3sec open">
+    <button type="button" class="m3sec-h"><span class="chev">›</span> Basics</button>
+    <div class="m3sec-b">
+
     <div class="field">
       <span class="label">Mode</span>
       <div class="seg" id="modeSeg">
@@ -243,6 +256,13 @@
       <span class="label">Name (optional)</span>
       <input id="name" class="input" placeholder="Cameron" autocomplete="off">
     </div>
+
+    </div>
+    </div>
+
+    <div class="m3sec">
+    <button type="button" class="m3sec-h"><span class="chev">›</span> Clock &amp; language</button>
+    <div class="m3sec-b">
 
     <div class="row opt-home">
       <div class="field">
@@ -277,6 +297,13 @@
         </div>
       </div>
     </div>
+
+    </div>
+    </div>
+
+    <div class="m3sec">
+    <button type="button" class="m3sec-h"><span class="chev">›</span> Content &amp; panels</button>
+    <div class="m3sec-b">
 
     <div class="field opt-home">
       <span class="label">Centre display</span>
@@ -342,78 +369,11 @@
       <div class="hint">If set, the business screen shows this PDF full-screen instead of the images.</div>
     </div>
 
-    <div class="field">
-      <span class="label">Keep screen on</span>
-      <div class="seg" id="awakeSeg">
-        <button data-v="on" class="on">On</button>
-        <button data-v="off">Off</button>
-      </div>
-    </div>
-
-    <div class="field">
-      <span class="label">Motion wake</span>
-      <div class="seg" id="motionSeg">
-        <button data-v="off" class="on">Off</button>
-        <button data-v="on">On</button>
-      </div>
-      <div class="hint">Uses the front camera to detect movement and wake the screen; it sleeps to black when no one is around. Frames are processed on-device and never stored or sent anywhere.</div>
-    </div>
-
-    <div class="field">
-      <span class="label">Stay awake for</span>
-      <div class="seg" id="motionTimeoutSeg">
-        <button data-v="30">30s</button>
-        <button data-v="60" class="on">1 min</button>
-        <button data-v="180">3 min</button>
-        <button data-v="300">5 min</button>
-      </div>
-      <div class="hint">How long the screen stays on after the last movement.</div>
-    </div>
-
-    <div class="field">
-      <span class="label">Motion sensitivity</span>
-      <div class="seg" id="motionSensSeg">
-        <button data-v="low">Low</button>
-        <button data-v="med" class="on">Medium</button>
-        <button data-v="high">High</button>
-        <button data-v="max">Max</button>
-      </div>
-      <div class="hint">How much movement wakes the screen. High trips easily; Low needs bigger movement.</div>
-    </div>
-
-    <div class="field">
-      <span class="label">Remote camera view</span>
-      <div class="seg" id="camShareSeg">
-        <button data-v="off" class="on">Off</button>
-        <button data-v="on">On</button>
-      </div>
-      <div class="hint">On the mirror tablet: set On to allow live camera viewing from another device using the same Mirror ID. Video streams directly device-to-device &mdash; the relay is only used to set up the connection. To view: open this page on another device with <code>?cam=1</code> added to the URL.</div>
-      <div class="hint" id="camShareStatus" style="color:var(--accent)">Status: idle</div>
-    </div>
-
-    <div class="field">
-      <span class="label">Remote control</span>
-      <div class="seg" id="remoteSeg">
-        <button data-v="off" class="on">Off</button>
-        <button data-v="on">On</button>
-      </div>
-      <div class="hint">On the mirror tablet: set On so it receives settings pushed from another device. On your phone: leave Off and use &ldquo;Push to mirror&rdquo; below.</div>
-    </div>
-
-    <div class="field">
-      <span class="label">Mirror ID</span>
-      <input id="mirrorId" class="input" placeholder="main" autocomplete="off">
-      <div class="hint">Use the same ID on the tablet and your phone. Pick something non-obvious &mdash; it acts as a light password. Needs the relay Worker (Departures service URL).</div>
-    </div>
-
-    <div class="field">
-      <button class="start ghost" id="pushBtn" type="button">Push settings to mirror</button>
-    </div>
-
     <div class="field opt-home">
       <span class="label">Accent colour</span>
       <div class="swatches" id="accentSw">
         <button data-v="#e9c98a" style="--c:#e9c98a" class="on" aria-label="Gold"></button>
+        <button data-v="#ffdd00" style="--c:#ffdd00" aria-label="Yellow"></button>
         <button data-v="#7fd3ff" style="--c:#7fd3ff" aria-label="Ice"></button>
         <button data-v="#5fe3a1" style="--c:#5fe3a1" aria-label="Mint"></button>
         <button data-v="#ff8aa8" style="--c:#ff8aa8" aria-label="Rose"></button>
@@ -453,6 +413,91 @@
         <input id="busId" class="input" placeholder="leave blank for nearest stop" autocomplete="off" inputmode="numeric">
       </div>
       <div class="hint">Departures for your nearest stop work automatically once location is allowed. Advanced: override the service URL or pin a specific stop ID.</div>
+    </div>
+
+    </div>
+    </div>
+
+    <div class="m3sec">
+    <button type="button" class="m3sec-h"><span class="chev">›</span> Screen &amp; motion</button>
+    <div class="m3sec-b">
+
+    <div class="field">
+      <span class="label">Keep screen on</span>
+      <div class="seg" id="awakeSeg">
+        <button data-v="on" class="on">On</button>
+        <button data-v="off">Off</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <span class="label">Motion wake</span>
+      <div class="seg" id="motionSeg">
+        <button data-v="off" class="on">Off</button>
+        <button data-v="on">On</button>
+      </div>
+      <div class="hint">Uses the front camera to detect movement and wake the screen; it sleeps to black when no one is around. Frames are processed on-device and never stored or sent anywhere.</div>
+    </div>
+
+    <div class="field">
+      <span class="label">Stay awake for</span>
+      <div class="seg" id="motionTimeoutSeg">
+        <button data-v="30">30s</button>
+        <button data-v="60" class="on">1 min</button>
+        <button data-v="180">3 min</button>
+        <button data-v="300">5 min</button>
+      </div>
+      <div class="hint">How long the screen stays on after the last movement.</div>
+    </div>
+
+    <div class="field">
+      <span class="label">Motion sensitivity</span>
+      <div class="seg" id="motionSensSeg">
+        <button data-v="low">Low</button>
+        <button data-v="med" class="on">Medium</button>
+        <button data-v="high">High</button>
+        <button data-v="max">Max</button>
+      </div>
+      <div class="hint">How much movement wakes the screen. High trips easily; Low needs bigger movement.</div>
+    </div>
+
+    </div>
+    </div>
+
+    <div class="m3sec">
+    <button type="button" class="m3sec-h"><span class="chev">›</span> Remote &amp; phone control</button>
+    <div class="m3sec-b">
+
+    <div class="field">
+      <span class="label">Remote camera view</span>
+      <div class="seg" id="camShareSeg">
+        <button data-v="off" class="on">Off</button>
+        <button data-v="on">On</button>
+      </div>
+      <div class="hint">On the mirror tablet: set On to allow live camera viewing from another device using the same Mirror ID. Video streams directly device-to-device &mdash; the relay is only used to set up the connection. To view: open this page on another device with <code>?cam=1</code> added to the URL.</div>
+      <div class="hint" id="camShareStatus" style="color:var(--accent)">Status: idle</div>
+    </div>
+
+    <div class="field">
+      <span class="label">Remote control</span>
+      <div class="seg" id="remoteSeg">
+        <button data-v="off" class="on">Off</button>
+        <button data-v="on">On</button>
+      </div>
+      <div class="hint">On the mirror tablet: set On so it receives settings pushed from another device. On your phone: leave Off and use &ldquo;Push to mirror&rdquo; below.</div>
+    </div>
+
+    <div class="field">
+      <span class="label">Mirror ID</span>
+      <input id="mirrorId" class="input" placeholder="main" autocomplete="off">
+      <div class="hint">Use the same ID on the tablet and your phone. Pick something non-obvious &mdash; it acts as a light password. Needs the relay Worker (Departures service URL).</div>
+    </div>
+
+    <div class="field">
+      <button class="start ghost" id="pushBtn" type="button">Push settings to mirror</button>
+    </div>
+
+    </div>
     </div>
 
     <button class="start" id="startBtn">Start mirror</button>
@@ -1611,6 +1656,17 @@
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
+})();
+</script>
+
+<script>
+/* Collapsible settings sections (Mirror 3 style) */
+(function(){
+  document.querySelectorAll(".m3sec-h").forEach(function(h){
+    h.addEventListener("click", function(){
+      h.parentElement.classList.toggle("open");
+    });
+  });
 })();
 </script>
 
