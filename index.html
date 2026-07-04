@@ -112,6 +112,7 @@
     text-align:center;max-width:680px;color:var(--bright);opacity:0;transition:opacity .6s ease}
   .compliment.emoji{font-style:normal;font-size:clamp(64px,20vmin,180px);line-height:1}
   .compliment .comp-eye{max-width:min(58vw,440px);max-height:42vh;object-fit:contain;filter:contrast(1.4) brightness(1.15)}
+  .compliment .comp-user{max-width:min(70vw,560px);max-height:46vh;object-fit:contain}
   .stock{width:94vw;text-align:left;font-family:var(--label)}
   .stock .stk-top{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:10px}
   .stock .stk-sym{font-weight:600;letter-spacing:.04em;color:var(--bright);font-size:clamp(28px,5.6vw,54px)}
@@ -137,7 +138,7 @@
     text-transform:uppercase;letter-spacing:.14em;margin-top:10px}
   .greet{font-weight:300;font-size:clamp(18px,5vw,30px);color:var(--bright);margin-top:18px}
 
-  .wx-temp{font-weight:700;font-size:clamp(36px,10vmin,90px);line-height:1;color:var(--accent)}
+  .wx-temp{font-weight:700;font-size:clamp(36px,10vmin,90px);line-height:1;color:#ffdd00}
   .wx-temp .wi{font-size:.55em;margin-right:.18em;vertical-align:.04em}
   .wx-cond{font-family:var(--label);text-transform:uppercase;letter-spacing:.12em;color:var(--accent);
     font-size:clamp(13px,3.4vw,18px);margin-top:6px}
@@ -151,7 +152,7 @@
 
   /* bottom-right info: week number + sun times */
   .info-week{font-family:var(--label);text-transform:uppercase;letter-spacing:.16em;color:var(--accent);
-    font-size:clamp(15px,3.8vmin,21px)}
+    font-weight:700;font-size:clamp(20px,4.6vmin,26px)}
   .info-sun{font-family:var(--label);letter-spacing:.06em;color:var(--dim);font-size:clamp(12px,3vmin,16px);margin-top:9px}
   .info-sun .wi{color:var(--accent);margin:0 .25em 0 0}
   .info-sun .gap{display:inline-block;width:.9em}
@@ -311,10 +312,18 @@
         <button data-v="off">Off</button>
         <button data-v="sv" class="on">Svenska</button>
         <button data-v="en">English</button>
-        <button data-v="emoji">Emoji</button>
+        <button data-v="user">User</button>
         <button data-v="stock">Stock</button>
       </div>
-      <div class="hint">Rotating one-liners (Swedish/English), an emoji, or a full-width live stock chart.</div>
+      <div class="hint">Rotating one-liners (Swedish/English), your own image, or a full-width live stock chart.</div>
+    </div>
+
+    <div class="field opt-home" id="compImgField" style="display:none">
+      <span class="label">Centre image</span>
+      <input id="compImgFile" type="file" accept="image/png,image/jpeg,image/gif" style="display:none">
+      <button class="start ghost" id="compImgPick" type="button">Choose from device</button>
+      <button class="start ghost" id="compImgClear" type="button">Clear image</button>
+      <div class="hint">PNG, JPEG or GIF (animated GIFs play). Shown in the centre of the mirror.</div>
     </div>
 
     <div class="field opt-home">
@@ -1144,7 +1153,7 @@
     if(state.comments==="emoji") return EMOJI;
     return COMP; // "sv"
   }
-  var compIdx=-1, compTimer=null, stockRowsTimer=null, stockFootTimer=null;
+  var compIdx=-1, compTimer=null, stockRowsTimer=null, stockFootTimer=null, compUserObj=null;
   function rotateComp(){
     var el=$("compText");
     el.style.opacity=0;
@@ -1165,6 +1174,21 @@
       el.classList.remove("emoji");
       loadStock();
       compTimer=setInterval(loadStock, 60*1000);
+      return;
+    }
+    if(state.comments==="user"){
+      clearInterval(compTimer); compTimer=null;
+      el.classList.remove("emoji");
+      el.textContent=""; el.style.opacity=1;
+      idbGet("compImgBlob").then(function(blob){
+        if(blob){
+          if(compUserObj){ try{URL.revokeObjectURL(compUserObj);}catch(e){} }
+          compUserObj=URL.createObjectURL(blob);
+          el.innerHTML='<img class="comp-user" src="'+compUserObj+'" alt="">';
+        } else {
+          el.textContent="Choose a centre image in settings.";
+        }
+      }).catch(function(){ el.textContent="Couldn't load the centre image."; });
       return;
     }
     el.classList.toggle("emoji", state.comments==="emoji");
@@ -1503,6 +1527,25 @@
   function updateZoneVis(){ $("zoneField").style.display = state.bottomLeft==="elpris" ? "block" : "none"; }
   $("blSeg").addEventListener("click", updateZoneVis);
 
+  function updateCompImgVis(){ $("compImgField").style.display = state.comments==="user" ? "block" : "none"; }
+  $("compSeg").addEventListener("click", updateCompImgVis);
+  updateCompImgVis();
+  $("compImgPick").addEventListener("click",function(){ $("compImgFile").click(); });
+  $("compImgFile").addEventListener("change",function(){
+    var f=$("compImgFile").files && $("compImgFile").files[0]; if(!f) return;
+    idbSet("compImgBlob", f).then(function(){
+      state.compImg="idb"; save();
+      if($("mirror").classList.contains("show")) startComp();
+    }).catch(function(){ alert("Couldn't store that image (too large or storage blocked)."); });
+    $("compImgFile").value="";
+  });
+  $("compImgClear").addEventListener("click",function(){
+    idbDel("compImgBlob").then(function(){
+      state.compImg=""; save();
+      if($("mirror").classList.contains("show")) startComp();
+    });
+  });
+
   $("accentSw").addEventListener("click",function(e){
     var b=e.target.closest("button"); if(!b) return;
     Array.prototype.forEach.call(this.children,function(c){c.classList.remove("on");});
@@ -1525,7 +1568,7 @@
     setSeg("unitSeg",state.unit); setSeg("clockSeg",state.clock);
     setSeg("langSeg",state.lang); setSeg("secSeg",state.seconds); setSeg("compSeg",state.comments);
     setSeg("awakeSeg",state.awake); setSeg("accentSw",state.accent); applyAccent();
-    setSeg("blSeg",state.bottomLeft); setSeg("zoneSeg",state.elzone); updateZoneVis();
+    setSeg("blSeg",state.bottomLeft); setSeg("zoneSeg",state.elzone); updateZoneVis(); updateCompImgVis();
     setSeg("motionSeg",state.motion); setSeg("motionTimeoutSeg",state.motionFor); setSeg("motionSensSeg",state.motionSens); setSeg("camShareSeg",state.camShare); setSeg("modeSeg",state.biz); setSeg("stockRangeSeg",state.stockRange); setSeg("remoteSeg",state.remoteSync); applyMode();
     if(state.busId){ $("advToggle").classList.add("open"); $("adv").classList.add("open"); }
   }
