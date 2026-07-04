@@ -499,7 +499,8 @@
     <div class="field">
       <span class="label">Mirror ID</span>
       <input id="mirrorId" class="input" placeholder="main" autocomplete="off">
-      <div class="hint">Use the same ID on the tablet and your phone. Pick something non-obvious &mdash; it acts as a light password. Needs the relay Worker (Departures service URL).</div>
+      <button class="start ghost" id="genId" type="button">Generate new code</button>
+      <div class="hint">Use the same ID on the tablet and your phone. Pick something non-obvious &mdash; it acts as a light password &mdash; or tap Generate. Needs the relay Worker (Departures service URL).</div>
     </div>
 
     <div class="field">
@@ -1339,7 +1340,7 @@
   }
 
   // ---------- remote settings sync (via the relay Worker + KV) ----------
-  var lastCfgTs=0, remoteTimer=null;
+  var lastCfgTs=0, remoteTimer=null, CTRLMODE=false;
   function pushConfig(){
     var base=state.busUrl; if(!base){ alert("Set the relay URL first (Departures service URL)."); return; }
     var id=state.mirrorId||"main";
@@ -1362,6 +1363,7 @@
         Object.assign(state, cfg); delete state._ts;
         state.remoteSync=keep.remoteSync; state.mirrorId=keep.mirrorId; state.lat=keep.lat; state.lon=keep.lon;
         save(); fillForm();
+        if(CTRLMODE) return; // controller phone: update the form only, never switch views
         if(state.eyeMode==="on"){ showEye(); }
         else if($("eyesaver").classList.contains("show")){ showMirror(); }
         else if($("mirror").classList.contains("show")) showMirror();
@@ -1640,12 +1642,26 @@
   $("bizPdfFile").addEventListener("change",function(){ var f=$("bizPdfFile").files&&$("bizPdfFile").files[0]; if(!f){return;} idbSet("bizPdfBlob",f).then(function(){ state.bizPdf="idb"; save(); if($("mirror").classList.contains("show")) startBiz(); }).catch(function(){ alert("Couldn't store that PDF (too large or blocked)."); }); $("bizPdfFile").value=""; });
   $("bizPdfClear").addEventListener("click",function(){ state.bizPdf=""; idbDel("bizPdfBlob"); save(); if($("mirror").classList.contains("show")) startBiz(); });
   $("pushBtn").addEventListener("click",function(){ save(); pushConfig(); });
+  $("genId").addEventListener("click",function(){
+    var A="amber birch cedar delta ember frost indigo koda lumen mint nova onyx opal pearl polar quartz sage terra velvet willow".split(" ");
+    var B="arc bay cove dune elm fern glen isle lake mesa peak reef rune star tide vale".split(" ");
+    var id=A[Math.floor(Math.random()*A.length)]+"-"+B[Math.floor(Math.random()*B.length)]+"-"+(1000+Math.floor(Math.random()*9000));
+    $("mirrorId").value=id; state.mirrorId=id; save();
+  });
   $("bizTopScale").addEventListener("input",function(){ var v=+$("bizTopScale").value; state.bizTopScale=v; $("bizTopScaleVal").textContent=v+"%"; save(); var im=$("bizTopImg"); if(im) im.style.width=v+"%"; });
   $("bizMidScale").addEventListener("input",function(){ var v=+$("bizMidScale").value; state.bizMidScale=v; $("bizMidScaleVal").textContent=v+"%"; save(); var im=$("bizMidImg"); if(im) im.style.width=v+"%"; });
 
   // ---------- boot ----------
   load(); fillForm();
-  if(state.lat!=null){ showMirror(); } else { showSetup(); }
+  var ctrlId=new URLSearchParams(location.search).get("mirror");
+  if(ctrlId){
+    // Controller mode (opened from the sign-in page): manage the mirror with this ID.
+    // Never becomes a mirror itself; pullConfig fills the form with the mirror's current settings.
+    CTRLMODE=true;
+    state.mirrorId=ctrlId.trim(); save(); fillForm();
+    showSetup();
+    pullConfig();
+  } else if(state.lat!=null){ showMirror(); } else { showSetup(); }
 })();
 </script>
 

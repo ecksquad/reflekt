@@ -157,6 +157,32 @@ footer p{font-size:13px;color:var(--faint)}
 .foot-links a{font-size:13.5px;color:var(--muted);text-decoration:none}
 .foot-links a:hover{color:var(--ink)}
 
+/* ---- sign-in ---- */
+.auth-wrap{
+  min-height:100svh;display:flex;align-items:center;justify-content:center;
+  padding:110px 20px 60px;
+}
+.auth-card{
+  width:min(420px,100%);background:var(--panel);border:1px solid var(--line);
+  border-radius:var(--radius);padding:34px 30px;
+}
+.auth-card h1{font-size:30px;margin-bottom:10px}
+.auth-sub{color:var(--muted);font-size:14.5px;margin-bottom:24px}
+.auth-sub strong{color:var(--ink);font-weight:500}
+.auth-label{
+  display:block;font-size:12px;font-weight:600;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--acc);margin-bottom:8px;
+}
+.auth-input{
+  width:100%;background:#1b1b1b;border:1px solid var(--line2);border-radius:10px;
+  color:var(--ink);font-family:inherit;font-size:17px;padding:13px 15px;
+  letter-spacing:.02em;margin-bottom:16px;
+}
+.auth-input:focus{outline:none;border-color:var(--acc)}
+.auth-btn{width:100%;text-align:center;font-size:15px}
+.auth-note{font-size:13px;color:var(--faint);margin-top:16px}
+.auth-note:first-of-type{color:var(--acc)}
+
 /* ================= setup page ================= */
 .page-head{padding:150px 0 40px;border-bottom:1px solid var(--line)}
 .page-head .sub{margin-top:14px}
