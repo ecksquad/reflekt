@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>reflekt — turn any tablet into a smart mirror</title>
+<meta name="description" content="reflekt turns a spare tablet into a smart mirror: time, weather, bus departures, stock charts and electricity prices on black glass. Free, runs in your browser, no account.">
+<meta property="og:title" content="reflekt — turn any tablet into a smart mirror">
+<meta property="og:description" content="Time, weather, buses, markets and more, floating on black glass. Free, in your browser.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%230A0C0F'/%3E%3Cpath d='M34 30 L52 50 L34 70' fill='none' stroke='%23E9EDF1' stroke-width='9' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M66 30 L48 50 L66 70' fill='none' stroke='%238FD0E0' stroke-width='9' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav id="nav">
+  <a class="logo" href="./">refle<span class="kk">k</span>t</a>
+  <div class="nav-links">
+    <a href="#features" class="hide-sm">Features</a>
+    <a href="#how" class="hide-sm">How it works</a>
+    <a href="setup.html">Setup guide</a>
+    <a href="../" class="btn btn-acc btn-sm">Open the mirror</a>
+  </div>
+</nav>
+
+<header class="hero">
+  <p class="eyebrow">Smart mirror &middot; free &middot; in your browser</p>
+  <span class="logo xl" role="heading" aria-level="1" aria-label="reflekt">refle<span class="kk">k</span>t</span>
+  <h1 style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">reflekt — turn any tablet into a smart mirror</h1>
+  <p class="sub">Turn a spare tablet into a smart mirror. Time, weather, buses, markets and electricity prices — floating on black glass, updating all day. No app store, no account, nothing to install.</p>
+  <div class="hero-actions">
+    <a class="btn btn-acc" href="../">Open the mirror</a>
+    <a class="btn btn-ghost" href="setup.html">Read the setup guide</a>
+  </div>
+  <p class="hero-note">Works on any tablet or old phone with a browser. Set up in about two minutes.</p>
+</header>
+
+<div class="mock-wrap" aria-hidden="true">
+  <div class="mock">
+    <div class="mock-top">
+      <div>
+        <div class="mock-time" id="mockTime">07:42</div>
+        <div class="mock-date" id="mockDate">Friday 4 July</div>
+        <div class="mock-greet">Good morning, Cameron</div>
+      </div>
+      <div class="mock-wx">
+        <div class="mock-temp">18&deg;</div>
+        <div class="mock-cond">Partly cloudy</div>
+      </div>
+    </div>
+    <div class="mock-mid">
+      <div class="mock-line">&ldquo;Small steps every day.&rdquo;</div>
+    </div>
+    <div class="mock-bottom">
+      <div class="mock-panel">
+        <b>Bus &middot; Korsvägen</b>
+        <span>6 &nbsp;Länsmansgården &nbsp;3 min</span>
+        <span>8 &nbsp;Angered &nbsp;7 min</span>
+      </div>
+      <div class="mock-panel" style="text-align:right">
+        <b>Elpris SE3</b>
+        <span>Now 42 öre/kWh</span>
+        <span>Cheapest 03&ndash;05</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section id="features">
+  <div class="wrap">
+    <p class="eyebrow">What's on the glass</p>
+    <h2>Everything your morning needs, at a glance</h2>
+    <p class="sub">Each panel is optional — switch anything off and the glass stays clean and black.</p>
+    <div class="grid">
+
+      <div class="card">
+        <div class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+        <h3>Clock &amp; greeting</h3>
+        <p>A bold clock, the date and week number, and a greeting with your name — in Swedish or English, 24h or 12h.</p>
+      </div>
+
+      <div class="card">
+        <div class="ic"><svg viewBox="0 0 24 24"><path d="M7 17a4.5 4.5 0 1 1 .8-8.9A6 6 0 0 1 19 10a3.5 3.5 0 0 1-.5 7z"/></svg></div>
+        <h3>Weather &amp; forecast</h3>
+        <p>Live local weather with a multi-day forecast. Uses your location, or any place you type in.</p>
+      </div>
+
+      <div class="card">
+        <div class="ic"><svg viewBox="0 0 24 24"><path d="M4 18l5-6 4 4 7-9"/><path d="M20 7v4h-4"/></svg></div>
+        <h3>Live stock charts</h3>
+        <p>A full-width chart in the centre, or a dedicated Stock mode with up to five tickers — day, week, month, year or all-time.</p>
+      </div>
+
+      <div class="card">
+        <div class="ic"><svg viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="14" rx="3"/><path d="M5 12h14M8 18v2m8-2v2"/><circle cx="9" cy="15" r=".5"/><circle cx="15" cy="15" r=".5"/></svg></div>
+        <h3>Bus departures</h3>
+        <p>Live departures from your nearest stop, automatically — or pin an exact stop if you prefer.</p>
+      </div>
+
+      <div class="card">
+        <div class="ic"><svg viewBox="0 0 24 24"><path d="M13 3L5 13h5l-1 8 8-10h-5l1-8z"/></svg></div>
+        <h3>Electricity spot price</h3>
+        <p>Swedish hourly spot prices for your bidding area (SE1&ndash;SE4), so you know when power is cheap.</p>
+      </div>
+
+      <div class="card">
+        <div class="ic"><svg viewBox="0 0 24 24"><path d="M3 12s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z"/><circle cx="12" cy="12" r="2.5"/></svg></div>
+        <h3>Motion wake</h3>
+        <p>The screen sleeps to black and wakes when someone walks up, using the front camera — processed on the device, never stored or sent anywhere.</p>
+      </div>
+
+      <div class="card">
+        <div class="ic"><svg viewBox="0 0 24 24"><rect x="7" y="3" width="10" height="18" rx="2.5"/><path d="M11 18.5h2"/></svg></div>
+        <h3>Phone remote</h3>
+        <p>Change settings from your phone and push them to the mirror with a shared Mirror ID — no ladder required.</p>
+      </div>
+
+      <div class="card">
+        <div class="ic"><svg viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="13" rx="2.5"/><path d="M9 6V4.5A1.5 1.5 0 0 1 10.5 3h3A1.5 1.5 0 0 1 15 4.5V6"/></svg></div>
+        <h3>Business mode</h3>
+        <p>Show your own images or a full-screen PDF instead — menus, offers, opening hours. A shop window on glass.</p>
+      </div>
+
+      <div class="card">
+        <div class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18"/><circle cx="9" cy="10" r="1.2"/><circle cx="8" cy="14" r="1.2"/></svg></div>
+        <h3>Make it yours</h3>
+        <p>Six accent colours, rotating one-liners in Swedish or English, your own centre image or GIF — even an eye screensaver.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section id="how">
+  <div class="wrap">
+    <p class="eyebrow">How it works</p>
+    <h2>From spare tablet to smart mirror in three steps</h2>
+    <div class="steps">
+      <div class="step">
+        <h3>Open the app</h3>
+        <p>Visit the mirror page in the tablet's browser and add it to the home screen. That's the whole install.</p>
+      </div>
+      <div class="step">
+        <h3>Make it yours</h3>
+        <p>Pick your location, language and panels in the settings. Choose an accent colour. Press <strong>Start mirror</strong>.</p>
+      </div>
+      <div class="step">
+        <h3>Hang it up</h3>
+        <p>Prop the tablet on a shelf, or mount it behind two-way mirror glass for the full effect. Plug it in and forget it.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="band">
+  <div class="wrap">
+    <div>
+      <p class="eyebrow">Private by design</p>
+      <h2>Your mirror. Your data. Your device.</h2>
+      <p class="sub">reflekt is a single web page. There is no account, no sign-up and no server holding your settings.</p>
+    </div>
+    <ul>
+      <li><span><strong>Everything stays on the tablet.</strong> Settings, images and preferences live in the browser — nowhere else.</span></li>
+      <li><span><strong>Motion detection is local.</strong> Camera frames are analysed on-device and immediately discarded.</span></li>
+      <li><span><strong>No tracking, no ads.</strong> The page fetches weather, transit and prices — and nothing about you.</span></li>
+    </ul>
+  </div>
+</div>
+
+<section class="cta">
+  <div class="wrap">
+    <p class="eyebrow">Ready when you are</p>
+    <h2>That tablet in the drawer? It's a mirror now.</h2>
+    <a class="btn btn-acc" href="../">Open the mirror</a>
+    <p class="hero-note">Takes about two minutes. The <a href="setup.html" style="color:var(--acc)">setup guide</a> walks you through the rest.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <a class="logo" href="./">refle<span class="kk">k</span>t</a>
+    <div class="foot-links">
+      <a href="../">Mirror app</a>
+      <a href="setup.html">Setup guide</a>
+      <a href="https://github.com/ecksquad/reflekt">GitHub</a>
+    </div>
+    <p>&copy; <span id="yr">2026</span> reflekt</p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var nav = document.getElementById('nav');
+  function onScroll(){ nav.classList.toggle('scrolled', window.scrollY > 24); }
+  window.addEventListener('scroll', onScroll, {passive:true});
+  onScroll();
+
+  var t = document.getElementById('mockTime'), d = document.getElementById('mockDate');
+  function tick(){
+    var now = new Date();
+    t.textContent = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+    d.textContent = now.toLocaleDateString('en-GB', {weekday:'long', day:'numeric', month:'long'});
+  }
+  tick(); setInterval(tick, 15000);
+
+  document.getElementById('yr').textContent = new Date().getFullYear();
+})();
+</script>
+</body>
+</html>

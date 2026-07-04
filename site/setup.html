@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Setup guide — reflekt</title>
+<meta name="description" content="Set up your reflekt smart mirror: what you need, every setting explained, business mode, mounting tips and troubleshooting.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%230A0C0F'/%3E%3Cpath d='M34 30 L52 50 L34 70' fill='none' stroke='%23E9EDF1' stroke-width='9' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M66 30 L48 50 L66 70' fill='none' stroke='%238FD0E0' stroke-width='9' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav id="nav">
+  <a class="logo" href="./">refle<span class="kk">k</span>t</a>
+  <div class="nav-links">
+    <a href="./#features" class="hide-sm">Features</a>
+    <a href="./#how" class="hide-sm">How it works</a>
+    <a href="setup.html" class="active">Setup guide</a>
+    <a href="../" class="btn btn-acc btn-sm">Open the mirror</a>
+  </div>
+</nav>
+
+<header class="page-head">
+  <div class="wrap">
+    <p class="eyebrow">Setup guide</p>
+    <h1>From box to bathroom wall</h1>
+    <p class="sub">Everything you need to get a reflekt mirror running — and what every setting actually does. Most people are done with steps 1&ndash;3 in a couple of minutes; the rest is for when you want more.</p>
+    <div class="toc">
+      <a href="#need">1 · What you need</a>
+      <a href="#open">2 · Open the app</a>
+      <a href="#settings">3 · Settings explained</a>
+      <a href="#business">4 · Business mode</a>
+      <a href="#mount">5 · Mounting</a>
+      <a href="#faq">6 · Troubleshooting</a>
+    </div>
+  </div>
+</header>
+
+<main class="doc">
+
+<section id="need">
+  <h2><span class="num">1</span>What you need</h2>
+  <ul>
+    <li><strong>A tablet or old phone</strong> with a working browser and front camera. An old iPad or Android tablet gathering dust is perfect — reflekt is light enough for hardware from years back.</li>
+    <li><strong>A charger and cable</strong> long enough to reach where the mirror will live. The screen is on a lot, so it should stay plugged in.</li>
+    <li><strong>Optional, for the full mirror effect:</strong> a frame with two-way mirror glass or acrylic to mount the tablet behind. Without it, reflekt is still a great always-on dashboard on a shelf or desk.</li>
+  </ul>
+  <div class="callout"><strong>No account, nothing to install.</strong> reflekt is a single web page. Your settings are saved in the tablet's browser and never leave the device.</div>
+</section>
+
+<section id="open">
+  <h2><span class="num">2</span>Open the app</h2>
+  <ol>
+    <li>On the tablet, open the browser and go to <code>ecksquad.github.io/reflekt</code>.</li>
+    <li>When asked, <strong>allow location</strong> — it's used for weather and finding your nearest bus stop, nothing else.</li>
+    <li>Add the page to the home screen (<strong>Share &rarr; Add to Home Screen</strong> on iPad, <strong>menu &rarr; Add to home screen</strong> on Android). Opening it from there hides the browser bars for a clean, full-screen mirror.</li>
+    <li>Plug the tablet in and switch off its auto-lock (iPad: <strong>Settings &rarr; Display &amp; Brightness &rarr; Auto-Lock &rarr; Never</strong>; Android: <strong>Display &rarr; Screen timeout</strong>). reflekt also asks the browser to keep the screen awake, but the tablet setting is the reliable backstop.</li>
+  </ol>
+  <p>The first thing you'll see is the settings screen. Fill in the Basics, press <strong>Start mirror</strong>, and you're live. To come back to settings later, tap the small <strong>&#9881; gear</strong> in the corner of the mirror.</p>
+</section>
+
+<section id="settings">
+  <h2><span class="num">3</span>Every setting, explained</h2>
+  <p>Settings are grouped the same way as in the app. You only ever need <strong>Basics</strong> — everything else has sensible defaults.</p>
+
+  <div class="settings-group">
+    <h3>Basics</h3>
+    <table>
+      <tr><td>Mode</td><td><strong>Home</strong> is the smart mirror. <strong>Business</strong> shows your own images or a PDF (see section 4). <strong>Stock</strong> fills the screen with live charts.</td></tr>
+      <tr><td>Location</td><td>Tap <strong>Use my location</strong>, or type a place name (e.g. G&ouml;teborg). Used for weather.</td></tr>
+      <tr><td>Name</td><td>Optional. Adds a personal greeting under the clock — &ldquo;Good morning, Cameron&rdquo;.</td></tr>
+    </table>
+  </div>
+
+  <div class="settings-group">
+    <h3>Clock &amp; language</h3>
+    <table>
+      <tr><td>Units</td><td>&deg;C or &deg;F for all temperatures.</td></tr>
+      <tr><td>Clock</td><td>24h or 12h.</td></tr>
+      <tr><td>Language</td><td>Svenska or English — affects dates, greetings and labels.</td></tr>
+      <tr><td>Seconds</td><td>Show or hide seconds on the clock.</td></tr>
+    </table>
+  </div>
+
+  <div class="settings-group">
+    <h3>Content &amp; panels</h3>
+    <table>
+      <tr><td>Centre display</td><td>What appears mid-screen: rotating one-liners (Swedish or English), your own image or animated GIF, a live stock chart — or nothing at all.</td></tr>
+      <tr><td>Stock symbol &amp; range</td><td>The ticker for the centre chart (e.g. AAPL), shown over a day, week, month, year or all-time. In Stock mode you can list up to five tickers; leave a row blank to hide it.</td></tr>
+      <tr><td>Accent colour</td><td>Gold, yellow, ice, mint, rose or white — colours the date, labels and details. The clock stays white so it shines through the glass.</td></tr>
+      <tr><td>Bottom-left panel</td><td><strong>Bus</strong> for live departures, <strong>Electricity</strong> for the hourly spot price, or off.</td></tr>
+      <tr><td>Electricity area</td><td>Your Swedish bidding area, SE1&ndash;SE4 (Gothenburg is SE3).</td></tr>
+      <tr><td>Bus departures</td><td>Works automatically for your nearest stop once location is allowed. Advanced: point it at your own relay service or pin a specific stop ID.</td></tr>
+    </table>
+  </div>
+
+  <div class="settings-group">
+    <h3>Screen &amp; motion</h3>
+    <table>
+      <tr><td>Keep screen on</td><td>Asks the browser to prevent the screen from sleeping while the mirror runs.</td></tr>
+      <tr><td>Motion wake</td><td>The mirror fades to black when no one is around and wakes when someone walks up, using the front camera. Frames are analysed on the device and never stored or sent anywhere.</td></tr>
+      <tr><td>Stay awake for</td><td>How long the screen stays on after the last movement — 30 seconds to 5 minutes.</td></tr>
+      <tr><td>Motion sensitivity</td><td>Low needs a big movement; Max trips on very little. Start on Medium and adjust to your hallway.</td></tr>
+    </table>
+  </div>
+
+  <div class="settings-group">
+    <h3>Remote &amp; phone control</h3>
+    <table>
+      <tr><td>Mirror ID</td><td>A shared codeword linking your phone and the mirror. Pick something non-obvious — it works as a light password.</td></tr>
+      <tr><td>Remote control</td><td>Set <strong>On</strong> on the mirror tablet so it accepts pushed settings. On your phone, leave it Off and use <strong>Push settings to mirror</strong> — change anything from the sofa, no ladder required.</td></tr>
+      <tr><td>Remote camera view</td><td>Optionally view the mirror's camera live from another device by opening the page with <code>?cam=1</code> and the same Mirror ID. Video streams directly device-to-device.</td></tr>
+    </table>
+  </div>
+
+  <div class="callout"><strong>Tip:</strong> the <strong>Eye screensaver</strong> button starts a decorative eye that watches the room — it can even be toggled remotely from your phone.</div>
+</section>
+
+<section id="business">
+  <h2><span class="num">4</span>Business mode</h2>
+  <p>Business mode turns the mirror into elegant signage for a shop, salon or office — your content on black glass instead of a screen on a stick.</p>
+  <ul>
+    <li><strong>Top image</strong> — your logo or main visual. Paste a URL or choose a file from the device, and scale it from 30&ndash;100%.</li>
+    <li><strong>Middle image</strong> — an optional second visual, same controls.</li>
+    <li><strong>Full-screen PDF</strong> — if you set one, it replaces the images entirely. Ideal for a menu, price list or opening hours you already have as a PDF.</li>
+  </ul>
+  <p>Switch between Home and Business any time from <strong>Basics &rarr; Mode</strong> — your Home settings are kept.</p>
+</section>
+
+<section id="mount">
+  <h2><span class="num">5</span>Mounting it like a mirror</h2>
+  <ol>
+    <li><strong>Get two-way mirror glass or acrylic</strong> (also sold as &ldquo;see-through mirror&rdquo;). Acrylic is cheaper, lighter and safer; glass looks slightly better. Size it to your frame, not the tablet — the black page hides the tablet's edges.</li>
+    <li><strong>Build or buy a deep frame</strong> (a shadow-box frame works) so the tablet fits behind the glass.</li>
+    <li><strong>Fix the tablet centred or top-centred</strong> against the back of the glass, screen facing out. Foam tape or a 3D-printed bracket both work — just don't cover the front camera if you use motion wake.</li>
+    <li><strong>Black out the rest</strong> of the back with matte black card or paint so only the bright UI shows through.</li>
+    <li><strong>Route the cable</strong> out of the bottom of the frame and hang it near a socket.</li>
+  </ol>
+  <div class="callout"><strong>The one rule of the mirror effect:</strong> the room in front should be brighter than the inside of the frame. Bright pixels shine through; everything else stays mirror.</div>
+</section>
+
+<section id="faq" class="faq">
+  <h2><span class="num">6</span>Troubleshooting</h2>
+  <details>
+    <summary>The screen keeps turning off</summary>
+    <p>Set the tablet's own auto-lock to Never (see section 2) — the browser's keep-awake request can be overridden by battery savers. On Android, also disable battery optimisation for the browser. And keep it plugged in: many tablets ignore keep-awake on battery.</p>
+  </details>
+  <details>
+    <summary>Motion wake doesn't trigger</summary>
+    <p>Check the browser has camera permission for the site and that nothing covers the front camera (including two-way glass that's too dark in front of the lens — leave a small cutout). Then raise the sensitivity a step. If the camera permission was denied, reflekt fails safe to always-on rather than staying dark.</p>
+  </details>
+  <details>
+    <summary>Weather shows nothing</summary>
+    <p>The site needs a location: either allow the location permission or type a place name in Basics. If you denied the permission earlier, re-enable it in the browser's site settings and reload.</p>
+  </details>
+  <details>
+    <summary>Bus departures or stocks are empty</summary>
+    <p>Departures need location permission to find your nearest stop. Both departures and stock charts fetch data through a relay service — if you've entered a custom service URL under Bus departures, check it's reachable; if the field is blank, the built-in default is used.</p>
+  </details>
+  <details>
+    <summary>Pushing settings from my phone does nothing</summary>
+    <p>Three things must match: the mirror tablet has <strong>Remote control: On</strong>, both devices use exactly the same <strong>Mirror ID</strong>, and a relay service URL is configured. Push again and give it a few seconds — the mirror picks changes up shortly after.</p>
+  </details>
+  <details>
+    <summary>I changed something and can't see the update</summary>
+    <p>Force-reload the page (pull down to refresh, or hold the reload button and choose &ldquo;Empty cache and hard reload&rdquo; on desktop). Browsers cache aggressively for pages they show all day.</p>
+  </details>
+  <details>
+    <summary>How do I get back to settings?</summary>
+    <p>Tap the small <strong>&#9881; gear</strong> in the corner of the running mirror. It's dim on purpose so it disappears behind the glass.</p>
+  </details>
+</section>
+
+<div class="next">
+  <p class="eyebrow">That's everything</p>
+  <h2>Time to look at yourself</h2>
+  <a class="btn btn-acc" href="../">Open the mirror</a>
+</div>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <a class="logo" href="./">refle<span class="kk">k</span>t</a>
+    <div class="foot-links">
+      <a href="../">Mirror app</a>
+      <a href="./">Website</a>
+      <a href="https://github.com/ecksquad/reflekt">GitHub</a>
+    </div>
+    <p>&copy; <span id="yr">2026</span> reflekt</p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var nav = document.getElementById('nav');
+  function onScroll(){ nav.classList.toggle('scrolled', window.scrollY > 24); }
+  window.addEventListener('scroll', onScroll, {passive:true});
+  onScroll();
+  document.getElementById('yr').textContent = new Date().getFullYear();
+})();
+</script>
+</body>
+</html>
