@@ -14,7 +14,7 @@
 <title>Mini Mirror</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400&family=Roboto+Condensed:wght@300;400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;700&family=Roboto+Condensed:wght@300;400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/weather-icons/2.0.10/css/weather-icons.min.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,300,0,0">
 <style>
@@ -122,13 +122,13 @@
   .stockrows .srow-canvas{display:block;width:100%;height:9vh;margin-top:8px}
   .stockrows .stk-msg{color:var(--faint);font-size:clamp(13px,2.4vw,18px);text-align:center}
 
-  .time{font-weight:100;font-size:clamp(56px,16vmin,160px);line-height:.9;letter-spacing:-.01em}
-  .time .sec{font-size:.38em;color:var(--accent);font-weight:300;margin-left:.12em;vertical-align:.55em}
+  .time{font-weight:700;font-size:clamp(56px,16vmin,160px);line-height:1;letter-spacing:-.01em}
+  .time .sec{font-size:.32em;color:var(--accent);font-weight:300;margin-left:.12em;vertical-align:.55em}
   .date{font-family:var(--label);font-weight:400;font-size:clamp(15px,4.2vw,26px);color:var(--accent);
     text-transform:uppercase;letter-spacing:.14em;margin-top:10px}
   .greet{font-weight:300;font-size:clamp(18px,5vw,30px);color:var(--bright);margin-top:18px}
 
-  .wx-temp{font-weight:100;font-size:clamp(36px,10vmin,90px);line-height:1}
+  .wx-temp{font-weight:700;font-size:clamp(36px,10vmin,90px);line-height:1;color:var(--accent)}
   .wx-temp .wi{font-size:.55em;margin-right:.18em;vertical-align:.04em}
   .wx-cond{font-family:var(--label);text-transform:uppercase;letter-spacing:.12em;color:var(--accent);
     font-size:clamp(13px,3.4vw,18px);margin-top:6px}
@@ -137,8 +137,8 @@
   .fc-row{display:grid;grid-template-columns:3.4em 1.5em 2.3em 2.3em;align-items:center;gap:6px;margin-top:8px}
   .fc-d{font-family:var(--label);text-transform:uppercase;letter-spacing:.1em;color:var(--accent);font-size:clamp(11px,2.6vmin,14px)}
   .fc-i{font-size:clamp(14px,3.4vmin,18px);text-align:center}
-  .fc-hi{font-weight:300;color:var(--bright);text-align:right;font-size:clamp(13px,3vmin,17px)}
-  .fc-lo{font-weight:300;color:var(--faint);text-align:right;font-size:clamp(13px,3vmin,17px)}
+  .fc-hi{font-weight:400;color:var(--bright);text-align:right;font-size:clamp(13px,3vmin,17px)}
+  .fc-lo{font-weight:400;color:var(--faint);text-align:right;font-size:clamp(13px,3vmin,17px)}
 
   /* bottom-right info: week number + sun times */
   .info-week{font-family:var(--label);text-transform:uppercase;letter-spacing:.16em;color:var(--accent);
