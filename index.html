@@ -636,7 +636,7 @@
   // ---------- state + storage (storage is best-effort; falls back to memory) ----------
   var DEFAULTS = { loc:"", lat:null, lon:null, place:"", name:"",
     unit:"celsius", clock:"24", lang:"sv", seconds:"on", comments:"sv",
-    awake:"on", motion:"off", motionFor:"60", motionSens:"med", camShare:"off", biz:"off", bizTop:"", bizMid:"", bizPdf:"", bizTopScale:100, bizMidScale:100, stockSym:"AAPL", stockRange:"month", stock1:"", stock2:"", stock3:"", stock4:"", stock5:"", remoteSync:"off", mirrorId:"main", accent:"#e9c98a", bottomLeft:"bus", elzone:"SE3",
+    awake:"on", motion:"off", motionFor:"60", motionSens:"med", camShare:"off", biz:"off", bizTop:"", bizMid:"", bizPdf:"", bizTopScale:100, bizMidScale:100, stockSym:"AAPL", stockRange:"month", stock1:"", stock2:"", stock3:"", stock4:"", stock5:"", remoteSync:"off", mirrorId:"main", accent:"#e9c98a", bottomLeft:"bus", elzone:"SE3", eyeMode:"off",
     busUrl:"https://still-wave-afbc.ecksquad.workers.dev", busId:"" };
   var state = Object.assign({}, DEFAULTS);
   var KEY = "mirror.config.v1";
@@ -1362,7 +1362,9 @@
         Object.assign(state, cfg); delete state._ts;
         state.remoteSync=keep.remoteSync; state.mirrorId=keep.mirrorId; state.lat=keep.lat; state.lon=keep.lon;
         save(); fillForm();
-        if($("mirror").classList.contains("show")) showMirror();
+        if(state.eyeMode==="on"){ showEye(); }
+        else if($("eyesaver").classList.contains("show")){ showMirror(); }
+        else if($("mirror").classList.contains("show")) showMirror();
       }).catch(function(){});
   }
   function startRemote(){
@@ -1568,7 +1570,7 @@
     setSeg("unitSeg",state.unit); setSeg("clockSeg",state.clock);
     setSeg("langSeg",state.lang); setSeg("secSeg",state.seconds); setSeg("compSeg",state.comments);
     setSeg("awakeSeg",state.awake); setSeg("accentSw",state.accent); applyAccent();
-    setSeg("blSeg",state.bottomLeft); setSeg("zoneSeg",state.elzone); updateZoneVis(); updateCompImgVis();
+    setSeg("blSeg",state.bottomLeft); setSeg("zoneSeg",state.elzone); updateZoneVis(); updateCompImgVis(); eyeBtnLabel();
     setSeg("motionSeg",state.motion); setSeg("motionTimeoutSeg",state.motionFor); setSeg("motionSensSeg",state.motionSens); setSeg("camShareSeg",state.camShare); setSeg("modeSeg",state.biz); setSeg("stockRangeSeg",state.stockRange); setSeg("remoteSeg",state.remoteSync); applyMode();
     if(state.busId){ $("advToggle").classList.add("open"); $("adv").classList.add("open"); }
   }
@@ -1613,8 +1615,18 @@
     }
   });
   $("gear").addEventListener("click",showSetup);
-  $("eyeBtn").addEventListener("click",function(){ save(); showEye(); });
-  $("eyesaver").addEventListener("click",function(){ $("eyesaver").classList.remove("show"); showMirror(); });
+  function eyeBtnLabel(){ $("eyeBtn").textContent = (state.busUrl && state.eyeMode==="on") ? "Stop eye screensaver (on mirror)" : "Eye screensaver"; }
+  $("eyeBtn").addEventListener("click",function(){
+    if(state.busUrl){
+      // Controller phone: toggle the eye screensaver on the mirror via the relay.
+      state.eyeMode = (state.eyeMode==="on") ? "off" : "on";
+      save(); pushConfig(); eyeBtnLabel();
+    } else {
+      // No relay configured: behave locally (tablet set up by hand).
+      state.eyeMode="on"; save(); showEye();
+    }
+  });
+  $("eyesaver").addEventListener("click",function(){ state.eyeMode="off"; save(); $("eyesaver").classList.remove("show"); showMirror(); });
   $("focus").addEventListener("click",showMirror);
   $("bizGear").addEventListener("click",showSetup);
   $("bizTopPick").addEventListener("click",function(){ $("bizTopFile").click(); });
