@@ -324,7 +324,7 @@
       <input id="compImgFile" type="file" accept="image/png,image/jpeg,image/gif" style="display:none">
       <button class="start ghost" id="compImgPick" type="button">Choose from device</button>
       <button class="start ghost" id="compImgClear" type="button">Clear image</button>
-      <div class="hint">PNG, JPEG or GIF (animated GIFs play). Shown in the centre of the mirror.</div>
+      <div class="hint">PNG, JPEG or GIF (animated GIFs under 130KB play). Choosing it on your phone? It travels with &ldquo;Push settings to mirror&rdquo;. Larger photos are shrunk automatically to fit.</div>
     </div>
 
     <div class="field opt-home">
@@ -1184,6 +1184,10 @@
       clearInterval(compTimer); compTimer=null;
       el.classList.remove("emoji");
       el.textContent=""; el.style.opacity=1;
+      if(state.compImgData){
+        el.innerHTML='<img class="comp-user" src="'+state.compImgData+'" alt="">';
+        return;
+      }
       idbGet("compImgBlob").then(function(blob){
         if(blob){
           if(compUserObj){ try{URL.revokeObjectURL(compUserObj);}catch(e){} }
@@ -1539,17 +1543,52 @@
   $("compSeg").addEventListener("click", updateCompImgVis);
   updateCompImgVis();
   $("compImgPick").addEventListener("click",function(){ $("compImgFile").click(); });
+  // Convert the picked file to a data URL small enough to travel through the
+  // relay push (measured Worker limit ~200KB per config payload, so the image
+  // gets ~180KB): tiny files pass through raw (keeps GIF animation), anything
+  // bigger is canvas-downscaled to JPEG, shrinking until it fits.
+  var PUSH_IMG_MAX = 180*1024;
+  function fileToPushData(f, cb){
+    if(f.size<=130*1024){
+      var r=new FileReader();
+      r.onload=function(){ cb(r.result); };
+      r.onerror=function(){ cb(null); };
+      r.readAsDataURL(f);
+      return;
+    }
+    var img=new Image();
+    img.onload=function(){
+      try{ URL.revokeObjectURL(img.src); }catch(e){}
+      var sizes=[800,640,520,420,340], d=null;
+      for(var s=0; s<sizes.length; s++){
+        var sc=Math.min(1, sizes[s]/Math.max(img.width,img.height));
+        var cv=document.createElement("canvas");
+        cv.width=Math.max(1,Math.round(img.width*sc)); cv.height=Math.max(1,Math.round(img.height*sc));
+        cv.getContext("2d").drawImage(img,0,0,cv.width,cv.height);
+        var q=0.72;
+        d=cv.toDataURL("image/jpeg",q);
+        while(d.length>PUSH_IMG_MAX && q>0.4){ q-=0.1; d=cv.toDataURL("image/jpeg",q); }
+        if(d.length<=PUSH_IMG_MAX) break;
+      }
+      cb(d && d.length<=PUSH_IMG_MAX ? d : null);
+    };
+    img.onerror=function(){ cb(null); };
+    img.src=URL.createObjectURL(f);
+  }
   $("compImgFile").addEventListener("change",function(){
     var f=$("compImgFile").files && $("compImgFile").files[0]; if(!f) return;
-    idbSet("compImgBlob", f).then(function(){
-      state.compImg="idb"; save();
+    fileToPushData(f, function(d){
+      if(!d){ alert("Couldn't read that image."); return; }
+      state.compImgData=d; state.compImg="data"; save();
       if($("mirror").classList.contains("show")) startComp();
-    }).catch(function(){ alert("Couldn't store that image (too large or storage blocked)."); });
+      else if(CTRLMODE) alert("Image ready — tap “Push settings to mirror” to send it.");
+    });
     $("compImgFile").value="";
   });
   $("compImgClear").addEventListener("click",function(){
+    state.compImgData=""; state.compImg="";
     idbDel("compImgBlob").then(function(){
-      state.compImg=""; save();
+      save();
       if($("mirror").classList.contains("show")) startComp();
     });
   });
