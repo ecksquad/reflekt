@@ -156,6 +156,79 @@
   </div>
 </section>
 
+<section class="demo" id="try">
+  <div class="wrap">
+    <p class="eyebrow">Try it live</p>
+    <h2>Make it yours — right here</h2>
+    <p class="sub">This is a small taste of the real settings. Change anything on the left and watch the mirror follow — the clock is even telling your actual time.</p>
+    <div class="demo-grid">
+
+      <div class="demo-controls">
+        <div class="dc-group">
+          <h4>Accent colour</h4>
+          <div class="dc-swatches" id="dcAccent">
+            <button data-v="#e9c98a" style="--c:#e9c98a" class="on" aria-label="Gold"></button>
+            <button data-v="#ffdd00" style="--c:#ffdd00" aria-label="Yellow"></button>
+            <button data-v="#7fd3ff" style="--c:#7fd3ff" aria-label="Ice"></button>
+            <button data-v="#5fe3a1" style="--c:#5fe3a1" aria-label="Mint"></button>
+            <button data-v="#ff8aa8" style="--c:#ff8aa8" aria-label="Rose"></button>
+            <button data-v="#ffffff" style="--c:#ffffff" aria-label="White"></button>
+          </div>
+        </div>
+        <div class="dc-group">
+          <h4>Language</h4>
+          <div class="dc-seg" id="dcLang">
+            <button data-v="sv" class="on">Svenska</button>
+            <button data-v="en">English</button>
+          </div>
+        </div>
+        <div class="dc-group">
+          <h4>Your name</h4>
+          <input class="dc-input" id="dcName" placeholder="Sara" maxlength="18" autocomplete="off">
+        </div>
+        <div class="dc-group">
+          <h4>Bottom-left panel</h4>
+          <div class="dc-seg" id="dcPanel">
+            <button data-v="bus" class="on">Bus</button>
+            <button data-v="elpris">Electricity</button>
+            <button data-v="off">Off</button>
+          </div>
+        </div>
+        <div class="dc-group">
+          <h4>Centre display</h4>
+          <div class="dc-seg" id="dcCentre">
+            <button data-v="on" class="on">Quotes</button>
+            <button data-v="off">Clean glass</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="demo-stage">
+        <div class="demo-mirror" id="dm">
+          <div class="dm-top">
+            <div>
+              <div class="dm-time" id="dmTime">--:--</div>
+              <div class="dm-date" id="dmDate"></div>
+              <div class="dm-greet" id="dmGreet"></div>
+            </div>
+            <div class="dm-wx">
+              <div class="dm-temp">18&deg;</div>
+              <div class="dm-cond" id="dmCond">Soligt</div>
+              <div class="dm-feels" id="dmFeels">K&auml;nns som 16&deg;</div>
+            </div>
+          </div>
+          <div class="dm-centre" id="dmCentre"></div>
+          <div class="dm-bottom">
+            <div class="dm-panel" id="dmPanel"></div>
+            <div class="dm-week" id="dmWeek"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
 <section class="split">
   <div class="wrap">
     <div class="split-img">
@@ -278,6 +351,81 @@
   window.addEventListener('scroll', onScroll, {passive:true});
   onScroll();
   document.getElementById('yr').textContent = new Date().getFullYear();
+})();
+
+/* ---- live mirror demo ---- */
+(function(){
+  var dm = document.getElementById('dm');
+  if(!dm) return;
+  var $ = function(id){ return document.getElementById(id); };
+  var state = { accent:'#e9c98a', lang:'sv', name:'', panel:'bus', centre:'on' };
+
+  var T = {
+    sv:{ cond:'Soligt', feels:'Känns som 16°', week:'Vecka',
+         greet:['God natt','God morgon','God dag','God kväll'],
+         busH:'BUSS · CENTRALEN', busRows:'16 · 2 min<br>60 · 5 min',
+         elH:'ELPRIS SE3', elRows:'Nu 42 öre/kWh<br>Billigast 03–05',
+         quotes:['Le, det förvirrar dina fiender.','Du är inte sen, tiden är bara rädd för dig.','Världen är skit, men du har snyggt hår idag.','Kaoset är gratis. Omfamna det.'] },
+    en:{ cond:'Sunny', feels:'Feels like 16°', week:'Week',
+         greet:['Good night','Good morning','Good afternoon','Good evening'],
+         busH:'BUS · CENTRAL', busRows:'16 · 2 min<br>60 · 5 min',
+         elH:'ELECTRICITY SE3', elRows:'Now 42 öre/kWh<br>Cheapest 03–05',
+         quotes:['Smile — it confuses your enemies.',"You're not late, time is just scared of you.",'The world is a mess, but your hair looks great today.','Chaos is free. Embrace it.'] }
+  };
+
+  function isoWeek(d){
+    var t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+    var day = t.getUTCDay() || 7;
+    t.setUTCDate(t.getUTCDate() + 4 - day);
+    var y0 = new Date(Date.UTC(t.getUTCFullYear(),0,1));
+    return Math.ceil((((t - y0) / 86400000) + 1) / 7);
+  }
+  function greetIdx(h){ if(h>=5&&h<10) return 1; if(h>=10&&h<17) return 2; if(h>=17&&h<22) return 3; return 0; }
+
+  var quoteIdx = 0, quoteTimer = null;
+  function render(){
+    var t = T[state.lang], d = new Date();
+    dm.style.setProperty('--da', state.accent);
+    $('dmDate').textContent = d.toLocaleDateString(state.lang==='sv'?'sv-SE':'en-GB',{weekday:'long',day:'numeric',month:'long'});
+    $('dmGreet').textContent = state.name ? t.greet[greetIdx(d.getHours())]+', '+state.name : '';
+    $('dmCond').textContent = t.cond;
+    $('dmFeels').textContent = t.feels;
+    $('dmWeek').textContent = t.week+' '+isoWeek(d);
+    var p = $('dmPanel');
+    if(state.panel==='bus') p.innerHTML = '<span class="ph">'+t.busH+'</span><br>'+t.busRows;
+    else if(state.panel==='elpris') p.innerHTML = '<span class="ph">'+t.elH+'</span><br>'+t.elRows;
+    else p.innerHTML = '';
+    var c = $('dmCentre');
+    if(state.centre==='on'){ c.textContent = '”'+t.quotes[quoteIdx % t.quotes.length]+'”'; }
+    else { c.textContent=''; }
+  }
+  function tick(){
+    var d = new Date();
+    var hh = String(d.getHours()).padStart(2,'0'), mm = String(d.getMinutes()).padStart(2,'0'), ss = String(d.getSeconds()).padStart(2,'0');
+    $('dmTime').innerHTML = hh+':'+mm+'<span class="s">'+ss+'</span>';
+  }
+  function rotateQuote(){
+    var c = $('dmCentre');
+    if(state.centre!=='on') return;
+    c.classList.add('fade');
+    setTimeout(function(){ quoteIdx++; render(); c.classList.remove('fade'); }, 500);
+  }
+
+  function seg(id, prop){
+    $(id).addEventListener('click', function(e){
+      var b = e.target.closest('button'); if(!b) return;
+      Array.prototype.forEach.call(this.children, function(c){ c.classList.remove('on'); });
+      b.classList.add('on');
+      state[prop] = b.getAttribute('data-v');
+      render();
+    });
+  }
+  seg('dcLang','lang'); seg('dcPanel','panel'); seg('dcCentre','centre'); seg('dcAccent','accent');
+  $('dcName').addEventListener('input', function(){ state.name = this.value.trim(); render(); });
+
+  tick(); render();
+  setInterval(tick, 1000);
+  quoteTimer = setInterval(rotateQuote, 7000);
 })();
 </script>
 </body>
