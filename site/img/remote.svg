@@ -19,9 +19,22 @@
   <circle cx="184" cy="254" r="6" fill="#7fd3ff"/>
   <circle cx="206" cy="254" r="6" fill="#5fe3a1"/>
   <circle cx="228" cy="254" r="6" fill="#ff8aa8"/>
-  <rect x="144" y="282" width="132" height="42" rx="8" fill="#131313" stroke="#222"/>
-  <text x="156" y="300" font-size="10" font-weight="600" fill="#ffdd00">Mirror ID</text>
-  <text x="156" y="316" font-size="10" fill="#9a9a9a">granlunda-7</text>
+  <rect x="144" y="282" width="132" height="76" rx="8" fill="#131313" stroke="#222"/>
+  <!-- QR pictogram: scan the mirror's QR to pair -->
+  <rect x="156" y="294" width="52" height="52" rx="4" fill="#ffffff"/>
+  <g fill="#0a0a0a">
+    <rect x="161" y="299" width="14" height="14"/><rect x="189" y="299" width="14" height="14"/>
+    <rect x="161" y="327" width="14" height="14"/>
+    <rect x="165" y="303" width="6" height="6" fill="#fff"/><rect x="193" y="303" width="6" height="6" fill="#fff"/>
+    <rect x="165" y="331" width="6" height="6" fill="#fff"/>
+    <rect x="181" y="301" width="4" height="4"/><rect x="181" y="309" width="4" height="4"/>
+    <rect x="179" y="319" width="4" height="4"/><rect x="187" y="319" width="4" height="4"/><rect x="195" y="319" width="4" height="4"/>
+    <rect x="181" y="327" width="4" height="4"/><rect x="189" y="331" width="4" height="4"/>
+    <rect x="197" y="327" width="4" height="4"/><rect x="181" y="337" width="4" height="4"/><rect x="195" y="337" width="4" height="4"/>
+  </g>
+  <text x="216" y="308" font-size="9.5" fill="#9a9a9a">Scan the</text>
+  <text x="216" y="321" font-size="9.5" fill="#9a9a9a">mirror's QR</text>
+  <text x="216" y="334" font-size="9.5" fill="#9a9a9a">to pair</text>
   <!-- push button -->
   <rect x="144" y="436" width="132" height="36" rx="8" fill="#ffdd00"/>
   <text x="210" y="459" font-size="11" font-weight="700" fill="#0a0a0a" text-anchor="middle">Push to mirror</text>

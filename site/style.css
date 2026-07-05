@@ -144,6 +144,23 @@ h3{font-weight:600;font-size:18px;margin-bottom:6px}
 .split li::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--acc);flex-shrink:0;margin-top:9px}
 .split li strong{color:var(--ink);font-weight:500}
 
+/* ---- ownership tiers ---- */
+.tiers{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:44px}
+@media (max-width:820px){.tiers{grid-template-columns:1fr}}
+.tier{
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+  padding:28px 26px;display:flex;flex-direction:column;
+}
+.tier.hot{border-color:var(--acc)}
+.tier .tag{font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--acc);margin-bottom:10px}
+.tier h3{font-size:20px}
+.tier .price{font-size:30px;font-weight:300;margin:8px 0 2px}
+.tier .price b{font-weight:600}
+.tier .per{color:var(--faint);font-size:13px;margin-bottom:16px}
+.tier ul{list-style:disc;margin:0 0 26px 20px}
+.tier li{font-size:14.5px;color:var(--muted);margin-bottom:8px}
+.tier .btn{margin-top:auto;text-align:center}
+
 /* ---- CTA ---- */
 .cta{text-align:center}
 .cta .btn{margin-top:30px}

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Build your own — reflekt</title>
+<meta name="description" content="Build your own smart mirror for almost nothing: the reflekt software is free forever. Parts list, honest advice about mirror film vs real glass, and step-by-step instructions.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%230a0a0a'/%3E%3Cpath d='M34 30 L52 50 L34 70' fill='none' stroke='%23f2f2f2' stroke-width='9' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M66 30 L48 50 L66 70' fill='none' stroke='%23ffdd00' stroke-width='9' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav id="nav">
+  <a class="logo" href="./">refle<span class="kk">k</span>t</a>
+  <div class="nav-links">
+    <a href="./#mirror" class="hide-sm">The mirror</a>
+    <a href="build.html" class="active hide-sm">Build it</a>
+    <a href="signin.html" class="hide-sm">Sign in</a>
+    <a href="setup.html" class="btn btn-acc btn-sm">Setup guide</a>
+  </div>
+</nav>
+
+<header class="page-head">
+  <div class="wrap">
+    <p class="eyebrow">Build it yourself</p>
+    <h1>The software is free. Build the rest.</h1>
+    <p class="sub">We think everyone should be able to have a smart mirror — so the reflekt software is free forever, and this page shows you how to build one around an old tablet for about 800&ndash;1&nbsp;500&nbsp;kr. When you want the real-glass version, that's what we sell.</p>
+    <div class="toc">
+      <a href="#parts">1 · What you need</a>
+      <a href="#honest">2 · Film vs glass</a>
+      <a href="#steps">3 · The build</a>
+      <a href="#software">4 · The software</a>
+      <a href="#kit">5 · Upgrades</a>
+    </div>
+  </div>
+</header>
+
+<main class="doc">
+
+<section id="parts">
+  <h2><span class="num">1</span>What you need</h2>
+  <ul>
+    <li><strong>A tablet</strong> — any Android tablet or iPad with a browser and a front camera. Old and unloved is perfect; it stays plugged in anyway.</li>
+    <li><strong>A two-way mirror surface</strong> — the affordable options are an <strong>acrylic two-way mirror sheet</strong> (best DIY result) or <strong>mirror film</strong> applied to picture-frame glass or clear acrylic (cheapest).</li>
+    <li><strong>A deep picture frame</strong> — a box/shadow frame deep enough to hide the tablet behind the sheet. IKEA-class is fine.</li>
+    <li><strong>Black card or matte black paint</strong> — everything behind the glass that isn't screen must be black, or it will show as grey haze.</li>
+    <li><strong>A USB charger and cable</strong> — the tablet stays on power permanently.</li>
+    <li>Strong double-sided tape or foam pads to hold the tablet against the back of the sheet.</li>
+  </ul>
+</section>
+
+<section id="honest">
+  <h2><span class="num">2</span>An honest word about film vs glass</h2>
+  <p>We'll be straight with you, because we've built both.</p>
+  <p><strong>Mirror film and acrylic work</strong> — you'll get a real smart mirror and it's a genuinely fun build. But film gives a slightly wavy, tinted reflection you'll notice every day, acrylic flexes and shows it, and both pass much less display light through, so the glass looks dimmer in bright rooms.</p>
+  <p><strong>Real one-way glass is a different thing entirely</strong> — flat like a proper mirror, brighter through the glass, no waviness. It's also the single most expensive part, which is exactly why the DIY route skips it and why <a href="./#own" style="color:var(--acc)">our kit and finished mirror</a> use 6&nbsp;mm industrial-grade one-way glass.</p>
+  <div class="callout"><strong>Our promise:</strong> the software is identical in every tier. A free build gets every feature the 9&nbsp;900&nbsp;kr mirror has — motion wake, phone remote, all of it. The difference you're paying for is glass and craftsmanship, nothing else.</div>
+</section>
+
+<section id="steps">
+  <h2><span class="num">3</span>The build</h2>
+  <ol>
+    <li><strong>Test the layout first.</strong> Open the software on the tablet (next section), turn the brightness to maximum, and hold it behind your mirror sheet in a dark room. Decide where on the sheet you want the display.</li>
+    <li><strong>Black out the back.</strong> Cut black card to the frame's size, with a tablet-sized hole where the display goes. This is the step people skip — and the reason DIY mirrors look grey instead of black.</li>
+    <li><strong>Mount the tablet.</strong> Fix it to the back of the sheet (screen against the sheet) with foam pads or tape. Make sure the front camera isn't covered — it's what wakes the mirror when you walk up.</li>
+    <li><strong>Assemble and power.</strong> Sheet in the frame, card behind it, cable routed out the back or bottom. Plug it in.</li>
+    <li><strong>Set it up.</strong> Run through the on-screen setup: location for weather, your name, panels, colours. Turn on <strong>Motion wake</strong> so it sleeps to a plain mirror and wakes when someone's there.</li>
+  </ol>
+  <div class="callout"><strong>Tip:</strong> a browser with a kiosk or fullscreen mode keeps the display clean, and set the tablet's screen timeout to &ldquo;never&rdquo; — the software's own motion sleep does the rest.</div>
+</section>
+
+<section id="software">
+  <h2><span class="num">4</span>The software</h2>
+  <p>Open <a href="../" style="color:var(--acc)"><strong>the reflekt mirror app</strong></a> in the tablet's browser — that's it, that's the install. No account, no payment, no tracking. Your settings live on the device.</p>
+  <ul>
+    <li>Weather works from the first minute — just allow location or type a place.</li>
+    <li>Pair your phone by scanning the QR code in the mirror's settings (under <strong>Remote &amp; phone control</strong>) to change things from the sofa.</li>
+    <li>Setup questions? The <a href="setup.html">setup guide</a> covers every setting — it's the same software our customers get.</li>
+  </ul>
+  <p class="sub" style="font-size:13.5px">Free builds are community-supported — we can't offer individual support for hardware we didn't build, but the guide above covers the common questions.</p>
+</section>
+
+<section id="kit">
+  <h2><span class="num">5</span>When you want more</h2>
+  <p><strong>The kit — 3&nbsp;000&nbsp;kr.</strong> Our hand-built frame, 6&nbsp;mm industrial one-way glass, wall mount and stand — and your tablet slides in. It's the honest middle step: real glass without paying for a display you might already own. Fits most 10&ndash;11&#8243; tablets.</p>
+  <p><strong>The reflekt mirror — 9&nbsp;900&nbsp;kr.</strong> Everything included and personalised to you before it ships. Unbox, hang, look up.</p>
+  <p><a class="btn btn-acc" href="./#own" style="margin-top:10px">Compare all three</a></p>
+</section>
+
+<div class="next">
+  <p class="sub" style="margin:0 auto 18px">Built one? We'd genuinely love to see it.</p>
+  <a class="btn btn-ghost" href="./">Back to reflekt</a>
+</div>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <a class="logo" href="./">refle<span class="kk">k</span>t</a>
+    <div class="foot-links">
+      <a href="build.html">Build it yourself</a>
+      <a href="setup.html">Setup guide</a>
+      <a href="signin.html">Sign in</a>
+    </div>
+    <p>&copy; <span id="yr">2026</span> reflekt</p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var nav = document.getElementById('nav');
+  function onScroll(){ nav.classList.toggle('scrolled', window.scrollY > 24); }
+  window.addEventListener('scroll', onScroll, {passive:true});
+  onScroll();
+  document.getElementById('yr').textContent = new Date().getFullYear();
+})();
+</script>
+</body>
+</html>
