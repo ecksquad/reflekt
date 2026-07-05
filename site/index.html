@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>reflekt — the mini mirror, complete</title>
-<meta name="description" content="The mini mirror by reflekt arrives complete: 26 × 36 cm, 6 mm industrial-grade one-way glass, tablet and stand included, personalised exactly how you want. Time, weather, buses and markets on the glass.">
-<meta property="og:title" content="reflekt — the mini mirror, complete">
+<title>reflekt mini — the complete smart mirror</title>
+<meta name="description" content="reflekt mini arrives complete: 26 × 36 cm, 6 mm industrial-grade one-way glass, tablet and stand included, personalised exactly how you want. Time, weather, buses and markets on the glass.">
+<meta property="og:title" content="reflekt mini — the complete smart mirror">
 <meta property="og:description" content="26 × 36 cm, 6 mm industrial-grade one-way glass, tablet and stand included, personalised exactly how you want.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%230a0a0a'/%3E%3Cpath d='M34 30 L52 50 L34 70' fill='none' stroke='%23f2f2f2' stroke-width='9' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M66 30 L48 50 L66 70' fill='none' stroke='%23ffdd00' stroke-width='9' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -31,9 +31,9 @@
 <header class="hero">
   <div class="wrap">
     <div>
-      <p class="eyebrow">The mini mirror &middot; complete</p>
+      <p class="eyebrow">reflekt mini &middot; complete</p>
       <h1>A mirror that's ready before you are.</h1>
-      <p class="sub">The mini mirror arrives finished: 26&nbsp;&times;&nbsp;36&nbsp;cm of 6&nbsp;mm industrial-grade one-way glass, a tablet already installed, and a stand in the box. Stand it on a shelf or hang it on the wall — and your time, weather, buses and markets float on the glass.</p>
+      <p class="sub">reflekt mini arrives finished: 26&nbsp;&times;&nbsp;36&nbsp;cm of 6&nbsp;mm industrial-grade one-way glass, a tablet already installed, and a stand in the box. Stand it on a shelf or hang it on the wall — and your time, weather, buses and markets float on the glass.</p>
       <div class="hero-actions">
         <a class="btn btn-acc" href="setup.html">See how it works</a>
         <a class="btn btn-ghost" href="#features">What's on the glass</a>
@@ -159,48 +159,64 @@
 <section class="demo" id="try">
   <div class="wrap">
     <p class="eyebrow">Try it live</p>
-    <h2>Make it yours — right here</h2>
-    <p class="sub">This is a small taste of the real settings. Change anything on the left and watch the mirror follow — the clock is even telling your actual time.</p>
+    <h2>The real settings, next to the real glass</h2>
+    <p class="sub">This is what setting up a reflekt mini actually looks like — the same settings screen, next to the mirror it controls. Change anything and watch the glass follow. The clock is telling your actual time.</p>
     <div class="demo-grid">
 
-      <div class="demo-controls">
-        <div class="dc-group">
-          <h4>Accent colour</h4>
-          <div class="dc-swatches" id="dcAccent">
-            <button data-v="#e9c98a" style="--c:#e9c98a" class="on" aria-label="Gold"></button>
-            <button data-v="#ffdd00" style="--c:#ffdd00" aria-label="Yellow"></button>
-            <button data-v="#7fd3ff" style="--c:#7fd3ff" aria-label="Ice"></button>
-            <button data-v="#5fe3a1" style="--c:#5fe3a1" aria-label="Mint"></button>
-            <button data-v="#ff8aa8" style="--c:#ff8aa8" aria-label="Rose"></button>
-            <button data-v="#ffffff" style="--c:#ffffff" aria-label="White"></button>
+      <div class="ds">
+        <div class="ds-brand">reflekt mini<b>.</b></div>
+        <div class="ds-tag">Set up your display</div>
+
+        <div class="ds-sec open">
+          <button type="button" class="ds-h"><span class="chev">&rsaquo;</span> Basics</button>
+          <div class="ds-b">
+            <div class="ds-field">
+              <span class="ds-label">Name</span>
+              <input class="ds-input" id="dsName" placeholder="Sara" maxlength="18" autocomplete="off">
+            </div>
+            <div class="ds-field">
+              <span class="ds-label">Language</span>
+              <div class="ds-seg" id="dsLang">
+                <button data-v="sv" class="on">Svenska</button>
+                <button data-v="en">English</button>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="dc-group">
-          <h4>Language</h4>
-          <div class="dc-seg" id="dcLang">
-            <button data-v="sv" class="on">Svenska</button>
-            <button data-v="en">English</button>
+
+        <div class="ds-sec open">
+          <button type="button" class="ds-h"><span class="chev">&rsaquo;</span> Look &amp; panels</button>
+          <div class="ds-b">
+            <div class="ds-field">
+              <span class="ds-label">Accent colour</span>
+              <div class="ds-swatches" id="dsAccent">
+                <button data-v="#e9c98a" style="--c:#e9c98a" class="on" aria-label="Gold"></button>
+                <button data-v="#ffdd00" style="--c:#ffdd00" aria-label="Yellow"></button>
+                <button data-v="#7fd3ff" style="--c:#7fd3ff" aria-label="Ice"></button>
+                <button data-v="#5fe3a1" style="--c:#5fe3a1" aria-label="Mint"></button>
+                <button data-v="#ff8aa8" style="--c:#ff8aa8" aria-label="Rose"></button>
+                <button data-v="#ffffff" style="--c:#ffffff" aria-label="White"></button>
+              </div>
+            </div>
+            <div class="ds-field">
+              <span class="ds-label">Centre display</span>
+              <div class="ds-seg" id="dsCentre">
+                <button data-v="on" class="on">Quotes</button>
+                <button data-v="off">Off</button>
+              </div>
+            </div>
+            <div class="ds-field">
+              <span class="ds-label">Bottom-left panel</span>
+              <div class="ds-seg" id="dsPanel">
+                <button data-v="bus" class="on">Bus</button>
+                <button data-v="elpris">Electricity</button>
+                <button data-v="off">Off</button>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="dc-group">
-          <h4>Your name</h4>
-          <input class="dc-input" id="dcName" placeholder="Sara" maxlength="18" autocomplete="off">
-        </div>
-        <div class="dc-group">
-          <h4>Bottom-left panel</h4>
-          <div class="dc-seg" id="dcPanel">
-            <button data-v="bus" class="on">Bus</button>
-            <button data-v="elpris">Electricity</button>
-            <button data-v="off">Off</button>
-          </div>
-        </div>
-        <div class="dc-group">
-          <h4>Centre display</h4>
-          <div class="dc-seg" id="dcCentre">
-            <button data-v="on" class="on">Quotes</button>
-            <button data-v="off">Clean glass</button>
-          </div>
-        </div>
+
+        <button type="button" class="ds-start" id="dsStart">Start mirror</button>
       </div>
 
       <div class="demo-stage">
@@ -215,12 +231,16 @@
               <div class="dm-temp">18&deg;</div>
               <div class="dm-cond" id="dmCond">Soligt</div>
               <div class="dm-feels" id="dmFeels">K&auml;nns som 16&deg;</div>
+              <div class="dm-fc" id="dmFc"></div>
             </div>
           </div>
           <div class="dm-centre" id="dmCentre"></div>
           <div class="dm-bottom">
             <div class="dm-panel" id="dmPanel"></div>
-            <div class="dm-week" id="dmWeek"></div>
+            <div class="dm-info">
+              <div class="dm-week" id="dmWeek"></div>
+              <div class="dm-sun">&#8593; 04:18 &nbsp;&#8595; 22:13</div>
+            </div>
           </div>
         </div>
       </div>
@@ -305,7 +325,7 @@
 
       <div class="tier hot">
         <div class="tag">Complete &amp; ready</div>
-        <h3>The mini mirror</h3>
+        <h3>reflekt mini</h3>
         <div class="price">9 900 <b>kr</b></div>
         <div class="per">everything included — unbox, hang, done</div>
         <ul>
@@ -353,7 +373,7 @@
   document.getElementById('yr').textContent = new Date().getFullYear();
 })();
 
-/* ---- live mirror demo ---- */
+/* ---- live mirror demo: settings replica + dashboard ---- */
 (function(){
   var dm = document.getElementById('dm');
   if(!dm) return;
@@ -365,11 +385,13 @@
          greet:['God natt','God morgon','God dag','God kväll'],
          busH:'BUSS · CENTRALEN', busRows:'16 · 2 min<br>60 · 5 min',
          elH:'ELPRIS SE3', elRows:'Nu 42 öre/kWh<br>Billigast 03–05',
+         fc:[['I DAG','☀','22°','15°'],['I MORGON','⛅','21°','14°'],['MÅN','☀','19°','13°']],
          quotes:['Le, det förvirrar dina fiender.','Du är inte sen, tiden är bara rädd för dig.','Världen är skit, men du har snyggt hår idag.','Kaoset är gratis. Omfamna det.'] },
     en:{ cond:'Sunny', feels:'Feels like 16°', week:'Week',
          greet:['Good night','Good morning','Good afternoon','Good evening'],
          busH:'BUS · CENTRAL', busRows:'16 · 2 min<br>60 · 5 min',
          elH:'ELECTRICITY SE3', elRows:'Now 42 öre/kWh<br>Cheapest 03–05',
+         fc:[['TODAY','☀','22°','15°'],['TOMORROW','⛅','21°','14°'],['MON','☀','19°','13°']],
          quotes:['Smile — it confuses your enemies.',"You're not late, time is just scared of you.",'The world is a mess, but your hair looks great today.','Chaos is free. Embrace it.'] }
   };
 
@@ -382,7 +404,7 @@
   }
   function greetIdx(h){ if(h>=5&&h<10) return 1; if(h>=10&&h<17) return 2; if(h>=17&&h<22) return 3; return 0; }
 
-  var quoteIdx = 0, quoteTimer = null;
+  var quoteIdx = 0;
   function render(){
     var t = T[state.lang], d = new Date();
     dm.style.setProperty('--da', state.accent);
@@ -391,6 +413,9 @@
     $('dmCond').textContent = t.cond;
     $('dmFeels').textContent = t.feels;
     $('dmWeek').textContent = t.week+' '+isoWeek(d);
+    $('dmFc').innerHTML = t.fc.map(function(r){
+      return '<div class="dm-fc-row"><span class="d">'+r[0]+'</span><span>'+r[1]+'</span><span>'+r[2]+'</span><span class="lo">'+r[3]+'</span></div>';
+    }).join('');
     var p = $('dmPanel');
     if(state.panel==='bus') p.innerHTML = '<span class="ph">'+t.busH+'</span><br>'+t.busRows;
     else if(state.panel==='elpris') p.innerHTML = '<span class="ph">'+t.elH+'</span><br>'+t.elRows;
@@ -420,12 +445,23 @@
       render();
     });
   }
-  seg('dcLang','lang'); seg('dcPanel','panel'); seg('dcCentre','centre'); seg('dcAccent','accent');
-  $('dcName').addEventListener('input', function(){ state.name = this.value.trim(); render(); });
+  seg('dsLang','lang'); seg('dsPanel','panel'); seg('dsCentre','centre'); seg('dsAccent','accent');
+  $('dsName').addEventListener('input', function(){ state.name = this.value.trim(); render(); });
+
+  /* collapsible section headers, like the real app */
+  Array.prototype.forEach.call(document.querySelectorAll('.ds-h'), function(h){
+    h.addEventListener('click', function(){ h.parentElement.classList.toggle('open'); });
+  });
+
+  /* "Start mirror": blink the glass like a restart */
+  $('dsStart').addEventListener('click', function(){
+    dm.classList.add('blink');
+    setTimeout(function(){ dm.classList.remove('blink'); }, 450);
+  });
 
   tick(); render();
   setInterval(tick, 1000);
-  quoteTimer = setInterval(rotateQuote, 7000);
+  setInterval(rotateQuote, 7000);
 })();
 </script>
 </body>
