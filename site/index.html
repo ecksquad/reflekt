@@ -12,6 +12,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
 </head>
 <body>
 
@@ -159,90 +160,25 @@
 <section class="demo" id="try">
   <div class="wrap">
     <p class="eyebrow">Try it live</p>
-    <h2>The real settings, next to the real glass</h2>
-    <p class="sub">This is what setting up a reflekt mini actually looks like — the same settings screen, next to the mirror it controls. Change anything and watch the glass follow. The clock is telling your actual time.</p>
+    <h2>That&#8217;s a real mirror. Control it from your phone.</h2>
+    <p class="sub">Below is the actual reflekt mini software running live &#8212; not a video, not a mockup. Scan the QR code and every setting is in your hand.</p>
     <div class="demo-grid">
 
-      <div class="ds">
-        <div class="ds-brand">reflekt mini<b>.</b></div>
-        <div class="ds-tag">Set up your display</div>
-
-        <div class="ds-sec open">
-          <button type="button" class="ds-h"><span class="chev">&rsaquo;</span> Basics</button>
-          <div class="ds-b">
-            <div class="ds-field">
-              <span class="ds-label">Name</span>
-              <input class="ds-input" id="dsName" placeholder="Sara" maxlength="18" autocomplete="off">
-            </div>
-            <div class="ds-field">
-              <span class="ds-label">Language</span>
-              <div class="ds-seg" id="dsLang">
-                <button data-v="sv" class="on">Svenska</button>
-                <button data-v="en">English</button>
-              </div>
-            </div>
-          </div>
+      <div>
+        <ol class="try-steps">
+          <li><span class="n">1</span><span><strong>Scan the QR code</strong> with your phone&#8217;s camera &#8212; it opens the remote control. No app, no account.</span></li>
+          <li><span class="n">2</span><span><strong>Change anything</strong> &#8212; accent colour, language, panels, quotes, even the eye screensaver.</span></li>
+          <li><span class="n">3</span><span><strong>Tap &#8220;Push settings to mirror&#8221;</strong> and watch the glass follow within seconds.</span></li>
+        </ol>
+        <div class="try-qr">
+          <div class="qrbox" id="tryQr"></div>
+          <div class="try-meta">Your private demo code:<br><span class="code" id="tryCode"></span><br><br>Reading this on your phone? <a href="#" id="tryLink" target="_blank" rel="noopener">Open the remote directly</a>.</div>
         </div>
-
-        <div class="ds-sec open">
-          <button type="button" class="ds-h"><span class="chev">&rsaquo;</span> Look &amp; panels</button>
-          <div class="ds-b">
-            <div class="ds-field">
-              <span class="ds-label">Accent colour</span>
-              <div class="ds-swatches" id="dsAccent">
-                <button data-v="#e9c98a" style="--c:#e9c98a" class="on" aria-label="Gold"></button>
-                <button data-v="#ffdd00" style="--c:#ffdd00" aria-label="Yellow"></button>
-                <button data-v="#7fd3ff" style="--c:#7fd3ff" aria-label="Ice"></button>
-                <button data-v="#5fe3a1" style="--c:#5fe3a1" aria-label="Mint"></button>
-                <button data-v="#ff8aa8" style="--c:#ff8aa8" aria-label="Rose"></button>
-                <button data-v="#ffffff" style="--c:#ffffff" aria-label="White"></button>
-              </div>
-            </div>
-            <div class="ds-field">
-              <span class="ds-label">Centre display</span>
-              <div class="ds-seg" id="dsCentre">
-                <button data-v="on" class="on">Quotes</button>
-                <button data-v="off">Off</button>
-              </div>
-            </div>
-            <div class="ds-field">
-              <span class="ds-label">Bottom-left panel</span>
-              <div class="ds-seg" id="dsPanel">
-                <button data-v="bus" class="on">Bus</button>
-                <button data-v="elpris">Electricity</button>
-                <button data-v="off">Off</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <button type="button" class="ds-start" id="dsStart">Start mirror</button>
+        <p class="try-note">Every visitor gets their own demo mirror, so play as much as you like. This is exactly how you&#8217;ll control your own reflekt mini from the sofa.</p>
       </div>
 
       <div class="demo-stage">
-        <div class="demo-mirror" id="dm">
-          <div class="dm-top">
-            <div>
-              <div class="dm-time" id="dmTime">--:--</div>
-              <div class="dm-date" id="dmDate"></div>
-              <div class="dm-greet" id="dmGreet"></div>
-            </div>
-            <div class="dm-wx">
-              <div class="dm-temp">18&deg;</div>
-              <div class="dm-cond" id="dmCond">Soligt</div>
-              <div class="dm-feels" id="dmFeels">K&auml;nns som 16&deg;</div>
-              <div class="dm-fc" id="dmFc"></div>
-            </div>
-          </div>
-          <div class="dm-centre" id="dmCentre"></div>
-          <div class="dm-bottom">
-            <div class="dm-panel" id="dmPanel"></div>
-            <div class="dm-info">
-              <div class="dm-week" id="dmWeek"></div>
-              <div class="dm-sun">&#8593; 04:18 &nbsp;&#8595; 22:13</div>
-            </div>
-          </div>
-        </div>
+        <div class="demo-frame"><iframe id="tryFrame" title="Live reflekt mini demo" loading="lazy"></iframe></div>
       </div>
 
     </div>
@@ -373,95 +309,23 @@
   document.getElementById('yr').textContent = new Date().getFullYear();
 })();
 
-/* ---- live mirror demo: settings replica + dashboard ---- */
+/* ---- live demo: the real mirror app in a frame + a per-visitor QR ---- */
 (function(){
-  var dm = document.getElementById('dm');
-  if(!dm) return;
-  var $ = function(id){ return document.getElementById(id); };
-  var state = { accent:'#e9c98a', lang:'sv', name:'', panel:'bus', centre:'on' };
-
-  var T = {
-    sv:{ cond:'Soligt', feels:'Känns som 16°', week:'Vecka',
-         greet:['God natt','God morgon','God dag','God kväll'],
-         busH:'BUSS · CENTRALEN', busRows:'16 · 2 min<br>60 · 5 min',
-         elH:'ELPRIS SE3', elRows:'Nu 42 öre/kWh<br>Billigast 03–05',
-         fc:[['I DAG','☀','22°','15°'],['I MORGON','⛅','21°','14°'],['MÅN','☀','19°','13°']],
-         quotes:['Le, det förvirrar dina fiender.','Du är inte sen, tiden är bara rädd för dig.','Världen är skit, men du har snyggt hår idag.','Kaoset är gratis. Omfamna det.'] },
-    en:{ cond:'Sunny', feels:'Feels like 16°', week:'Week',
-         greet:['Good night','Good morning','Good afternoon','Good evening'],
-         busH:'BUS · CENTRAL', busRows:'16 · 2 min<br>60 · 5 min',
-         elH:'ELECTRICITY SE3', elRows:'Now 42 öre/kWh<br>Cheapest 03–05',
-         fc:[['TODAY','☀','22°','15°'],['TOMORROW','⛅','21°','14°'],['MON','☀','19°','13°']],
-         quotes:['Smile — it confuses your enemies.',"You're not late, time is just scared of you.",'The world is a mess, but your hair looks great today.','Chaos is free. Embrace it.'] }
-  };
-
-  function isoWeek(d){
-    var t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-    var day = t.getUTCDay() || 7;
-    t.setUTCDate(t.getUTCDate() + 4 - day);
-    var y0 = new Date(Date.UTC(t.getUTCFullYear(),0,1));
-    return Math.ceil((((t - y0) / 86400000) + 1) / 7);
-  }
-  function greetIdx(h){ if(h>=5&&h<10) return 1; if(h>=10&&h<17) return 2; if(h>=17&&h<22) return 3; return 0; }
-
-  var quoteIdx = 0;
-  function render(){
-    var t = T[state.lang], d = new Date();
-    dm.style.setProperty('--da', state.accent);
-    $('dmDate').textContent = d.toLocaleDateString(state.lang==='sv'?'sv-SE':'en-GB',{weekday:'long',day:'numeric',month:'long'});
-    $('dmGreet').textContent = state.name ? t.greet[greetIdx(d.getHours())]+', '+state.name : '';
-    $('dmCond').textContent = t.cond;
-    $('dmFeels').textContent = t.feels;
-    $('dmWeek').textContent = t.week+' '+isoWeek(d);
-    $('dmFc').innerHTML = t.fc.map(function(r){
-      return '<div class="dm-fc-row"><span class="d">'+r[0]+'</span><span>'+r[1]+'</span><span>'+r[2]+'</span><span class="lo">'+r[3]+'</span></div>';
-    }).join('');
-    var p = $('dmPanel');
-    if(state.panel==='bus') p.innerHTML = '<span class="ph">'+t.busH+'</span><br>'+t.busRows;
-    else if(state.panel==='elpris') p.innerHTML = '<span class="ph">'+t.elH+'</span><br>'+t.elRows;
-    else p.innerHTML = '';
-    var c = $('dmCentre');
-    if(state.centre==='on'){ c.textContent = '”'+t.quotes[quoteIdx % t.quotes.length]+'”'; }
-    else { c.textContent=''; }
-  }
-  function tick(){
-    var d = new Date();
-    var hh = String(d.getHours()).padStart(2,'0'), mm = String(d.getMinutes()).padStart(2,'0'), ss = String(d.getSeconds()).padStart(2,'0');
-    $('dmTime').innerHTML = hh+':'+mm+'<span class="s">'+ss+'</span>';
-  }
-  function rotateQuote(){
-    var c = $('dmCentre');
-    if(state.centre!=='on') return;
-    c.classList.add('fade');
-    setTimeout(function(){ quoteIdx++; render(); c.classList.remove('fade'); }, 500);
-  }
-
-  function seg(id, prop){
-    $(id).addEventListener('click', function(e){
-      var b = e.target.closest('button'); if(!b) return;
-      Array.prototype.forEach.call(this.children, function(c){ c.classList.remove('on'); });
-      b.classList.add('on');
-      state[prop] = b.getAttribute('data-v');
-      render();
-    });
-  }
-  seg('dsLang','lang'); seg('dsPanel','panel'); seg('dsCentre','centre'); seg('dsAccent','accent');
-  $('dsName').addEventListener('input', function(){ state.name = this.value.trim(); render(); });
-
-  /* collapsible section headers, like the real app */
-  Array.prototype.forEach.call(document.querySelectorAll('.ds-h'), function(h){
-    h.addEventListener('click', function(){ h.parentElement.classList.toggle('open'); });
-  });
-
-  /* "Start mirror": blink the glass like a restart */
-  $('dsStart').addEventListener('click', function(){
-    dm.classList.add('blink');
-    setTimeout(function(){ dm.classList.remove('blink'); }, 450);
-  });
-
-  tick(); render();
-  setInterval(tick, 1000);
-  setInterval(rotateQuote, 7000);
+  var box = document.getElementById('tryQr');
+  var frame = document.getElementById('tryFrame');
+  if(!box || !frame) return;
+  var id = 'demo-' + Math.random().toString(36).substring(2, 6);
+  var appBase = new URL('../', location.href).toString();
+  var ctrlUrl = appBase + '?mirror=' + id;
+  frame.src = appBase + '?kiosk=' + id;
+  document.getElementById('tryCode').textContent = id;
+  document.getElementById('tryLink').href = ctrlUrl;
+  try{
+    var qr = qrcode(0, 'M');
+    qr.addData(ctrlUrl);
+    qr.make();
+    box.innerHTML = qr.createSvgTag({cellSize: 4, margin: 3});
+  }catch(e){ box.style.display = 'none'; }
 })();
 </script>
 </body>
