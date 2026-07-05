@@ -158,9 +158,9 @@ h3{font-weight:600;font-size:18px;margin-bottom:6px}
 
 /* ---- live demo: a real mirror on the page, controlled from the visitor's phone ---- */
 .demo{border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--glass)}
-.demo-grid{display:grid;grid-template-columns:1fr 1fr;gap:56px;margin-top:44px;align-items:center}
-@media (max-width:860px){.demo-grid{grid-template-columns:1fr;gap:40px}}
-.try-steps{list-style:none;margin:26px 0 0;display:flex;flex-direction:column;gap:16px}
+.try-head{display:grid;grid-template-columns:1fr auto;gap:48px;align-items:center;margin:40px 0 30px}
+@media (max-width:760px){.try-head{grid-template-columns:1fr;gap:30px}}
+.try-steps{list-style:none;margin:0;display:flex;flex-direction:column;gap:16px}
 .try-steps li{display:flex;gap:16px;align-items:flex-start;font-size:15.5px;color:var(--muted)}
 .try-steps li strong{color:var(--ink);font-weight:500}
 .try-steps .n{
@@ -168,23 +168,22 @@ h3{font-weight:600;font-size:18px;margin-bottom:6px}
   background:var(--acc);color:#0a0a0a;font-weight:700;font-size:14px;
   display:flex;align-items:center;justify-content:center;margin-top:2px;
 }
-.try-qr{display:flex;align-items:center;gap:22px;margin-top:30px;flex-wrap:wrap}
+.try-qr{display:flex;align-items:center;gap:22px}
 .try-qr .qrbox{background:#fff;padding:14px;border-radius:14px;line-height:0;flex-shrink:0}
 .try-qr .qrbox svg{display:block}
-.try-meta{font-size:13.5px;color:var(--muted);max-width:24ch}
+.try-meta{font-size:13.5px;color:var(--muted);max-width:22ch}
 .try-meta .code{color:var(--acc);font-weight:600;letter-spacing:.04em}
 .try-meta a{color:var(--acc)}
-.try-note{margin-top:22px;font-size:13px;color:var(--faint)}
-.demo-stage{display:flex;justify-content:center}
 .demo-frame{
-  width:min(100%,400px);aspect-ratio:26/36;
-  background:#040404;border:12px solid #161616;border-radius:8px;
-  box-shadow:0 30px 80px rgba(0,0,0,.65);
+  width:100%;height:min(78vh,760px);
+  background:#040404;border:14px solid #161616;border-radius:10px;
+  box-shadow:0 34px 90px rgba(0,0,0,.65);
   overflow:hidden;position:relative;
 }
 .demo-frame iframe{
   position:absolute;inset:0;width:100%;height:100%;border:0;background:#000;
 }
+.try-note{margin-top:20px;font-size:13px;color:var(--faint);text-align:center}
 /* ---- split sections (image + text) ---- */
 .split .wrap{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center}
 .split.flip .wrap > .split-img{order:2}
