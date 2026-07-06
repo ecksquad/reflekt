@@ -484,7 +484,8 @@
         <button data-v="off" class="on">Off</button>
         <button data-v="on">On</button>
       </div>
-      <div class="hint">On the mirror tablet: set On to allow live camera viewing from another device using the same Mirror ID. Video streams directly device-to-device &mdash; the relay is only used to set up the connection. To view: open this page on another device with <code>?cam=1</code> added to the URL.</div>
+      <button class="start ghost" id="camViewBtn" type="button">View mirror camera</button>
+      <div class="hint">On the mirror tablet: set On, then press Start mirror &mdash; the mirror only listens for viewers while the mirror display is showing. On your phone: tap &ldquo;View mirror camera&rdquo; to watch live. Video streams directly device-to-device &mdash; the relay only sets up the connection.</div>
       <div class="hint" id="camShareStatus" style="color:var(--accent)">Status: idle</div>
     </div>
 
@@ -560,6 +561,14 @@
 (function(){
   "use strict";
 
+  // STUN finds a direct route; the free TURN relay is the fallback when phone and
+  // mirror sit on different networks (e.g. mobile data vs home wifi) and a direct
+  // route is blocked by NAT. ICE simply skips servers it can't reach.
+  var RTC_ICE=[
+    {urls:"stun:stun.l.google.com:19302"},
+    {urls:["turn:openrelay.metered.ca:80","turn:openrelay.metered.ca:443","turn:openrelay.metered.ca:443?transport=tcp"],username:"openrelayproject",credential:"openrelayproject"}
+  ];
+
   // ---------- remote camera VIEWER mode: open this page with ?cam=1&id=<mirrorId> to watch ----------
   if(new URLSearchParams(location.search).get("cam")==="1"){
     document.title="Mini Mirror camera";
@@ -576,7 +585,7 @@
     function cConnect(){
       cStatus("Connecting\u2026");
       fetch(cU("rtc=reset&id="+encodeURIComponent(camId)),{method:"POST"}).catch(function(){}).then(function(){
-        cPc=new RTCPeerConnection({iceServers:[{urls:"stun:stun.l.google.com:19302"}]});
+        cPc=new RTCPeerConnection({iceServers:RTC_ICE});
         cPc.addTransceiver("video",{direction:"recvonly"});
         cPc.ontrack=function(ev){
           var v=document.getElementById("camVideo");
@@ -601,6 +610,7 @@
       }).then(function(){
         cStatus("Waiting for mirror\u2026");
         var answered=false;
+        setTimeout(function(){ if(!answered) cStatus("Still waiting \u2014 on the mirror, set Remote camera view to On and press Start mirror"); },15000);
         clearInterval(cAnsT);
         cAnsT=setInterval(function(){
           if(answered) return;
@@ -943,10 +953,12 @@
   function rtcUrl(params){ var b=state.busUrl; if(!b) return null; return b + (b.indexOf("?")>=0?"&":"?") + params; }
   function rtcId(){ return encodeURIComponent(state.mirrorId||"main"); }
   function camStatus(t){ var el=$("camShareStatus"); if(el) el.textContent="Status: "+t; }
+  var camWarmStream=null;
   function stopCamShare(){
     clearInterval(rtcPollT); rtcPollT=null;
     clearInterval(rtcIcePollT); rtcIcePollT=null;
     if(rtcPC){ try{ rtcPC.close(); }catch(e){} rtcPC=null; }
+    if(camWarmStream){ try{ camWarmStream.getTracks().forEach(function(t){t.stop();}); }catch(e){} camWarmStream=null; }
     rtcLastOfferSeen=null;
     camStatus("idle");
   }
@@ -955,6 +967,13 @@
     if(state.camShare!=="on") return;
     if(!rtcUrl("x=1")){ camStatus("no relay URL set (Departures service URL)"); return; }
     camStatus("waiting for a viewer to connect");
+    // Ask for the camera now, while someone is standing at the tablet — not at the
+    // moment a viewer connects, when nobody is there to tap Allow on the prompt.
+    getCamStream().then(function(){
+      camStatus("camera ready — waiting for a viewer");
+    }).catch(function(e){
+      camStatus("camera blocked: "+(e&&e.message?e.message:"permission denied"));
+    });
     checkForOffer();
     rtcPollT=setInterval(checkForOffer, 3000);
   }
@@ -970,16 +989,17 @@
   }
   function getCamStream(){
     if(mStream) return Promise.resolve(mStream);
+    if(camWarmStream && camWarmStream.getTracks().some(function(t){return t.readyState==="live";})) return Promise.resolve(camWarmStream);
     if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return Promise.reject(new Error("camera API not available (needs HTTPS)"));
     camStatus("requesting camera\u2026");
-    return navigator.mediaDevices.getUserMedia({video:{facingMode:"user"},audio:false});
+    return navigator.mediaDevices.getUserMedia({video:{facingMode:"user"},audio:false}).then(function(s){ camWarmStream=s; return s; });
   }
   function answerOffer(offer){
     camStatus("viewer connecting\u2026");
     getCamStream().then(function(stream){
       camStatus("camera acquired, answering\u2026");
       if(rtcPC){ try{ rtcPC.close(); }catch(e){} }
-      rtcPC=new RTCPeerConnection({iceServers:[{urls:"stun:stun.l.google.com:19302"}]});
+      rtcPC=new RTCPeerConnection({iceServers:RTC_ICE});
       rtcPC.onicecandidate=function(ev){
         if(ev.candidate){
           var u=rtcUrl("rtc=ice&role=mirror&id="+rtcId()); if(!u) return;
@@ -1683,6 +1703,15 @@
   $("bizPdfFile").addEventListener("change",function(){ var f=$("bizPdfFile").files&&$("bizPdfFile").files[0]; if(!f){return;} idbSet("bizPdfBlob",f).then(function(){ state.bizPdf="idb"; save(); if($("mirror").classList.contains("show")) startBiz(); }).catch(function(){ alert("Couldn't store that PDF (too large or blocked)."); }); $("bizPdfFile").value=""; });
   $("bizPdfClear").addEventListener("click",function(){ state.bizPdf=""; idbDel("bizPdfBlob"); save(); if($("mirror").classList.contains("show")) startBiz(); });
   $("pushBtn").addEventListener("click",function(){ save(); pushConfig(); });
+  $("camViewBtn").addEventListener("click",function(){
+    // Builds the viewer URL so nobody has to hand-type ?cam=1&id=… (a missing id
+    // silently falls back to "main" and connects to nothing).
+    var id=($("mirrorId").value.trim()||state.mirrorId||"main");
+    var u=location.origin+location.pathname+"?cam=1&id="+encodeURIComponent(id);
+    var b=$("busUrl").value.trim()||state.busUrl;
+    if(b && b!==DEFAULTS.busUrl) u+="&relay="+encodeURIComponent(b);
+    window.open(u,"_blank");
+  });
   function renderPairQr(){
     var box=$("pairQr"); if(!box) return;
     if(CTRLMODE || !window.qrcode){ box.innerHTML=""; return; }
