@@ -175,7 +175,7 @@ h3{font-weight:600;font-size:18px;margin-bottom:6px}
 .try-meta .code{color:var(--acc);font-weight:600;letter-spacing:.04em}
 .try-meta a{color:var(--acc)}
 .demo-frame{
-  width:100%;height:min(78vh,760px);
+  width:min(100%,560px);aspect-ratio:26/36;margin:0 auto;
   background:#040404;border:14px solid #161616;border-radius:10px;
   box-shadow:0 34px 90px rgba(0,0,0,.65);
   overflow:hidden;position:relative;
