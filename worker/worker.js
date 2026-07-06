@@ -76,10 +76,95 @@ async function kvPut(env, key, val, opts) {
   }
 }
 
+// ---- spend guard ----
+// The $5 Workers Paid plan includes, per month: 10M requests, 10M KV reads,
+// 1M KV writes. Cloudflare has NO hard billing cap — overages just bill — so
+// an hourly cron compares month-to-date usage against these ceilings and cuts
+// the workers.dev URL when one is nearly spent. HTTP traffic (and therefore
+// billing) stops; the cron keeps running and re-enables the URL when the new
+// month's numbers are back under the line.
+// Requires two secrets (wrangler secret put): ANALYTICS_TOKEN — an API token
+// with Account Analytics:Read + Workers Scripts:Edit; ACCOUNT_ID.
+const GUARD = { requests: 9500000, kvReads: 9500000, kvWrites: 950000 };
+const SCRIPT_NAME = "still-wave-afbc";
+const KV_NAMESPACE_ID = "e1c544641cc943a1b11d7e8f8c6e3ba1";
+
+async function monthUsage(env) {
+  const now = new Date();
+  const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)).toISOString();
+  const q = `query($acc:String!,$since:Time!,$until:Time!,$sinceD:Date!,$untilD:Date!){
+    viewer{accounts(filter:{accountTag:$acc}){
+      workersInvocationsAdaptive(filter:{scriptName:"${SCRIPT_NAME}",datetime_geq:$since,datetime_leq:$until},limit:1000){sum{requests}}
+      kvOperationsAdaptiveGroups(filter:{namespaceId:"${KV_NAMESPACE_ID}",date_geq:$sinceD,date_leq:$untilD},limit:100){sum{requests} dimensions{actionType}}
+    }}}`;
+  const resp = await fetch("https://api.cloudflare.com/client/v4/graphql", {
+    method: "POST",
+    headers: { "Authorization": "Bearer " + env.ANALYTICS_TOKEN, "Content-Type": "application/json" },
+    body: JSON.stringify({ query: q, variables: {
+      acc: env.ACCOUNT_ID,
+      since: monthStart, until: now.toISOString(),
+      sinceD: monthStart.slice(0, 10), untilD: now.toISOString().slice(0, 10),
+    } }),
+  });
+  const j = await resp.json();
+  const acct = j && j.data && j.data.viewer && j.data.viewer.accounts && j.data.viewer.accounts[0];
+  if (!acct) throw new Error("analytics query failed: " + JSON.stringify(j && j.errors));
+  const requests = (acct.workersInvocationsAdaptive || []).reduce((s, r) => s + (r.sum ? r.sum.requests : 0), 0);
+  let kvReads = 0, kvWrites = 0;
+  for (const g of acct.kvOperationsAdaptiveGroups || []) {
+    const n = g.sum ? g.sum.requests : 0;
+    const t = g.dimensions ? g.dimensions.actionType : "";
+    if (t === "read" || t === "list") kvReads += n;
+    else kvWrites += n; // write + delete both draw from write-class quotas
+  }
+  return { requests, kvReads, kvWrites };
+}
+
+async function setSubdomain(env, enabled) {
+  const r = await fetch(
+    "https://api.cloudflare.com/client/v4/accounts/" + env.ACCOUNT_ID + "/workers/scripts/" + SCRIPT_NAME + "/subdomain",
+    { method: "POST",
+      headers: { "Authorization": "Bearer " + env.ANALYTICS_TOKEN, "Content-Type": "application/json" },
+      body: JSON.stringify({ enabled: enabled }) });
+  return r.ok;
+}
+
+async function runSpendGuard(env) {
+  const u = await monthUsage(env);
+  const over = u.requests > GUARD.requests || u.kvReads > GUARD.kvReads || u.kvWrites > GUARD.kvWrites;
+  const stateKey = "spendguard:disabled";
+  const disabled = await env.MIRROR_KV.get(stateKey);
+  if (over && !disabled) {
+    await setSubdomain(env, false);
+    await env.MIRROR_KV.put(stateKey, JSON.stringify({ at: new Date().toISOString(), usage: u }));
+  } else if (!over && disabled) {
+    await setSubdomain(env, true);
+    await env.MIRROR_KV.delete(stateKey);
+  }
+  return { usage: u, over: over, disabled: !!disabled };
+}
+
 export default {
+  async scheduled(event, env, ctx) {
+    if (!env.ANALYTICS_TOKEN || !env.ACCOUNT_ID) return; // guard not configured yet
+    ctx.waitUntil(runSpendGuard(env).catch(() => {}));
+  },
+
   async fetch(request, env) {
     if (request.method === "OPTIONS") {
       return new Response(null, { headers: CORS });
+    }
+
+    // Spend-guard status page: <worker-url>?guard=1 shows month-to-date usage
+    // vs the cut-off ceilings (read-only aggregates, nothing sensitive).
+    if (new URL(request.url).searchParams.get("guard")) {
+      if (!env.ANALYTICS_TOKEN || !env.ACCOUNT_ID) return json({ error: "spend guard not configured (missing ANALYTICS_TOKEN / ACCOUNT_ID secrets)" }, 500);
+      try {
+        const s = await runSpendGuard(env);
+        return json({ usage: s.usage, ceilings: GUARD, urlDisabled: s.over });
+      } catch (e) {
+        return json({ error: String(e && e.message || e) }, 502);
+      }
     }
 
     const url = new URL(request.url);

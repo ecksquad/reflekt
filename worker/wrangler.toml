@@ -14,6 +14,11 @@ kv_namespaces = [
 enabled = true
 head_sampling_rate = 1
 
+# Hourly spend-guard: checks month-to-date usage and disables the workers.dev
+# URL if the $5 plan's included quotas are nearly used up (see scheduled()).
+[triggers]
+crons = ["0 * * * *"]
+
 # Native rate limiter: 30 writes / 60 s per client IP, shared across isolates.
 [[unsafe.bindings]]
 name = "PUSH_LIMITER"
