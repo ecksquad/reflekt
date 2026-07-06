@@ -1368,7 +1368,11 @@
   function pushConfig(){
     var base=state.busUrl; if(!base){ alert("Set the relay URL first (Departures service URL)."); return; }
     var id=state.mirrorId||"main";
+    // Device-local switches never travel: the mirror owns whether IT accepts
+    // remote control / shares its camera — a phone with them Off must not
+    // switch them off on the mirror.
     var payload=Object.assign({}, state, {_ts:Date.now()});
+    delete payload.remoteSync; delete payload.camShare;
     fetch(base+(base.indexOf("?")>=0?"&":"?")+"config=set&id="+encodeURIComponent(id),
       { method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify(payload) })
       .then(function(r){ return r.json(); })
@@ -1383,9 +1387,9 @@
       .then(function(cfg){
         if(!cfg || !cfg._ts || cfg._ts<=lastCfgTs) return;
         lastCfgTs=cfg._ts;
-        var keep={remoteSync:state.remoteSync, mirrorId:state.mirrorId, lat:state.lat, lon:state.lon};
+        var keep={remoteSync:state.remoteSync, camShare:state.camShare, mirrorId:state.mirrorId, lat:state.lat, lon:state.lon};
         Object.assign(state, cfg); delete state._ts;
-        state.remoteSync=keep.remoteSync; state.mirrorId=keep.mirrorId; state.lat=keep.lat; state.lon=keep.lon;
+        state.remoteSync=keep.remoteSync; state.camShare=keep.camShare; state.mirrorId=keep.mirrorId; state.lat=keep.lat; state.lon=keep.lon;
         save(); fillForm();
         if(CTRLMODE) return; // controller phone: update the form only, never switch views
         if(state.eyeMode==="on"){ showEye(); }
