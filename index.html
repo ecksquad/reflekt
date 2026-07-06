@@ -1378,9 +1378,17 @@
     delete payload.remoteSync; delete payload.camShare;
     fetch(base+(base.indexOf("?")>=0?"&":"?")+"config=set&id="+encodeURIComponent(id),
       { method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify(payload) })
-      .then(function(r){ return r.json(); })
+      .then(function(r){
+        // Cloudflare KV free tier: 1000 writes/day. When exhausted, every store
+        // throws inside the Worker (error 1101 -> HTTP 500) until midnight UTC.
+        if(r.status>=500) throw new Error("quota");
+        return r.json();
+      })
       .then(function(res){ if(res&&res.error) alert("Push failed: "+res.error); else alert("Pushed to mirror \""+id+"\"."); })
-      .catch(function(){ alert("Push failed \u2014 check the relay URL and Worker."); });
+      .catch(function(e){
+        if(e&&e.message==="quota") alert("Push failed \u2014 the relay's free daily write limit is used up. It resets at midnight UTC (02:00 Swedish time).");
+        else alert("Push failed \u2014 check the relay URL and Worker.");
+      });
   }
   function pullConfig(){
     var base=state.busUrl; if(!base) return;
