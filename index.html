@@ -1390,14 +1390,22 @@
         else alert("Push failed \u2014 check the relay URL and Worker.");
       });
   }
+  // Website demo goes dormant after 30 min without a push — each open kiosk
+  // tab otherwise polls the relay forever (~17k reads/day per tab).
+  var KIOSK_IDLE_MS=30*60*1000, lastCfgActivity=Date.now();
   function pullConfig(){
     var base=state.busUrl; if(!base) return;
+    if(KIOSK && Date.now()-lastCfgActivity>KIOSK_IDLE_MS){
+      clearInterval(remoteTimer); remoteTimer=null;
+      var tag=$("mirrorTag"); if(tag) tag.textContent="demo paused — reload the page to wake it";
+      return;
+    }
     var id=state.mirrorId||"main";
     fetch(base+(base.indexOf("?")>=0?"&":"?")+"config=get&id="+encodeURIComponent(id))
       .then(function(r){ return r.json(); })
       .then(function(cfg){
         if(!cfg || !cfg._ts || cfg._ts<=lastCfgTs) return;
-        lastCfgTs=cfg._ts;
+        lastCfgTs=cfg._ts; lastCfgActivity=Date.now();
         var keep={remoteSync:state.remoteSync, camShare:state.camShare, mirrorId:state.mirrorId, lat:state.lat, lon:state.lon};
         Object.assign(state, cfg); delete state._ts;
         state.remoteSync=keep.remoteSync; state.camShare=keep.camShare; state.mirrorId=keep.mirrorId; state.lat=keep.lat; state.lon=keep.lon;
@@ -1415,6 +1423,16 @@
     // Kiosk demo polls fast so website visitors see their pushes within seconds.
     remoteTimer=setInterval(pullConfig, KIOSK?5000:20000);
   }
+  // Hidden tabs don't need to poll the relay; resume where the mirror (or the
+  // eye screensaver, which deliberately keeps listening) is showing.
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden){ clearInterval(remoteTimer); remoteTimer=null; }
+    else if(state.remoteSync==="on" && !remoteTimer
+      && ($("mirror").classList.contains("show") || $("eyesaver").classList.contains("show"))){
+      lastCfgActivity=Date.now();
+      startRemote();
+    }
+  });
 
   // ---------- view switching ----------
   var timer=null, wxTimer=null, busTimer=null;
@@ -1742,7 +1760,12 @@
     if(!confirm("Create a NEW code for THIS device?\n\nThis only changes the code here — if a phone was paired using the old code, it will lose access and must scan the new QR.")) return;
     var A="amber birch cedar delta ember frost indigo koda lumen mint nova onyx opal pearl polar quartz sage terra velvet willow".split(" ");
     var B="arc bay cove dune elm fern glen isle lake mesa peak reef rune star tide vale".split(" ");
-    var id=A[Math.floor(Math.random()*A.length)]+"-"+B[Math.floor(Math.random()*B.length)]+"-"+(1000+Math.floor(Math.random()*9000));
+    // Three words + number (~55 billion combos): the code is the only lock on a
+    // mirror, and the QR does the typing anyway.
+    var w1=A[Math.floor(Math.random()*A.length)];
+    var w3=A[Math.floor(Math.random()*A.length)];
+    if(w3===w1) w3=A[(A.indexOf(w1)+1)%A.length];
+    var id=w1+"-"+B[Math.floor(Math.random()*B.length)]+"-"+w3+"-"+(1000+Math.floor(Math.random()*9000));
     $("mirrorId").value=id; state.mirrorId=id; save(); renderPairQr();
   });
   $("mirrorId").addEventListener("change",function(){

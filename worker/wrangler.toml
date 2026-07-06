@@ -1,0 +1,22 @@
+name = "still-wave-afbc"
+main = "worker.js"
+compatibility_date = "2026-06-25"
+
+# RESROBOT_KEY is set in the Cloudflare dashboard, not here — this repo is public.
+# keep_vars stops `wrangler deploy` from wiping dashboard-configured variables.
+keep_vars = true
+
+kv_namespaces = [
+  { binding = "MIRROR_KV", id = "e1c544641cc943a1b11d7e8f8c6e3ba1" }
+]
+
+[observability]
+enabled = true
+head_sampling_rate = 1
+
+# Native rate limiter: 30 writes / 60 s per client IP, shared across isolates.
+[[unsafe.bindings]]
+name = "PUSH_LIMITER"
+type = "ratelimit"
+namespace_id = "1001"
+simple = { limit = 30, period = 60 }
