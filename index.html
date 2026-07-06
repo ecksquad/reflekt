@@ -568,6 +568,18 @@
     {urls:"stun:stun.l.google.com:19302"},
     {urls:["turn:openrelay.metered.ca:80","turn:openrelay.metered.ca:443","turn:openrelay.metered.ca:443?transport=tcp"],username:"openrelayproject",credential:"openrelayproject"}
   ];
+  // Vanilla ICE: wait for candidate gathering to finish so the SDP we post carries
+  // every candidate in one write. The relay's ICE-list store drops candidates that
+  // arrive in a burst (parallel read-modify-write), so trickling them one POST at a
+  // time loses most routes — that made connections succeed only ~1 time in 20.
+  function waitIce(pc, ms){
+    return new Promise(function(res){
+      if(pc.iceGatheringState==="complete") return res();
+      var t=setTimeout(function(){ pc.removeEventListener("icegatheringstatechange",h); res(); }, ms||4000);
+      function h(){ if(pc.iceGatheringState==="complete"){ clearTimeout(t); pc.removeEventListener("icegatheringstatechange",h); res(); } }
+      pc.addEventListener("icegatheringstatechange",h);
+    });
+  }
 
   // ---------- remote camera VIEWER mode: open this page with ?cam=1&id=<mirrorId> to watch ----------
   if(new URLSearchParams(location.search).get("cam")==="1"){
@@ -594,19 +606,15 @@
             v.onloadedmetadata=function(){ cStatus("Live"); };
           }
         };
-        cPc.onicecandidate=function(ev){
-          if(ev.candidate){
-            fetch(cU("rtc=ice&role=viewer&id="+encodeURIComponent(camId)),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(ev.candidate)}).catch(function(){});
-          }
-        };
         cPc.onconnectionstatechange=function(){
           var v=document.getElementById("camVideo");
           if(cPc.connectionState==="connected" && !(v&&v.srcObject)) cStatus("Connected, waiting for video\u2026");
           else if(cPc.connectionState==="failed"||cPc.connectionState==="disconnected") cStatus("Connection lost \u2014 tap to retry");
         };
-        return cPc.createOffer().then(function(offer){ return cPc.setLocalDescription(offer).then(function(){ return offer; }); });
-      }).then(function(offer){
-        return fetch(cU("rtc=sdp&role=offer&id="+encodeURIComponent(camId)),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"offer",sdp:offer.sdp,_ts:Date.now()})});
+        return cPc.createOffer().then(function(offer){ return cPc.setLocalDescription(offer); })
+          .then(function(){ cStatus("Finding a route…"); return waitIce(cPc,4000); });
+      }).then(function(){
+        return fetch(cU("rtc=sdp&role=offer&id="+encodeURIComponent(camId)),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"offer",sdp:cPc.localDescription.sdp,_ts:Date.now()})});
       }).then(function(){
         cStatus("Waiting for mirror\u2026");
         var answered=false;
@@ -1000,12 +1008,6 @@
       camStatus("camera acquired, answering\u2026");
       if(rtcPC){ try{ rtcPC.close(); }catch(e){} }
       rtcPC=new RTCPeerConnection({iceServers:RTC_ICE});
-      rtcPC.onicecandidate=function(ev){
-        if(ev.candidate){
-          var u=rtcUrl("rtc=ice&role=mirror&id="+rtcId()); if(!u) return;
-          fetch(u,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(ev.candidate)}).catch(function(){});
-        }
-      };
       rtcPC.onconnectionstatechange=function(){
         var cs=rtcPC.connectionState;
         if(cs==="connected") camStatus("streaming (connected)");
@@ -1019,10 +1021,11 @@
           tracks.forEach(function(tr){ rtcPC.addTrack(tr, stream); });
           return rtcPC.createAnswer();
         })
-        .then(function(answer){ return rtcPC.setLocalDescription(answer).then(function(){ return answer; }); })
-        .then(function(answer){
+        .then(function(answer){ return rtcPC.setLocalDescription(answer); })
+        .then(function(){ camStatus("finding a route…"); return waitIce(rtcPC,4000); })
+        .then(function(){
           var u=rtcUrl("rtc=sdp&role=answer&id="+rtcId()); if(!u) return;
-          return fetch(u,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"answer",sdp:answer.sdp,_ts:Date.now()})});
+          return fetch(u,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"answer",sdp:rtcPC.localDescription.sdp,_ts:Date.now()})});
         })
         .then(function(){
           camStatus("answer sent, connecting\u2026");
