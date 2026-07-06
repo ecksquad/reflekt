@@ -181,7 +181,11 @@ h3{font-weight:600;font-size:18px;margin-bottom:6px}
   overflow:hidden;position:relative;
 }
 .demo-frame iframe{
-  position:absolute;inset:0;width:100%;height:100%;border:0;background:#000;
+  /* Render the app at 2x (tablet-class viewport), display at 50% — every
+     section lays out with real-mirror proportions, miniaturised. */
+  position:absolute;top:0;left:0;width:200%;height:200%;
+  transform:scale(.5);transform-origin:0 0;
+  border:0;background:#000;
 }
 .try-note{margin-top:20px;font-size:13px;color:var(--faint);text-align:center}
 /* ---- split sections (image + text) ---- */
