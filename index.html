@@ -671,7 +671,7 @@ if (FIREBASE_CONFIG) {
   // ---------- state + storage (storage is best-effort; falls back to memory) ----------
   var DEFAULTS = { loc:"", lat:null, lon:null, place:"", name:"",
     unit:"celsius", clock:"24", lang:"sv", seconds:"on", comments:"sv",
-    awake:"on", motion:"off", motionFor:"60", motionSens:"med", camShare:"off", biz:"off", bizTop:"", bizMid:"", bizPdf:"", bizTopScale:100, bizMidScale:100, stockSym:"AAPL", stockRange:"month", stock1:"", stock2:"", stock3:"", stock4:"", stock5:"", remoteSync:"off", mirrorId:"main", accent:"#e9c98a", bottomLeft:"bus", elzone:"SE3", eyeMode:"off",
+    awake:"on", motion:"off", motionFor:"60", motionSens:"med", camShare:"off", biz:"off", bizTop:"", bizMid:"", bizTopData:"", bizMidData:"", bizPdf:"", bizTopScale:100, bizMidScale:100, stockSym:"AAPL", stockRange:"month", stock1:"", stock2:"", stock3:"", stock4:"", stock5:"", remoteSync:"off", mirrorId:"main", accent:"#e9c98a", bottomLeft:"bus", elzone:"SE3", eyeMode:"off",
     busUrl:"https://still-wave-afbc.ecksquad.workers.dev", busId:"" };
   var state = Object.assign({}, DEFAULTS);
   var KEY = "mirror.config.v1";
@@ -1552,8 +1552,11 @@ if (FIREBASE_CONFIG) {
   function idbOpen(){ return new Promise(function(res,rej){ try{ var r=indexedDB.open("reflekt",1); r.onupgradeneeded=function(){ r.result.createObjectStore("kv"); }; r.onsuccess=function(){res(r.result);}; r.onerror=function(){rej(r.error);}; }catch(e){ rej(e); } }); }
   function idbSet(k,v){ return idbOpen().then(function(db){ return new Promise(function(res,rej){ var tx=db.transaction("kv","readwrite"); tx.objectStore("kv").put(v,k); tx.oncomplete=function(){res();}; tx.onerror=function(){rej(tx.error);}; }); }); }
   function idbGet(k){ return idbOpen().then(function(db){ return new Promise(function(res,rej){ var tx=db.transaction("kv","readonly"); var rq=tx.objectStore("kv").get(k); rq.onsuccess=function(){res(rq.result);}; rq.onerror=function(){rej(rq.error);}; }); }); }
-  function setBizImg(img, val, key, which){
-    if(val==="idb"){
+  function setBizImg(img, val, key, which, dataVal){
+    if(val==="data"){
+      if(dataVal){ if(img.getAttribute("src")!==dataVal) img.src=dataVal; img.style.display="block"; }
+      else { img.removeAttribute("src"); img.style.display="none"; }
+    } else if(val==="idb"){
       idbGet(key).then(function(blob){
         if(blob){ var u=URL.createObjectURL(blob);
           if(which==="top"){ if(bizTopObj) URL.revokeObjectURL(bizTopObj); bizTopObj=u; } else { if(bizMidObj) URL.revokeObjectURL(bizMidObj); bizMidObj=u; }
@@ -1574,8 +1577,8 @@ if (FIREBASE_CONFIG) {
       $("biz").classList.add("show");
       return;
     }
-    setBizImg($("bizTopImg"), state.bizTop, "bizTopBlob", "top");
-    setBizImg($("bizMidImg"), state.bizMid, "bizMidBlob", "mid");
+    setBizImg($("bizTopImg"), state.bizTop, "bizTopBlob", "top", state.bizTopData);
+    setBizImg($("bizMidImg"), state.bizMid, "bizMidBlob", "mid", state.bizMidData);
     $("bizTopImg").style.width=(state.bizTopScale||100)+"%";
     $("bizMidImg").style.width=(state.bizMidScale||100)+"%";
     function paint(){
@@ -1590,10 +1593,15 @@ if (FIREBASE_CONFIG) {
   }
   function bizPick(fileEl, key, urlEl, stateKey){
     var f=fileEl.files && fileEl.files[0]; if(!f){ return; }
-    idbSet(key, f).then(function(){
-      state[stateKey]="idb"; if(urlEl) urlEl.value=""; save();
+    // Embedded as a data URL so the image travels with pushes — the old
+    // IndexedDB path stayed on the picking device, so "Choose from device" on
+    // a phone never reached the mirror. Legacy "idb" configs still display.
+    fileToPushData(f, function(d){
+      if(!d){ alert("Couldn't read that image."); return; }
+      state[stateKey+"Data"]=d; state[stateKey]="data"; if(urlEl) urlEl.value=""; save();
       if($("mirror").classList.contains("show")) startBiz();
-    }).catch(function(){ alert("Couldn't store that image (too large or storage blocked)."); });
+      else if(CTRLMODE) alert("Image ready — tap “Push settings to mirror” to send it.");
+    }, BIZ_IMG_MAX);
     fileEl.value="";
   }
   function applyMode(){ var st=$("setup"); if(!st) return; st.classList.toggle("mode-biz", state.biz==="on"); st.classList.toggle("mode-home", state.biz==="off"); st.classList.toggle("mode-stock", state.biz==="stock"); }
@@ -1653,13 +1661,15 @@ if (FIREBASE_CONFIG) {
   $("compSeg").addEventListener("click", updateCompImgVis);
   updateCompImgVis();
   $("compImgPick").addEventListener("click",function(){ $("compImgFile").click(); });
-  // Convert the picked file to a data URL small enough to travel through the
-  // relay push (measured Worker limit ~200KB per config payload, so the image
-  // gets ~180KB): tiny files pass through raw (keeps GIF animation), anything
-  // bigger is canvas-downscaled to JPEG, shrinking until it fits.
-  var PUSH_IMG_MAX = 180*1024;
-  function fileToPushData(f, cb){
-    if(f.size<=130*1024){
+  // Convert the picked file to a data URL small enough to travel inside the
+  // config push. Firestore allows 1MB per config, so the centre image gets
+  // ~180KB and each business image ~300KB (both together still leave room).
+  // Tiny files pass through raw (keeps GIF animation), anything bigger is
+  // canvas-downscaled to JPEG, shrinking until it fits.
+  var PUSH_IMG_MAX = 180*1024, BIZ_IMG_MAX = 300*1024;
+  function fileToPushData(f, cb, max){
+    max = max || PUSH_IMG_MAX;
+    if(f.size<=max*0.7){
       var r=new FileReader();
       r.onload=function(){ cb(r.result); };
       r.onerror=function(){ cb(null); };
@@ -1669,7 +1679,7 @@ if (FIREBASE_CONFIG) {
     var img=new Image();
     img.onload=function(){
       try{ URL.revokeObjectURL(img.src); }catch(e){}
-      var sizes=[800,640,520,420,340], d=null;
+      var sizes=max>200*1024 ? [1280,1024,800,640,520,420,340] : [800,640,520,420,340], d=null;
       for(var s=0; s<sizes.length; s++){
         var sc=Math.min(1, sizes[s]/Math.max(img.width,img.height));
         var cv=document.createElement("canvas");
@@ -1677,10 +1687,10 @@ if (FIREBASE_CONFIG) {
         cv.getContext("2d").drawImage(img,0,0,cv.width,cv.height);
         var q=0.72;
         d=cv.toDataURL("image/jpeg",q);
-        while(d.length>PUSH_IMG_MAX && q>0.4){ q-=0.1; d=cv.toDataURL("image/jpeg",q); }
-        if(d.length<=PUSH_IMG_MAX) break;
+        while(d.length>max && q>0.4){ q-=0.1; d=cv.toDataURL("image/jpeg",q); }
+        if(d.length<=max) break;
       }
-      cb(d && d.length<=PUSH_IMG_MAX ? d : null);
+      cb(d && d.length<=max ? d : null);
     };
     img.onerror=function(){ cb(null); };
     img.src=URL.createObjectURL(f);
@@ -1721,7 +1731,7 @@ if (FIREBASE_CONFIG) {
   }
   function fillForm(){
     $("loc").value=state.loc; $("name").value=state.name;
-    $("busUrl").value=state.busUrl||""; $("busId").value=state.busId||""; $("stockSym").value=state.stockSym||""; $("stock1").value=state.stock1||""; $("stock2").value=state.stock2||""; $("stock3").value=state.stock3||""; $("stock4").value=state.stock4||""; $("stock5").value=state.stock5||""; $("mirrorId").value=state.mirrorId||"main"; $("bizTop").value=(state.bizTop&&state.bizTop!=="idb")?state.bizTop:""; $("bizMid").value=(state.bizMid&&state.bizMid!=="idb")?state.bizMid:""; $("bizTopScale").value=state.bizTopScale||100; $("bizTopScaleVal").textContent=(state.bizTopScale||100)+"%"; $("bizMidScale").value=state.bizMidScale||100; $("bizMidScaleVal").textContent=(state.bizMidScale||100)+"%";
+    $("busUrl").value=state.busUrl||""; $("busId").value=state.busId||""; $("stockSym").value=state.stockSym||""; $("stock1").value=state.stock1||""; $("stock2").value=state.stock2||""; $("stock3").value=state.stock3||""; $("stock4").value=state.stock4||""; $("stock5").value=state.stock5||""; $("mirrorId").value=state.mirrorId||"main"; $("bizTop").value=(state.bizTop&&state.bizTop!=="idb"&&state.bizTop!=="data")?state.bizTop:""; $("bizMid").value=(state.bizMid&&state.bizMid!=="idb"&&state.bizMid!=="data")?state.bizMid:""; $("bizTopScale").value=state.bizTopScale||100; $("bizTopScaleVal").textContent=(state.bizTopScale||100)+"%"; $("bizMidScale").value=state.bizMidScale||100; $("bizMidScaleVal").textContent=(state.bizMidScale||100)+"%";
     setSeg("unitSeg",state.unit); setSeg("clockSeg",state.clock);
     setSeg("langSeg",state.lang); setSeg("secSeg",state.seconds); setSeg("compSeg",state.comments);
     setSeg("awakeSeg",state.awake); setSeg("accentSw",state.accent); applyAccent();
@@ -1788,8 +1798,8 @@ if (FIREBASE_CONFIG) {
   $("bizTopFile").addEventListener("change",function(){ bizPick($("bizTopFile"),"bizTopBlob",$("bizTop"),"bizTop"); });
   $("bizMidPick").addEventListener("click",function(){ $("bizMidFile").click(); });
   $("bizMidFile").addEventListener("change",function(){ bizPick($("bizMidFile"),"bizMidBlob",$("bizMid"),"bizMid"); });
-  $("bizTop").addEventListener("input",function(){ state.bizTop=$("bizTop").value.trim(); save(); });
-  $("bizMid").addEventListener("input",function(){ state.bizMid=$("bizMid").value.trim(); save(); });
+  $("bizTop").addEventListener("input",function(){ state.bizTop=$("bizTop").value.trim(); state.bizTopData=""; save(); });
+  $("bizMid").addEventListener("input",function(){ state.bizMid=$("bizMid").value.trim(); state.bizMidData=""; save(); });
   $("modeSeg").addEventListener("click",function(){ setTimeout(function(){ applyMode(); if($("mirror").classList.contains("show")){ startBiz(); startComp(); startStockRows(); refreshBottomLeft(true); } },0); });
   $("bizPdfPick").addEventListener("click",function(){ $("bizPdfFile").click(); });
   $("bizPdfFile").addEventListener("change",function(){ var f=$("bizPdfFile").files&&$("bizPdfFile").files[0]; if(!f){return;} idbSet("bizPdfBlob",f).then(function(){ state.bizPdf="idb"; save(); if($("mirror").classList.contains("show")) startBiz(); }).catch(function(){ alert("Couldn't store that PDF (too large or blocked)."); }); $("bizPdfFile").value=""; });
