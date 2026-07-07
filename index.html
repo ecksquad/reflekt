@@ -23,7 +23,12 @@
 // the relay Worker onto Firestore — instant sync (no polling) and the free
 // Spark plan hard-stops at its daily quota instead of ever billing.
 // null = relay Worker (?config=get/set), exactly as before.
-var FIREBASE_CONFIG = null;
+var FIREBASE_CONFIG = {
+  apiKey: "AIzaSyB1c_oaSHoLS5f7rpGGgd2VgHF6zvwlpk8",
+  authDomain: "reflekt-mirror.firebaseapp.com",
+  projectId: "reflekt-mirror",
+  appId: "1:358119410050:web:3ab46f877304ffc339a79b"
+};
 if (FIREBASE_CONFIG) {
   document.write('<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"><\/script>');
   document.write('<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"><\/script>');

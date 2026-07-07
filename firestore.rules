@@ -8,7 +8,9 @@ service cloud.firestore {
       allow get: if true;
       allow list: if false;
       allow create, update: if request.resource.data._ts is number;
-      allow delete: if false;
+      // Demo docs are throwaway (TTL needs billing, which stays off): anyone
+      // may delete them, so stale website-demo configs can be cleaned up.
+      allow delete: if id.matches('demo-.*');
     }
   }
 }
