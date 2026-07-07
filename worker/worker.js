@@ -183,10 +183,10 @@ export default {
         if (await overLimit(request, env)) return json({ error: "too many pushes from this connection — wait a minute" }, 429);
         const bodyText = await request.text();
         const demo = isDemo(id);
-        // Demo mirrors: small configs only (no pushed images) that self-delete
-        // after an hour. Real mirrors keep the full budget, stored permanently.
-        if (bodyText.length > (demo ? 20000 : 200000)) {
-          return json({ error: demo ? "demo configs are capped at 20 KB" : "config too large" }, 413);
+        // Demo mirrors get the same 200 KB budget as real ones (the hourly
+        // spend guard is the cost backstop) but still self-delete after an hour.
+        if (bodyText.length > 200000) {
+          return json({ error: "config too large (200 KB max)" }, 413);
         }
         try { JSON.parse(bodyText); } catch (e) { return json({ error: "body must be JSON" }, 400); }
         const err = await kvPut(env, kvKey, bodyText, demo ? { expirationTtl: 3600 } : undefined);
