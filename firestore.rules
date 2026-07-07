@@ -1,0 +1,14 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // A mirror's ID is its key — same trust model as the relay Worker:
+    // anyone holding the (unguessable, QR-shared) ID may read and write that
+    // one config. Listing the collection is blocked so IDs can't be harvested.
+    match /mirrors/{id} {
+      allow get: if true;
+      allow list: if false;
+      allow create, update: if request.resource.data._ts is number;
+      allow delete: if false;
+    }
+  }
+}

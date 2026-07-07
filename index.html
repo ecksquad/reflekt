@@ -18,6 +18,17 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/weather-icons/2.0.10/css/weather-icons.min.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,300,0,0">
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+<script>
+// Firestore config sync: paste the Firebase web config here to move pushes off
+// the relay Worker onto Firestore — instant sync (no polling) and the free
+// Spark plan hard-stops at its daily quota instead of ever billing.
+// null = relay Worker (?config=get/set), exactly as before.
+var FIREBASE_CONFIG = null;
+if (FIREBASE_CONFIG) {
+  document.write('<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"><\/script>');
+  document.write('<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"><\/script>');
+}
+</script>
 <style>
   :root{
     --bg:#000;
@@ -1366,16 +1377,41 @@
     clearInterval(stockFootTimer); stockFootTimer=setInterval(paintFoot,1000);
   }
 
-  // ---------- remote settings sync (via the relay Worker + KV) ----------
-  var lastCfgTs=0, remoteTimer=null, CTRLMODE=false, KIOSK=false;
+  // ---------- remote settings sync (Firestore, or the relay Worker + KV) ----------
+  // With FIREBASE_CONFIG set (top of the file) configs travel through
+  // Firestore: the mirror holds a live listener, so pushes land in seconds
+  // with no polling. With it null, everything falls back to the relay Worker.
+  var lastCfgTs=0, remoteTimer=null, fsDb=null, fsUnsub=null, CTRLMODE=false, KIOSK=false;
+  function fsInit(){
+    if(!window.FIREBASE_CONFIG || typeof firebase==="undefined") return null;
+    try{
+      if(!fsDb){ firebase.initializeApp(FIREBASE_CONFIG); fsDb=firebase.firestore(); }
+      return fsDb;
+    }catch(e){ return null; }
+  }
   function pushConfig(){
-    var base=state.busUrl; if(!base){ alert("Set the relay URL first (Departures service URL)."); return; }
     var id=state.mirrorId||"main";
     // Device-local switches never travel: the mirror owns whether IT accepts
     // remote control / shares its camera — a phone with them Off must not
     // switch them off on the mirror.
-    var payload=Object.assign({}, state, {_ts:Date.now()});
+    // JSON round-trip drops undefined values, which Firestore rejects.
+    var payload=JSON.parse(JSON.stringify(Object.assign({}, state, {_ts:Date.now()})));
     delete payload.remoteSync; delete payload.camShare;
+    var db=fsInit();
+    if(db){
+      // Website demo mirrors still self-clean: the TTL policy on expireAt
+      // (enabled in the Firebase console) deletes demo docs an hour after
+      // the last push.
+      if(id.slice(0,5)==="demo-") payload.expireAt=firebase.firestore.Timestamp.fromMillis(Date.now()+3600000);
+      db.collection("mirrors").doc(id).set(payload)
+        .then(function(){ alert("Pushed to mirror \""+id+"\"."); })
+        .catch(function(e){
+          if(e&&e.code==="resource-exhausted") alert("Push failed — the free daily quota is used up. It resets at 09:00 Swedish time.");
+          else alert("Push failed: "+(e&&e.message?e.message:"check the connection."));
+        });
+      return;
+    }
+    var base=state.busUrl; if(!base){ alert("Set the relay URL first (Departures service URL)."); return; }
     fetch(base+(base.indexOf("?")>=0?"&":"?")+"config=set&id="+encodeURIComponent(id),
       { method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify(payload) })
       .then(function(r){
@@ -1393,32 +1429,50 @@
   // Website demo goes dormant after 30 min without a push — each open kiosk
   // tab otherwise polls the relay forever (~17k reads/day per tab).
   var KIOSK_IDLE_MS=30*60*1000, lastCfgActivity=Date.now();
+  function applyRemoteCfg(cfg){
+    if(!cfg || !cfg._ts || cfg._ts<=lastCfgTs) return;
+    lastCfgTs=cfg._ts; lastCfgActivity=Date.now();
+    var keep={remoteSync:state.remoteSync, camShare:state.camShare, mirrorId:state.mirrorId, lat:state.lat, lon:state.lon};
+    Object.assign(state, cfg); delete state._ts; delete state.expireAt;
+    state.remoteSync=keep.remoteSync; state.camShare=keep.camShare; state.mirrorId=keep.mirrorId; state.lat=keep.lat; state.lon=keep.lon;
+    save(); fillForm();
+    if(CTRLMODE) return; // controller phone: update the form only, never switch views
+    if(state.eyeMode==="on"){ showEye(); }
+    else if($("eyesaver").classList.contains("show")){ showMirror(); }
+    else if($("mirror").classList.contains("show")) showMirror();
+  }
   function pullConfig(){
+    var db=fsInit();
+    if(db){
+      db.collection("mirrors").doc(state.mirrorId||"main").get()
+        .then(function(snap){ applyRemoteCfg(snap.exists?snap.data():null); }).catch(function(){});
+      return;
+    }
     var base=state.busUrl; if(!base) return;
     if(KIOSK && Date.now()-lastCfgActivity>KIOSK_IDLE_MS){
-      clearInterval(remoteTimer); remoteTimer=null;
+      stopRemote();
       var tag=$("mirrorTag"); if(tag) tag.textContent="demo paused — reload the page to wake it";
       return;
     }
     var id=state.mirrorId||"main";
     fetch(base+(base.indexOf("?")>=0?"&":"?")+"config=get&id="+encodeURIComponent(id))
       .then(function(r){ return r.json(); })
-      .then(function(cfg){
-        if(!cfg || !cfg._ts || cfg._ts<=lastCfgTs) return;
-        lastCfgTs=cfg._ts; lastCfgActivity=Date.now();
-        var keep={remoteSync:state.remoteSync, camShare:state.camShare, mirrorId:state.mirrorId, lat:state.lat, lon:state.lon};
-        Object.assign(state, cfg); delete state._ts;
-        state.remoteSync=keep.remoteSync; state.camShare=keep.camShare; state.mirrorId=keep.mirrorId; state.lat=keep.lat; state.lon=keep.lon;
-        save(); fillForm();
-        if(CTRLMODE) return; // controller phone: update the form only, never switch views
-        if(state.eyeMode==="on"){ showEye(); }
-        else if($("eyesaver").classList.contains("show")){ showMirror(); }
-        else if($("mirror").classList.contains("show")) showMirror();
-      }).catch(function(){});
+      .then(applyRemoteCfg).catch(function(){});
+  }
+  function stopRemote(){
+    clearInterval(remoteTimer); remoteTimer=null;
+    if(fsUnsub){ try{fsUnsub();}catch(e){} fsUnsub=null; }
   }
   function startRemote(){
-    clearInterval(remoteTimer); remoteTimer=null;
+    stopRemote();
     if(state.remoteSync!=="on") return;
+    var db=fsInit();
+    if(db){
+      // An idle Firestore listener reads nothing, so no kiosk dormancy needed.
+      fsUnsub=db.collection("mirrors").doc(state.mirrorId||"main")
+        .onSnapshot(function(snap){ applyRemoteCfg(snap.exists?snap.data():null); },function(){});
+      return;
+    }
     pullConfig();
     // Kiosk demo polls fast so website visitors see their pushes within seconds.
     remoteTimer=setInterval(pullConfig, KIOSK?5000:20000);
@@ -1426,8 +1480,8 @@
   // Hidden tabs don't need to poll the relay; resume where the mirror (or the
   // eye screensaver, which deliberately keeps listening) is showing.
   document.addEventListener("visibilitychange",function(){
-    if(document.hidden){ clearInterval(remoteTimer); remoteTimer=null; }
-    else if(state.remoteSync==="on" && !remoteTimer
+    if(document.hidden){ stopRemote(); }
+    else if(state.remoteSync==="on" && !remoteTimer && !fsUnsub
       && ($("mirror").classList.contains("show") || $("eyesaver").classList.contains("show"))){
       lastCfgActivity=Date.now();
       startRemote();
@@ -1460,7 +1514,7 @@
     clearInterval(compTimer); compTimer=null;
     stopStockRows();
     releaseAwake();
-    stopMotion(); stopBiz(); stopCamShare(); clearInterval(remoteTimer); remoteTimer=null;
+    stopMotion(); stopBiz(); stopCamShare(); stopRemote();
     $("focus").classList.remove("show"); clearInterval(focusTimer); focusTimer=null;
   }
 
