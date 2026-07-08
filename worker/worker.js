@@ -272,14 +272,22 @@ export default {
     if (elpris) {
       const zone = /^SE[1-4]$/.test(elpris) ? elpris : "SE3";
       try {
-        const d = new Date();
-        const y = d.getFullYear();
-        const m = String(d.getMonth() + 1).padStart(2, "0");
-        const day = String(d.getDate()).padStart(2, "0");
-        const purl =
-          "https://www.elprisetjustnu.se/api/v1/prices/" +
-          y + "/" + m + "-" + day + "_" + zone + ".json";
-        const arr = await fetch(purl).then((r) => r.json());
+        function priceUrl(d) {
+          const y = d.getFullYear();
+          const m = String(d.getMonth() + 1).padStart(2, "0");
+          const day = String(d.getDate()).padStart(2, "0");
+          return "https://www.elprisetjustnu.se/api/v1/prices/" +
+            y + "/" + m + "-" + day + "_" + zone + ".json";
+        }
+        const today = new Date();
+        const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
+        const arr = await fetch(priceUrl(today)).then((r) => r.json());
+        let tomorrowArr = [];
+        try {
+          const t = await fetch(priceUrl(tomorrow)).then((r) => r.json());
+          if (Array.isArray(t)) tomorrowArr = t;
+        } catch (e) { /* tomorrow's prices aren't published yet (~before 13:00) */ }
+        const all = arr.concat(tomorrowArr);
         const now = Date.now();
         let cur = null;
         const vals = [];
@@ -288,10 +296,31 @@ export default {
           const s = Date.parse(e.time_start), en = Date.parse(e.time_end);
           if (now >= s && now < en) cur = e;
         }
-        if (!cur) cur = arr[d.getHours()] || arr[arr.length - 1];
+        if (!cur) cur = arr[today.getHours()] || arr[arr.length - 1];
         const min = Math.min.apply(null, vals);
         const max = Math.max.apply(null, vals);
-        return json({ price: cur ? cur.SEK_per_kWh : null, min: min, max: max, zone: zone });
+
+        // average the (possibly 15-min) slots into hourly buckets, then
+        // keep the current hour onward, capped to the next 24 hours
+        const buckets = {};
+        for (const e of all) {
+          const startMs = Date.parse(e.time_start);
+          const hourMs = Math.floor(startMs / 3600000) * 3600000;
+          (buckets[hourMs] = buckets[hourMs] || []).push(e.SEK_per_kWh);
+        }
+        const nowHourMs = Math.floor(now / 3600000) * 3600000;
+        const series = Object.keys(buckets)
+          .map((k) => parseInt(k, 10))
+          .filter((k) => k >= nowHourMs)
+          .sort((a, b) => a - b)
+          .slice(0, 24)
+          .map((k) => {
+            const list = buckets[k];
+            const avg = list.reduce((a, b) => a + b, 0) / list.length;
+            return { t: k, v: avg };
+          });
+
+        return json({ price: cur ? cur.SEK_per_kWh : null, min: min, max: max, zone: zone, series: series });
       } catch (e) {
         return json({ error: "price fetch failed: " + (e && e.message ? e.message : String(e)) }, 502);
       }

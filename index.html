@@ -175,7 +175,6 @@ if (FIREBASE_CONFIG) {
   .info-sun .gap{display:inline-block;width:.9em}
 
   .bus-h{font-size:11px;margin-bottom:10px;color:var(--accent)}
-  #elprisHead{font-weight:700}
   .msym{font-family:'Material Symbols Outlined';font-weight:normal;font-style:normal;line-height:1;
     letter-spacing:normal;text-transform:none;white-space:nowrap;-webkit-font-feature-settings:'liga';font-feature-settings:'liga'}
   .dep{display:flex;align-items:center;gap:12px;margin-bottom:8px;font-weight:300}
@@ -185,6 +184,7 @@ if (FIREBASE_CONFIG) {
   .dep .tm{font-family:var(--label);color:var(--accent);letter-spacing:.04em}
   .bus-msg{font-family:var(--label);color:var(--faint);font-size:13px;letter-spacing:.04em;line-height:1.5;max-width:60vw}
   .elp-gauge{width:clamp(160px,34vmin,280px);height:auto;display:block;overflow:visible}
+  .elp-chart{width:clamp(160px,34vmin,280px);height:auto;display:block;overflow:visible;margin-bottom:4px}
 
   .gear{position:fixed;bottom:14px;right:14px;width:26px;height:26px;border-radius:50%;
     background:rgba(255,255,255,.06);border:none;color:var(--faint);cursor:pointer;
@@ -555,7 +555,6 @@ if (FIREBASE_CONFIG) {
     <div id="busList"></div>
   </div>
   <div class="region r-bl" id="elprisRegion" style="display:none">
-    <div class="label bus-h" id="elprisHead">Elpris</div>
     <div id="elprisList"></div>
   </div>
   <div class="region r-br" id="infoRegion">
@@ -829,7 +828,6 @@ if (FIREBASE_CONFIG) {
   function loadElpris(force){
     if(!state.busUrl){ $("elprisRegion").style.display="none"; return; }
     $("elprisRegion").style.display="block";
-    $("elprisHead").textContent = t("elpris");
     var now=Date.now();
     if(!force && now-lastElpris < 10*60*1000){ if(elprisCache) renderElpris(elprisCache); return; }
     lastElpris = now;
@@ -838,6 +836,44 @@ if (FIREBASE_CONFIG) {
       if(!d || d.error || d.price==null){ $("elprisList").innerHTML='<div class="bus-msg">'+t("elprisErr")+'</div>'; return; }
       elprisCache = d; renderElpris(d);
     }).catch(function(){ $("elprisList").innerHTML='<div class="bus-msg">'+t("elprisErr")+'</div>'; });
+  }
+  function buildElprisChart(series){
+    var W=220, H=86, padL=6, padR=6, padT=22, padB=16;
+    var innerW=W-padL-padR, innerH=H-padT-padB;
+    var CHARGE=0.20;
+    var vals = series.map(function(p){ return p.v; });
+    var vMin=Math.min.apply(null,vals.concat([CHARGE])), vMax=Math.max.apply(null,vals.concat([CHARGE]));
+    var span=(vMax-vMin)||1; vMin-=span*0.08; vMax+=span*0.08; span=vMax-vMin;
+    function x(i){ return series.length>1 ? padL + innerW*(i/(series.length-1)) : padL+innerW/2; }
+    function y(v){ return padT + innerH*(1-(v-vMin)/span); }
+    var pts = series.map(function(p,i){ return [x(i), y(p.v)]; });
+    var line = pts.map(function(p,i){ return (i===0?'M':'L')+p[0].toFixed(1)+' '+p[1].toFixed(1); }).join(' ');
+    var bottom=(padT+innerH).toFixed(1);
+    var area = line+' L'+pts[pts.length-1][0].toFixed(1)+' '+bottom+' L'+pts[0][0].toFixed(1)+' '+bottom+' Z';
+    var cheapIdx=0;
+    for(var i=1;i<series.length;i++){ if(series[i].v<series[cheapIdx].v) cheapIdx=i; }
+    var nowPt=pts[0], cheapPt=pts[cheapIdx], thresholdY=y(CHARGE);
+    var s = '<defs><linearGradient id="elpGrad" x1="0" y1="0" x2="0" y2="1">'
+          + '<stop offset="0%" stop-color="#4cc15a" stop-opacity="0.55"/>'
+          + '<stop offset="100%" stop-color="#4cc15a" stop-opacity="0"/></linearGradient></defs>';
+    if(thresholdY>padT-2 && thresholdY<padT+innerH+2){
+      s += '<line x1="'+padL+'" y1="'+thresholdY.toFixed(1)+'" x2="'+(padL+innerW)+'" y2="'+thresholdY.toFixed(1)+'" stroke="#fff" stroke-opacity="0.4" stroke-width="1" stroke-dasharray="3,3"/>';
+    }
+    s += '<path d="'+area+'" fill="url(#elpGrad)"/>';
+    s += '<path d="'+line+'" fill="none" stroke="#4cc15a" stroke-width="2.2"/>';
+    series.forEach(function(p,i){
+      var hr = new Date(p.t).getHours();
+      if(hr%6===0){
+        s += '<text x="'+x(i).toFixed(1)+'" y="'+(H-3)+'" text-anchor="middle" fill="#fff" fill-opacity="0.55" font-family="Roboto Condensed,sans-serif" font-size="9">'+String(hr).padStart(2,"0")+'</text>';
+      }
+    });
+    if(cheapIdx!==0){
+      s += '<circle cx="'+cheapPt[0].toFixed(1)+'" cy="'+cheapPt[1].toFixed(1)+'" r="2.6" fill="#4cc15a"/>';
+      s += '<text x="'+cheapPt[0].toFixed(1)+'" y="'+(cheapPt[1]-8).toFixed(1)+'" text-anchor="middle" fill="#4cc15a" font-family="Roboto,sans-serif" font-weight="700" font-size="11">'+series[cheapIdx].v.toFixed(2)+'</text>';
+    }
+    s += '<circle cx="'+nowPt[0].toFixed(1)+'" cy="'+nowPt[1].toFixed(1)+'" r="3.4" fill="#fff"/>';
+    s += '<text x="'+(nowPt[0]+6).toFixed(1)+'" y="'+(nowPt[1]-6).toFixed(1)+'" text-anchor="start" fill="#fff" font-family="Roboto,sans-serif" font-weight="700" font-size="12">'+series[0].v.toFixed(2)+'</text>';
+    return '<svg viewBox="0 0 '+W+' '+H+'" class="elp-chart">'+s+'</svg>';
   }
   function renderElpris(d){
     var GREEN="#4cc15a", AMBER="#f4a92b", RED="#c93a2e", MAX=3, T1=0.8, T2=1.3;
@@ -866,7 +902,8 @@ if (FIREBASE_CONFIG) {
     s+='<text x="'+cx+'" y="'+(cy+28)+'" text-anchor="middle" fill="'+col+'" font-family="Roboto,sans-serif" font-weight="300" font-size="26">'+VAL.toFixed(2)+'<tspan font-family="Roboto Condensed,sans-serif" font-size="12" fill="#fff" dx="4">SEK</tspan></text>';
     s+='<text x="'+(cx-r)+'" y="'+(cy+18)+'" text-anchor="middle" fill="#fff" font-family="Roboto Condensed,sans-serif" font-size="13">0</text>';
     s+='<text x="'+(cx+r)+'" y="'+(cy+18)+'" text-anchor="middle" fill="#fff" font-family="Roboto Condensed,sans-serif" font-size="13">'+MAX+'</text>';
-    $("elprisList").innerHTML = '<svg viewBox="0 0 220 158" class="elp-gauge">'+s+'</svg>';
+    var chart = (d.series && d.series.length>1) ? buildElprisChart(d.series) : '';
+    $("elprisList").innerHTML = chart + '<svg viewBox="0 0 220 158" class="elp-gauge">'+s+'</svg>';
   }
 
   // ---------- bottom-left dispatcher ----------
