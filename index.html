@@ -265,6 +265,12 @@ if (FIREBASE_CONFIG) {
   .useloc .x{font-size:16px;line-height:0}
   .or{font-family:var(--label);color:var(--faint);font-size:11px;letter-spacing:.16em;
     text-transform:uppercase;text-align:center;margin:11px 0 9px}
+
+  /* --- BOLD TEXT EXPERIMENT (2026-07-09) ---
+     Daytime readability: forces every text weight on the mirror display to bold.
+     To revert to the original thin/light hierarchy, delete this block. */
+  #mirror *{font-weight:700!important}
+  /* --- end bold text experiment --- */
 </style>
 </head>
 <body>
