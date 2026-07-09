@@ -362,7 +362,7 @@ if (FIREBASE_CONFIG) {
       <input id="compImgFile" type="file" accept="image/png,image/jpeg,image/gif" style="display:none">
       <button class="start ghost" id="compImgPick" type="button">Choose from device</button>
       <button class="start ghost" id="compImgClear" type="button">Clear image</button>
-      <div class="hint">PNG, JPEG or GIF (animated GIFs under 130KB play). Choosing it on your phone? It travels with &ldquo;Push settings to mirror&rdquo;. Larger photos are shrunk automatically to fit.</div>
+      <div class="hint">PNG, JPEG or GIF (animated GIFs under 490KB play). Choosing it on your phone? It travels with &ldquo;Push settings to mirror&rdquo;. Larger photos are shrunk automatically to fit.</div>
     </div>
 
     <div class="field opt-home" id="haField" style="display:none">
@@ -1895,11 +1895,15 @@ if (FIREBASE_CONFIG) {
   });
   $("compImgPick").addEventListener("click",function(){ $("compImgFile").click(); });
   // Convert the picked file to a data URL small enough to travel inside the
-  // config push. Firestore allows 1MB per config, so the centre image gets
-  // ~180KB and each business image ~300KB (both together still leave room).
+  // config push. Firestore allows ~1MB per config TOTAL, so budgets are
+  // deliberately well under that, not summed up to it: the centre image gets
+  // ~700KB, leaving headroom for both business images (~300KB each) plus the
+  // rest of the config even in the (rare) case all three are set at once.
+  // Base64 inflates a file by ~37%, so the raw-file passthrough threshold
+  // (0.7x the budget below) is smaller than the pushed-size budget itself.
   // Tiny files pass through raw (keeps GIF animation), anything bigger is
   // canvas-downscaled to JPEG, shrinking until it fits.
-  var PUSH_IMG_MAX = 180*1024, BIZ_IMG_MAX = 300*1024;
+  var PUSH_IMG_MAX = 700*1024, BIZ_IMG_MAX = 300*1024;
   function fileToPushData(f, cb, max){
     max = max || PUSH_IMG_MAX;
     if(f.size<=max*0.7){
