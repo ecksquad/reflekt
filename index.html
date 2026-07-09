@@ -151,23 +151,39 @@ if (FIREBASE_CONFIG) {
   .stockrows .srow-canvas{display:block;width:100%;height:9vh;margin-top:8px}
   .stockrows .stk-msg{color:var(--faint);font-size:clamp(13px,2.4vw,18px);text-align:center}
 
-  .hadash{display:flex;flex-direction:column;align-items:center;gap:clamp(14px,2.4vh,26px);font-family:var(--label);width:94vw}
-  .hadash-msg{color:var(--faint);font-size:clamp(13px,2.4vw,18px);text-align:center}
-  .hadash-top{display:flex;align-items:center;justify-content:center;gap:clamp(20px,4vw,48px);flex-wrap:wrap}
-  .hadash-gauge{width:clamp(160px,26vmin,240px);height:auto;display:block;overflow:visible}
-  .hadash-stats{display:flex;flex-direction:column;gap:10px}
-  .hadash-stat{display:flex;align-items:baseline;gap:10px}
-  .hadash-stat b{font-weight:300;color:var(--bright);font-size:clamp(22px,4vw,32px)}
-  .hadash-stat span{text-transform:uppercase;letter-spacing:.14em;color:var(--faint);font-size:clamp(11px,2vw,14px)}
-  .hadash-tires{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;width:100%;max-width:520px}
-  .hadash-tire{border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-align:center}
-  .hadash-tire b{display:block;font-weight:300;color:var(--bright);font-size:clamp(16px,2.6vw,22px)}
-  .hadash-tire span{text-transform:uppercase;letter-spacing:.1em;color:var(--faint);font-size:clamp(10px,1.6vw,12px)}
-  .hadash-status{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;max-width:640px}
-  .hadash-pill{display:flex;align-items:center;gap:8px;padding:7px 16px;border-radius:999px;border:1px solid var(--line);
-    color:var(--faint);font-size:clamp(12px,2vw,15px);letter-spacing:.04em}
-  .hadash-pill.on{color:var(--accent);border-color:var(--accent)}
-  .hadash-pill .msym{font-size:1.2em}
+  .hadash{display:flex;flex-direction:column;align-items:center;gap:16px;font-family:Arial,sans-serif;width:94vw}
+  .hadash-msg{color:var(--faint);font-family:var(--label);font-size:clamp(13px,2.4vw,18px);text-align:center}
+  .hadash-title{font-size:clamp(16px,2.6vw,22px);color:#aaa}
+  .hadash-title .msym{color:#ffdd00;vertical-align:-2px;margin-right:6px}
+  .hadash-columns{display:inline-flex;align-items:center;justify-content:center;gap:clamp(14px,3vw,30px);flex-wrap:wrap;transform:scale(var(--hadash-scale,1))}
+
+  .hadash-stage{perspective:900px;width:220px;height:220px;display:flex;align-items:center;justify-content:center}
+  .hadash-scene{position:relative;width:161px;height:161px;transform-style:preserve-3d;animation:hadash-wobble 4.8s ease-in-out infinite}
+  .hadash-ring-group{position:absolute;inset:0}
+  .hadash-ring{position:absolute;inset:0;border-radius:50%;
+    -webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 15px),#000 calc(100% - 14px));
+    mask:radial-gradient(farthest-side,transparent calc(100% - 15px),#000 calc(100% - 14px))}
+  .hadash-ring-outline-outer,.hadash-ring-outline-inner{position:absolute;border-radius:50%;border:1px solid #fff;pointer-events:none}
+  .hadash-ring-outline-outer{inset:0}
+  .hadash-ring-outline-inner{inset:15px}
+  .hadash-face{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    font-weight:bold;font-size:34px;font-variant-numeric:tabular-nums;color:#fff}
+  .hadash-bolt{font-size:19px;color:#ffdd00;margin-bottom:3px;line-height:1}
+  @keyframes hadash-wobble{0%,100%{transform:rotateY(-45deg)}50%{transform:rotateY(45deg)}}
+  @media (prefers-reduced-motion:reduce){.hadash-scene{animation:none}}
+
+  .hadash-hist{display:flex;flex-direction:column;align-items:center}
+  .hadash-hist-label{font-size:13px;color:#888;margin-bottom:6px}
+  .hadash-hist canvas{display:block}
+
+  .hadash-info{min-width:260px;white-space:nowrap;text-align:left}
+  .hadash-rows{font-size:16px;line-height:1.3}
+  .hadash-row{display:flex;justify-content:space-between;gap:24px;border-bottom:1px solid #222;padding:2px 0}
+  .hadash-row span:first-child{color:#888}
+  .hadash-row .msym{font-size:1.1em;color:#ffdd00;vertical-align:-2px}
+  .hadash-tires{margin-top:12px;font-size:13px;color:#888}
+
+  @media (max-width:820px){ .hadash-columns{--hadash-scale:0.72} }
 
   .time{font-weight:700;font-size:clamp(56px,16vmin,160px);line-height:1;letter-spacing:-.01em}
   .time .sec{font-size:.32em;color:var(--accent);font-weight:300;margin-left:.12em;vertical-align:.55em}
@@ -1488,6 +1504,18 @@ if (FIREBASE_CONFIG) {
     var v=parseFloat(s.state); return isNaN(v) ? null : v;
   }
   function haOn(s){ return !!s && s.state==="on"; }
+  function haHistory(entity){
+    if(!entity) return Promise.resolve([]);
+    var base=state.haUrl.replace(/\/+$/,"");
+    var since=new Date(Date.now()-7*24*60*60*1000).toISOString();
+    var until=new Date().toISOString();
+    var u=base+"/api/history/period/"+encodeURIComponent(since)
+      +"?end_time="+encodeURIComponent(until)+"&filter_entity_id="+encodeURIComponent(entity)+"&minimal_response";
+    return fetch(u, { headers:{ "Authorization":"Bearer "+state.haToken } })
+      .then(function(r){ if(!r.ok) throw new Error("http "+r.status); return r.json(); })
+      .then(function(d){ return (d && d[0]) || []; })
+      .catch(function(){ return []; });
+  }
   var haLoading=false;
   function loadHA(){
     var el=$("compText"); if(!el) return;
@@ -1499,9 +1527,11 @@ if (FIREBASE_CONFIG) {
     haLoading=true;
     var keys=["haBattery","haRange","haOdometer","haCabinTemp","haTireFL","haTireFR","haTireRL","haTireRR",
               "haCharging","haPlug","haLocked","haDoors","haWindows","haOnline"];
-    Promise.all(keys.map(function(k){ return haGet(state[k]); }))
-      .then(function(results){
+    Promise.all(
+      keys.map(function(k){ return haGet(state[k]); }).concat([haHistory(state.haBattery)])
+    ).then(function(results){
         haLoading=false;
+        var history=results.pop();
         var s={}; keys.forEach(function(k,i){ s[k]=results[i]; });
         // any successful read at all means the connection itself is fine
         if(results.every(function(r){ return r===null; })){
@@ -1510,6 +1540,7 @@ if (FIREBASE_CONFIG) {
           return;
         }
         el.innerHTML=buildHaDashboard(s); el.style.opacity=1;
+        requestAnimationFrame(function(){ drawHaHistory("haHistCanvas", history); });
       })
       .catch(function(){
         haLoading=false;
@@ -1517,60 +1548,70 @@ if (FIREBASE_CONFIG) {
         el.style.opacity=1;
       });
   }
+  function drawHaHistory(canvasId, history){
+    var cv=$(canvasId); if(!cv) return;
+    var ctx=cv.getContext("2d");
+    ctx.clearRect(0,0,cv.width,cv.height);
+    var values=(history||[]).map(function(h){ return parseFloat(h.state); }).filter(function(v){ return !isNaN(v); });
+    if(values.length<2){
+      ctx.fillStyle="#ffffff"; ctx.font="14px Arial"; ctx.textAlign="center";
+      ctx.fillText("No history yet", cv.width/2, cv.height/2);
+      return;
+    }
+    var min=Math.min.apply(null,values), max=Math.max.apply(null,values), range=(max-min)||1, pad=8;
+    ctx.beginPath();
+    values.forEach(function(v,i){
+      var x=pad+(i/(values.length-1))*(cv.width-2*pad);
+      var y=cv.height-pad-((v-min)/range)*(cv.height-2*pad);
+      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    });
+    ctx.strokeStyle="#00cc44"; ctx.lineWidth=3; ctx.stroke();
+  }
   function buildHaDashboard(s){
     var battery=haNum(s.haBattery), range=haNum(s.haRange), odo=haNum(s.haOdometer), cabin=haNum(s.haCabinTemp);
     var tFL=haNum(s.haTireFL), tFR=haNum(s.haTireFR), tRL=haNum(s.haTireRL), tRR=haNum(s.haTireRR);
     var charging=haOn(s.haCharging), plugged=haOn(s.haPlug);
     var locked = s.haLocked ? s.haLocked.state==="off" : null; // HA lock convention: on=unlocked, off=locked
     var doorsOpen=haOn(s.haDoors), windowsOpen=haOn(s.haWindows), online=haOn(s.haOnline);
+    if(cabin===0) cabin=null; // BYD reports 0 while the car sleeps
 
-    var GREEN="#4cc15a", AMBER="#f4a92b", RED="#c93a2e";
-    var pct = battery==null ? 0 : Math.max(0,Math.min(100,battery));
-    var col = pct<20 ? RED : pct<50 ? AMBER : GREEN;
-    var cx=110,cy=90,r=72,w=15;
-    function pol(rr,deg){ var a=deg*Math.PI/180; return [cx+rr*Math.cos(a), cy-rr*Math.sin(a)]; }
-    function ang(v){ return 180*(1-Math.max(0,Math.min(100,v))/100); }
-    function arc(a1,a2,c,op){ var p1=pol(r,a1),p2=pol(r,a2),large=(a1-a2)>180?1:0;
-      return '<path d="M'+p1[0].toFixed(1)+' '+p1[1].toFixed(1)+' A'+r+' '+r+' 0 '+large+' 1 '+p2[0].toFixed(1)+' '+p2[1].toFixed(1)+'" fill="none" stroke="'+c+'" stroke-opacity="'+op+'" stroke-width="'+w+'"/>'; }
-    var gaugeSvg='';
-    if(battery!=null){
-      gaugeSvg='<svg viewBox="0 0 220 120" class="hadash-gauge">'
-        +arc(180,0,"#fff",0.12)
-        +arc(180,ang(pct),col,1)
-        +'<text x="'+cx+'" y="'+(cy-4)+'" text-anchor="middle" fill="'+col+'" font-family="Roboto,sans-serif" font-weight="300" font-size="34">'+Math.round(pct)+'<tspan font-size="16" dx="1">%</tspan></text>'
-        +(charging?'<text x="'+cx+'" y="'+(cy+20)+'" text-anchor="middle" fill="'+GREEN+'" font-family="Roboto Condensed,sans-serif" font-size="12">LADDAR</text>':'')
-        +'</svg>';
-    } else {
-      gaugeSvg='<svg viewBox="0 0 220 120" class="hadash-gauge">'+arc(180,0,"#fff",0.12)+'</svg>';
+    var pct = battery!=null ? Math.max(0,Math.min(100,battery)) : null;
+    var col = pct===null ? "#333333" : (pct>50?"#00cc44":pct>20?"#ffaa00":"#ff3300");
+    var gauge = '<div class="hadash-stage"><div class="hadash-scene"><div class="hadash-ring-group">'
+      +'<div class="hadash-ring" style="background:conic-gradient(from -90deg, '+col+' '+(pct||0)+'%, #333333 0)"></div>'
+      +'<div class="hadash-ring-outline-outer"></div><div class="hadash-ring-outline-inner"></div>'
+      +'</div><div class="hadash-face" style="color:'+(pct!==null?col:"#ffffff")+'">'
+      +(pct!==null && charging ? '<div class="hadash-bolt">⚡</div>' : '')
+      +'<div>'+(pct!==null?Math.round(pct)+"%":"--")+'</div>'
+      +'</div></div></div>';
+
+    var hist = '<div class="hadash-hist"><div class="hadash-hist-label">Battery, last week</div>'
+      +'<canvas id="haHistCanvas" width="220" height="220"></canvas></div>';
+
+    function row(label,valueHtml){ return '<div class="hadash-row"><span>'+label+'</span><span>'+valueHtml+'</span></div>'; }
+    var rows='';
+    if(s.haRange) rows+=row("Range", range!=null?Math.round(range)+" km":"--");
+    if(s.haCharging || s.haPlug){
+      var chargeVal = charging ? "yes" : (plugged ? "plugged in, idle" : "not connected");
+      rows+=row("Charging", chargeVal);
     }
-
-    var stats='<div class="hadash-stats">';
-    if(range!=null) stats+='<div class="hadash-stat"><b>'+Math.round(range)+' km</b><span>Räckvidd</span></div>';
-    if(odo!=null) stats+='<div class="hadash-stat"><b>'+Math.round(odo)+' km</b><span>Mätarställning</span></div>';
-    if(cabin!=null && cabin!==0) stats+='<div class="hadash-stat"><b>'+cabin.toFixed(1)+'°</b><span>Kupé</span></div>';
-    stats+='</div>';
+    if(s.haLocked) rows+=row("Locked", '<i class="msym">'+(locked===false?"lock_open":"lock")+'</i> '+(locked===false?"unlocked":"locked"));
+    if(s.haDoors) rows+=row("Doors", doorsOpen?"open":"closed");
+    if(s.haWindows) rows+=row("Windows", windowsOpen?"open":"closed");
+    if(s.haCabinTemp) rows+=row("Cabin temp", cabin!=null?cabin.toFixed(1)+"°C":"--");
+    if(s.haOdometer) rows+=row("Odometer", odo!=null?Math.round(odo)+" km":"--");
+    if(s.haOnline) rows+=row("Online", online?"yes":"no");
 
     var tires='';
     if(tFL!=null||tFR!=null||tRL!=null||tRR!=null){
-      tires='<div class="hadash-tires">'
-        +'<div class="hadash-tire"><b>'+(tFL!=null?tFL.toFixed(1):"--")+'</b><span>FL</span></div>'
-        +'<div class="hadash-tire"><b>'+(tFR!=null?tFR.toFixed(1):"--")+'</b><span>FR</span></div>'
-        +'<div class="hadash-tire"><b>'+(tRL!=null?tRL.toFixed(1):"--")+'</b><span>RL</span></div>'
-        +'<div class="hadash-tire"><b>'+(tRR!=null?tRR.toFixed(1):"--")+'</b><span>RR</span></div>'
-        +'</div>';
+      tires='<div class="hadash-tires">Tires (kPa): FL '+(tFL!=null?tFL:"--")+' · FR '+(tFR!=null?tFR:"--")
+        +' · RL '+(tRL!=null?tRL:"--")+' · RR '+(tRR!=null?tRR:"--")+'</div>';
     }
 
-    function pill(active,icon,label){ return '<span class="hadash-pill'+(active?" on":"")+'"><i class="msym">'+icon+'</i>'+label+'</span>'; }
-    var pills='<div class="hadash-status">';
-    if(s.haCharging) pills+=pill(charging,"bolt","Laddar");
-    if(s.haPlug) pills+=pill(plugged,"power","Inkopplad");
-    if(s.haLocked) pills+=pill(locked===false,locked===false?"lock_open":"lock",locked===false?"Olåst":"Låst");
-    if(s.haDoors) pills+=pill(doorsOpen,"sensor_door","Dörr öppen");
-    if(s.haWindows) pills+=pill(windowsOpen,"window","Fönster öppet");
-    if(s.haOnline) pills+=pill(!online,"cloud_off",online?"Online":"Offline");
-    pills+='</div>';
-
-    return '<div class="hadash"><div class="hadash-top">'+gaugeSvg+stats+'</div>'+tires+pills+'</div>';
+    return '<div class="hadash">'
+      +'<div class="hadash-title"><i class="msym">directions_car</i>BYD Atto 3</div>'
+      +'<div class="hadash-columns">'+gauge+hist+'<div class="hadash-info"><div class="hadash-rows">'+rows+'</div>'+tires+'</div></div>'
+      +'</div>';
   }
 
   function stopStockRows(){
