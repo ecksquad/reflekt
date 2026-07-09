@@ -99,6 +99,8 @@ if (FIREBASE_CONFIG) {
   .adv-toggle.open .chev{transform:rotate(90deg)}
   #adv{display:none}
   #adv.open{display:block}
+  #haAdv{display:none}
+  #haAdv.open{display:block}
   .start{width:100%;margin-top:14px;background:#ffdd00;color:#000;border:none;
     font-family:var(--label);text-transform:uppercase;letter-spacing:.18em;font-weight:700;font-size:15px;
     padding:16px;border-radius:10px;cursor:pointer}
@@ -148,6 +150,24 @@ if (FIREBASE_CONFIG) {
   .stockrows .schg{font-size:clamp(12px,2vw,17px);min-width:7em;text-align:left}
   .stockrows .srow-canvas{display:block;width:100%;height:9vh;margin-top:8px}
   .stockrows .stk-msg{color:var(--faint);font-size:clamp(13px,2.4vw,18px);text-align:center}
+
+  .hadash{display:flex;flex-direction:column;align-items:center;gap:clamp(14px,2.4vh,26px);font-family:var(--label);width:94vw}
+  .hadash-msg{color:var(--faint);font-size:clamp(13px,2.4vw,18px);text-align:center}
+  .hadash-top{display:flex;align-items:center;justify-content:center;gap:clamp(20px,4vw,48px);flex-wrap:wrap}
+  .hadash-gauge{width:clamp(160px,26vmin,240px);height:auto;display:block;overflow:visible}
+  .hadash-stats{display:flex;flex-direction:column;gap:10px}
+  .hadash-stat{display:flex;align-items:baseline;gap:10px}
+  .hadash-stat b{font-weight:300;color:var(--bright);font-size:clamp(22px,4vw,32px)}
+  .hadash-stat span{text-transform:uppercase;letter-spacing:.14em;color:var(--faint);font-size:clamp(11px,2vw,14px)}
+  .hadash-tires{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;width:100%;max-width:520px}
+  .hadash-tire{border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-align:center}
+  .hadash-tire b{display:block;font-weight:300;color:var(--bright);font-size:clamp(16px,2.6vw,22px)}
+  .hadash-tire span{text-transform:uppercase;letter-spacing:.1em;color:var(--faint);font-size:clamp(10px,1.6vw,12px)}
+  .hadash-status{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;max-width:640px}
+  .hadash-pill{display:flex;align-items:center;gap:8px;padding:7px 16px;border-radius:999px;border:1px solid var(--line);
+    color:var(--faint);font-size:clamp(12px,2vw,15px);letter-spacing:.04em}
+  .hadash-pill.on{color:var(--accent);border-color:var(--accent)}
+  .hadash-pill .msym{font-size:1.2em}
 
   .time{font-weight:700;font-size:clamp(56px,16vmin,160px);line-height:1;letter-spacing:-.01em}
   .time .sec{font-size:.32em;color:var(--accent);font-weight:300;margin-left:.12em;vertical-align:.55em}
@@ -332,8 +352,9 @@ if (FIREBASE_CONFIG) {
         <button data-v="en">English</button>
         <button data-v="user">User</button>
         <button data-v="stock">Stock</button>
+        <button data-v="ha">Home Assistant</button>
       </div>
-      <div class="hint">Rotating one-liners (Swedish/English), your own image, or a full-width live stock chart.</div>
+      <div class="hint">Rotating one-liners (Swedish/English), your own image, a full-width live stock chart, or a Home Assistant dashboard.</div>
     </div>
 
     <div class="field opt-home" id="compImgField" style="display:none">
@@ -342,6 +363,68 @@ if (FIREBASE_CONFIG) {
       <button class="start ghost" id="compImgPick" type="button">Choose from device</button>
       <button class="start ghost" id="compImgClear" type="button">Clear image</button>
       <div class="hint">PNG, JPEG or GIF (animated GIFs under 130KB play). Choosing it on your phone? It travels with &ldquo;Push settings to mirror&rdquo;. Larger photos are shrunk automatically to fit.</div>
+    </div>
+
+    <div class="field opt-home" id="haField" style="display:none">
+      <span class="label">Home Assistant URL</span>
+      <input id="haUrl" class="input" placeholder="https://your-ha.your-tailnet.ts.net:8123" autocomplete="off">
+      <div class="hint">Needs a real HTTPS address reachable from this device (e.g. a Tailscale HTTPS hostname) &mdash; a plain http:// local address won&rsquo;t work from this page. Your Home Assistant also needs <code>cors_allowed_origins</code> set to this site&rsquo;s address.</div>
+    </div>
+    <div class="field opt-home" id="haTokenField" style="display:none">
+      <span class="label">Home Assistant long-lived access token</span>
+      <input id="haToken" class="input" type="password" placeholder="paste a long-lived access token" autocomplete="off">
+      <div class="hint">Created in Home Assistant under your profile &rarr; Security &rarr; Long-Lived Access Tokens. Stays on THIS device only &mdash; it never travels with &ldquo;Push settings to mirror&rdquo; or leaves your browser.</div>
+    </div>
+    <button type="button" class="adv-toggle opt-home" id="haAdvToggle" style="display:none"><span class="chev">›</span> Entity IDs (advanced)</button>
+    <div id="haAdv" class="opt-home">
+      <div class="field">
+        <span class="label">Battery %</span>
+        <input id="haBattery" class="input" autocomplete="off">
+      </div>
+      <div class="field">
+        <span class="label">Range</span>
+        <input id="haRange" class="input" autocomplete="off">
+      </div>
+      <div class="field">
+        <span class="label">Odometer</span>
+        <input id="haOdometer" class="input" autocomplete="off">
+      </div>
+      <div class="field">
+        <span class="label">Cabin temperature</span>
+        <input id="haCabinTemp" class="input" autocomplete="off">
+      </div>
+      <div class="field">
+        <span class="label">Tire pressure &mdash; front left / front right / rear left / rear right</span>
+        <input id="haTireFL" class="input" autocomplete="off" style="margin-bottom:8px">
+        <input id="haTireFR" class="input" autocomplete="off" style="margin-bottom:8px">
+        <input id="haTireRL" class="input" autocomplete="off" style="margin-bottom:8px">
+        <input id="haTireRR" class="input" autocomplete="off">
+      </div>
+      <div class="field">
+        <span class="label">Charging (binary_sensor)</span>
+        <input id="haCharging" class="input" autocomplete="off">
+      </div>
+      <div class="field">
+        <span class="label">Plugged in (binary_sensor)</span>
+        <input id="haPlug" class="input" autocomplete="off">
+      </div>
+      <div class="field">
+        <span class="label">Locked (binary_sensor)</span>
+        <input id="haLocked" class="input" autocomplete="off">
+      </div>
+      <div class="field">
+        <span class="label">Doors open (binary_sensor)</span>
+        <input id="haDoors" class="input" autocomplete="off">
+      </div>
+      <div class="field">
+        <span class="label">Windows open (binary_sensor)</span>
+        <input id="haWindows" class="input" autocomplete="off">
+      </div>
+      <div class="field">
+        <span class="label">Online (binary_sensor)</span>
+        <input id="haOnline" class="input" autocomplete="off">
+      </div>
+      <div class="hint">Defaults are set for a BYD Atto 3 via the hass-byd-vehicle integration &mdash; replace any of these with your own entity IDs, or leave blank to hide that tile.</div>
     </div>
 
     <div class="field opt-home">
@@ -655,6 +738,13 @@ if (FIREBASE_CONFIG) {
   var DEFAULTS = { loc:"", lat:null, lon:null, place:"", name:"",
     unit:"celsius", clock:"24", lang:"sv", seconds:"on", comments:"sv",
     motion:"off", motionFor:"60", motionSens:"med", camShare:"off", biz:"off", bizTop:"", bizMid:"", bizTopData:"", bizMidData:"", bizPdf:"", bizTopScale:100, bizMidScale:100, stockSym:"AAPL", stockRange:"month", stock1:"", stock2:"", stock3:"", stock4:"", stock5:"", remoteSync:"off", mirrorId:"main", accent:"#e9c98a", elzone:"SE3", eyeMode:"off",
+    haUrl:"", haToken:"",
+    haBattery:"sensor.byd_atto3zuo_duo_battery_level", haRange:"sensor.byd_atto3zuo_duo_range", haOdometer:"sensor.byd_atto3zuo_duo_odometer",
+    haCabinTemp:"sensor.byd_atto3zuo_duo_cabin_temperature",
+    haTireFL:"sensor.byd_atto3zuo_duo_front_left_tire_pressure", haTireFR:"sensor.byd_atto3zuo_duo_front_right_tire_pressure",
+    haTireRL:"sensor.byd_atto3zuo_duo_rear_left_tire_pressure", haTireRR:"sensor.byd_atto3zuo_duo_rear_right_tire_pressure",
+    haCharging:"binary_sensor.byd_atto3zuo_duo_charging", haPlug:"binary_sensor.byd_atto3zuo_duo_plug", haLocked:"binary_sensor.byd_atto3zuo_duo_locked",
+    haDoors:"binary_sensor.byd_atto3zuo_duo_doors", haWindows:"binary_sensor.byd_atto3zuo_duo_windows", haOnline:"binary_sensor.byd_atto3zuo_duo_online",
     busUrl:"https://still-wave-afbc.ecksquad.workers.dev", busId:"" };
   var state = Object.assign({}, DEFAULTS);
   var KEY = "mirror.config.v1";
@@ -1235,6 +1325,13 @@ if (FIREBASE_CONFIG) {
       compTimer=setInterval(loadStock, 60*1000);
       return;
     }
+    if(state.comments==="ha"){
+      clearInterval(compTimer); compTimer=null;
+      el.classList.remove("emoji");
+      loadHA();
+      compTimer=setInterval(loadHA, 60*1000);
+      return;
+    }
     if(state.comments==="user"){
       clearInterval(compTimer); compTimer=null;
       el.classList.remove("emoji");
@@ -1371,6 +1468,111 @@ if (FIREBASE_CONFIG) {
     for(var i=1;i<n;i++) ctx.lineTo(X(i),Y(closes[i]));
     ctx.strokeStyle="#fff"; ctx.lineWidth=2; ctx.lineJoin="round"; ctx.stroke();
   }
+
+  // ---------- Home Assistant dashboard (centre display "ha" mode) ----------
+  // Fetched directly from the browser (Home Assistant can't be reached through
+  // the relay Worker, which has no route into a home network) - needs a real
+  // HTTPS address (e.g. a Tailscale HTTPS hostname) and cors_allowed_origins
+  // set on the Home Assistant side. The URL and token are device-local only:
+  // excluded from pushConfig/applyRemoteCfg, same as remoteSync/camShare.
+  function haGet(entity){
+    if(!entity) return Promise.resolve(null);
+    var base=state.haUrl.replace(/\/+$/,"");
+    return fetch(base+"/api/states/"+encodeURIComponent(entity), {
+      headers:{ "Authorization":"Bearer "+state.haToken, "Content-Type":"application/json" }
+    }).then(function(r){ if(!r.ok) throw new Error("http "+r.status); return r.json(); })
+      .catch(function(){ return null; });
+  }
+  function haNum(s){
+    if(!s || s.state==="unavailable" || s.state==="unknown") return null;
+    var v=parseFloat(s.state); return isNaN(v) ? null : v;
+  }
+  function haOn(s){ return !!s && s.state==="on"; }
+  var haLoading=false;
+  function loadHA(){
+    var el=$("compText"); if(!el) return;
+    if(!state.haUrl || !state.haToken){
+      el.innerHTML='<div class="hadash-msg">Set up Home Assistant in settings (URL + access token).</div>'; el.style.opacity=1;
+      return;
+    }
+    if(haLoading) return;
+    haLoading=true;
+    var keys=["haBattery","haRange","haOdometer","haCabinTemp","haTireFL","haTireFR","haTireRL","haTireRR",
+              "haCharging","haPlug","haLocked","haDoors","haWindows","haOnline"];
+    Promise.all(keys.map(function(k){ return haGet(state[k]); }))
+      .then(function(results){
+        haLoading=false;
+        var s={}; keys.forEach(function(k,i){ s[k]=results[i]; });
+        // any successful read at all means the connection itself is fine
+        if(results.every(function(r){ return r===null; })){
+          el.innerHTML='<div class="hadash-msg">Couldn’t reach Home Assistant — check the URL, token, and that HTTPS/CORS are set up.</div>';
+          el.style.opacity=1;
+          return;
+        }
+        el.innerHTML=buildHaDashboard(s); el.style.opacity=1;
+      })
+      .catch(function(){
+        haLoading=false;
+        el.innerHTML='<div class="hadash-msg">Couldn’t reach Home Assistant — check the URL, token, and that HTTPS/CORS are set up.</div>';
+        el.style.opacity=1;
+      });
+  }
+  function buildHaDashboard(s){
+    var battery=haNum(s.haBattery), range=haNum(s.haRange), odo=haNum(s.haOdometer), cabin=haNum(s.haCabinTemp);
+    var tFL=haNum(s.haTireFL), tFR=haNum(s.haTireFR), tRL=haNum(s.haTireRL), tRR=haNum(s.haTireRR);
+    var charging=haOn(s.haCharging), plugged=haOn(s.haPlug);
+    var locked = s.haLocked ? s.haLocked.state==="off" : null; // HA lock convention: on=unlocked, off=locked
+    var doorsOpen=haOn(s.haDoors), windowsOpen=haOn(s.haWindows), online=haOn(s.haOnline);
+
+    var GREEN="#4cc15a", AMBER="#f4a92b", RED="#c93a2e";
+    var pct = battery==null ? 0 : Math.max(0,Math.min(100,battery));
+    var col = pct<20 ? RED : pct<50 ? AMBER : GREEN;
+    var cx=110,cy=90,r=72,w=15;
+    function pol(rr,deg){ var a=deg*Math.PI/180; return [cx+rr*Math.cos(a), cy-rr*Math.sin(a)]; }
+    function ang(v){ return 180*(1-Math.max(0,Math.min(100,v))/100); }
+    function arc(a1,a2,c,op){ var p1=pol(r,a1),p2=pol(r,a2),large=(a1-a2)>180?1:0;
+      return '<path d="M'+p1[0].toFixed(1)+' '+p1[1].toFixed(1)+' A'+r+' '+r+' 0 '+large+' 1 '+p2[0].toFixed(1)+' '+p2[1].toFixed(1)+'" fill="none" stroke="'+c+'" stroke-opacity="'+op+'" stroke-width="'+w+'"/>'; }
+    var gaugeSvg='';
+    if(battery!=null){
+      gaugeSvg='<svg viewBox="0 0 220 120" class="hadash-gauge">'
+        +arc(180,0,"#fff",0.12)
+        +arc(180,ang(pct),col,1)
+        +'<text x="'+cx+'" y="'+(cy-4)+'" text-anchor="middle" fill="'+col+'" font-family="Roboto,sans-serif" font-weight="300" font-size="34">'+Math.round(pct)+'<tspan font-size="16" dx="1">%</tspan></text>'
+        +(charging?'<text x="'+cx+'" y="'+(cy+20)+'" text-anchor="middle" fill="'+GREEN+'" font-family="Roboto Condensed,sans-serif" font-size="12">LADDAR</text>':'')
+        +'</svg>';
+    } else {
+      gaugeSvg='<svg viewBox="0 0 220 120" class="hadash-gauge">'+arc(180,0,"#fff",0.12)+'</svg>';
+    }
+
+    var stats='<div class="hadash-stats">';
+    if(range!=null) stats+='<div class="hadash-stat"><b>'+Math.round(range)+' km</b><span>Räckvidd</span></div>';
+    if(odo!=null) stats+='<div class="hadash-stat"><b>'+Math.round(odo)+' km</b><span>Mätarställning</span></div>';
+    if(cabin!=null && cabin!==0) stats+='<div class="hadash-stat"><b>'+cabin.toFixed(1)+'°</b><span>Kupé</span></div>';
+    stats+='</div>';
+
+    var tires='';
+    if(tFL!=null||tFR!=null||tRL!=null||tRR!=null){
+      tires='<div class="hadash-tires">'
+        +'<div class="hadash-tire"><b>'+(tFL!=null?tFL.toFixed(1):"--")+'</b><span>FL</span></div>'
+        +'<div class="hadash-tire"><b>'+(tFR!=null?tFR.toFixed(1):"--")+'</b><span>FR</span></div>'
+        +'<div class="hadash-tire"><b>'+(tRL!=null?tRL.toFixed(1):"--")+'</b><span>RL</span></div>'
+        +'<div class="hadash-tire"><b>'+(tRR!=null?tRR.toFixed(1):"--")+'</b><span>RR</span></div>'
+        +'</div>';
+    }
+
+    function pill(active,icon,label){ return '<span class="hadash-pill'+(active?" on":"")+'"><i class="msym">'+icon+'</i>'+label+'</span>'; }
+    var pills='<div class="hadash-status">';
+    if(s.haCharging) pills+=pill(charging,"bolt","Laddar");
+    if(s.haPlug) pills+=pill(plugged,"power","Inkopplad");
+    if(s.haLocked) pills+=pill(locked===false,locked===false?"lock_open":"lock",locked===false?"Olåst":"Låst");
+    if(s.haDoors) pills+=pill(doorsOpen,"sensor_door","Dörr öppen");
+    if(s.haWindows) pills+=pill(windowsOpen,"window","Fönster öppet");
+    if(s.haOnline) pills+=pill(!online,"cloud_off",online?"Online":"Offline");
+    pills+='</div>';
+
+    return '<div class="hadash"><div class="hadash-top">'+gaugeSvg+stats+'</div>'+tires+pills+'</div>';
+  }
+
   function stopStockRows(){
     var reg=$("stockRowsRegion"); if(reg) reg.style.display="none";
     clearInterval(stockRowsTimer); stockRowsTimer=null;
@@ -1420,7 +1622,7 @@ if (FIREBASE_CONFIG) {
     // switch them off on the mirror.
     // JSON round-trip drops undefined values, which Firestore rejects.
     var payload=JSON.parse(JSON.stringify(Object.assign({}, state, {_ts:Date.now()})));
-    delete payload.remoteSync; delete payload.camShare;
+    delete payload.remoteSync; delete payload.camShare; delete payload.haUrl; delete payload.haToken;
     var db=fsInit();
     if(db){
       // Website demo mirrors still self-clean: the TTL policy on expireAt
@@ -1456,9 +1658,9 @@ if (FIREBASE_CONFIG) {
   function applyRemoteCfg(cfg){
     if(!cfg || !cfg._ts || cfg._ts<=lastCfgTs) return;
     lastCfgTs=cfg._ts; lastCfgActivity=Date.now();
-    var keep={remoteSync:state.remoteSync, camShare:state.camShare, mirrorId:state.mirrorId, lat:state.lat, lon:state.lon};
+    var keep={remoteSync:state.remoteSync, camShare:state.camShare, mirrorId:state.mirrorId, lat:state.lat, lon:state.lon, haUrl:state.haUrl, haToken:state.haToken};
     Object.assign(state, cfg); delete state._ts; delete state.expireAt;
-    state.remoteSync=keep.remoteSync; state.camShare=keep.camShare; state.mirrorId=keep.mirrorId; state.lat=keep.lat; state.lon=keep.lon;
+    state.remoteSync=keep.remoteSync; state.camShare=keep.camShare; state.mirrorId=keep.mirrorId; state.lat=keep.lat; state.lon=keep.lon; state.haUrl=keep.haUrl; state.haToken=keep.haToken;
     save(); fillForm();
     if(CTRLMODE) return; // controller phone: update the form only, never switch views
     if(state.eyeMode==="on"){ showEye(); }
@@ -1675,8 +1877,22 @@ if (FIREBASE_CONFIG) {
 
 
   function updateCompImgVis(){ $("compImgField").style.display = state.comments==="user" ? "block" : "none"; }
-  $("compSeg").addEventListener("click", updateCompImgVis);
-  updateCompImgVis();
+  function updateHaVis(){
+    var show = state.comments==="ha";
+    $("haField").style.display = show ? "block" : "none";
+    $("haTokenField").style.display = show ? "block" : "none";
+    $("haAdvToggle").style.display = show ? "flex" : "none";
+    if(!show){ $("haAdv").classList.remove("open"); $("haAdvToggle").classList.remove("open"); }
+  }
+  $("compSeg").addEventListener("click", function(){ updateCompImgVis(); updateHaVis(); });
+  updateCompImgVis(); updateHaVis();
+  $("haAdvToggle").addEventListener("click",function(){
+    this.classList.toggle("open"); $("haAdv").classList.toggle("open");
+  });
+  ["haUrl","haToken","haBattery","haRange","haOdometer","haCabinTemp","haTireFL","haTireFR","haTireRL","haTireRR",
+   "haCharging","haPlug","haLocked","haDoors","haWindows","haOnline"].forEach(function(id){
+    $(id).addEventListener("input",function(){ state[id]=$(id).value.trim(); save(); });
+  });
   $("compImgPick").addEventListener("click",function(){ $("compImgFile").click(); });
   // Convert the picked file to a data URL small enough to travel inside the
   // config push. Firestore allows 1MB per config, so the centre image gets
@@ -1749,10 +1965,12 @@ if (FIREBASE_CONFIG) {
   function fillForm(){
     $("loc").value=state.loc; $("name").value=state.name;
     $("busUrl").value=state.busUrl||""; $("busId").value=state.busId||""; $("stockSym").value=state.stockSym||""; $("stock1").value=state.stock1||""; $("stock2").value=state.stock2||""; $("stock3").value=state.stock3||""; $("stock4").value=state.stock4||""; $("stock5").value=state.stock5||""; $("mirrorId").value=state.mirrorId||"main"; $("bizTop").value=(state.bizTop&&state.bizTop!=="idb"&&state.bizTop!=="data")?state.bizTop:""; $("bizMid").value=(state.bizMid&&state.bizMid!=="idb"&&state.bizMid!=="data")?state.bizMid:""; $("bizTopScale").value=state.bizTopScale||100; $("bizTopScaleVal").textContent=(state.bizTopScale||100)+"%"; $("bizMidScale").value=state.bizMidScale||100; $("bizMidScaleVal").textContent=(state.bizMidScale||100)+"%";
+    ["haUrl","haToken","haBattery","haRange","haOdometer","haCabinTemp","haTireFL","haTireFR","haTireRL","haTireRR",
+     "haCharging","haPlug","haLocked","haDoors","haWindows","haOnline"].forEach(function(id){ $(id).value = state[id]||""; });
     setSeg("unitSeg",state.unit); setSeg("clockSeg",state.clock);
     setSeg("langSeg",state.lang); setSeg("secSeg",state.seconds); setSeg("compSeg",state.comments);
     setSeg("accentSw",state.accent); applyAccent();
-    setSeg("zoneSeg",state.elzone); updateCompImgVis(); eyeBtnLabel();
+    setSeg("zoneSeg",state.elzone); updateCompImgVis(); updateHaVis(); eyeBtnLabel();
     setSeg("motionSeg",state.motion); setSeg("motionTimeoutSeg",state.motionFor); setSeg("motionSensSeg",state.motionSens); setSeg("camShareSeg",state.camShare); setSeg("modeSeg",state.biz); setSeg("stockRangeSeg",state.stockRange); setSeg("remoteSeg",state.remoteSync); applyMode();
     if(state.busId){ $("advToggle").classList.add("open"); $("adv").classList.add("open"); }
   }
