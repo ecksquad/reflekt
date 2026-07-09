@@ -158,24 +158,20 @@ if (FIREBASE_CONFIG) {
   .hadash-title .msym{color:#ffdd00;vertical-align:-2px;margin-right:6px}
   .hadash-columns{display:inline-flex;align-items:center;justify-content:center;gap:clamp(14px,3vw,30px);flex-wrap:wrap}
 
-  .hadash-stage{perspective:900px;width:220px;height:220px;display:flex;align-items:center;justify-content:center}
-  .hadash-scene{position:relative;width:161px;height:161px;transform-style:preserve-3d;animation:hadash-wobble 4.8s ease-in-out infinite}
+  .hadash-stage{perspective:900px;width:253px;height:253px;display:flex;align-items:center;justify-content:center}
+  .hadash-scene{position:relative;width:185px;height:185px;transform-style:preserve-3d;animation:hadash-wobble 4.8s ease-in-out infinite}
   .hadash-ring-group{position:absolute;inset:0}
   .hadash-ring{position:absolute;inset:0;border-radius:50%;
-    -webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 15px),#000 calc(100% - 14px));
-    mask:radial-gradient(farthest-side,transparent calc(100% - 15px),#000 calc(100% - 14px))}
+    -webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 17px),#000 calc(100% - 16px));
+    mask:radial-gradient(farthest-side,transparent calc(100% - 17px),#000 calc(100% - 16px))}
   .hadash-ring-outline-outer,.hadash-ring-outline-inner{position:absolute;border-radius:50%;border:1px solid #fff;pointer-events:none}
   .hadash-ring-outline-outer{inset:0}
-  .hadash-ring-outline-inner{inset:15px}
+  .hadash-ring-outline-inner{inset:17px}
   .hadash-face{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
-    font-weight:bold;font-size:34px;font-variant-numeric:tabular-nums;color:#fff}
-  .hadash-bolt{font-size:19px;color:#ffdd00;margin-bottom:3px;line-height:1}
+    font-weight:bold;font-size:39px;font-variant-numeric:tabular-nums;color:#fff}
+  .hadash-bolt{font-size:22px;color:#ffdd00;margin-bottom:3px;line-height:1}
   @keyframes hadash-wobble{0%,100%{transform:rotateY(-45deg)}50%{transform:rotateY(45deg)}}
   @media (prefers-reduced-motion:reduce){.hadash-scene{animation:none}}
-
-  .hadash-hist{display:flex;flex-direction:column;align-items:center}
-  .hadash-hist-label{font-size:13px;color:#fff;margin-bottom:6px}
-  .hadash-hist canvas{display:block}
 
   .hadash-info{min-width:260px;white-space:nowrap;text-align:left}
   .hadash-rows{font-size:16px;line-height:1.3}
@@ -1515,18 +1511,6 @@ if (FIREBASE_CONFIG) {
     var v=parseFloat(s.state); return isNaN(v) ? null : v;
   }
   function haOn(s){ return !!s && s.state==="on"; }
-  function haHistory(entity){
-    if(!entity) return Promise.resolve([]);
-    var base=state.haUrl.replace(/\/+$/,"");
-    var since=new Date(Date.now()-7*24*60*60*1000).toISOString();
-    var until=new Date().toISOString();
-    var u=base+"/api/history/period/"+encodeURIComponent(since)
-      +"?end_time="+encodeURIComponent(until)+"&filter_entity_id="+encodeURIComponent(entity)+"&minimal_response";
-    return fetch(u, { headers:{ "Authorization":"Bearer "+state.haToken } })
-      .then(function(r){ if(!r.ok) throw new Error("http "+r.status); return r.json(); })
-      .then(function(d){ return (d && d[0]) || []; })
-      .catch(function(){ return []; });
-  }
   var haLoading=false;
   function loadHA(){
     var el=$("compText"); if(!el) return;
@@ -1539,10 +1523,9 @@ if (FIREBASE_CONFIG) {
     var keys=["haBattery","haRange","haOdometer","haCabinTemp","haTireFL","haTireFR","haTireRL","haTireRR",
               "haCharging","haPlug","haLocked","haDoors","haWindows","haOnline"];
     Promise.all(
-      keys.map(function(k){ return haGet(state[k]); }).concat([haHistory(state.haBattery)])
+      keys.map(function(k){ return haGet(state[k]); })
     ).then(function(results){
         haLoading=false;
-        var history=results.pop();
         var s={}; keys.forEach(function(k,i){ s[k]=results[i]; });
         // any successful read at all means the connection itself is fine
         if(results.every(function(r){ return r===null; })){
@@ -1551,32 +1534,12 @@ if (FIREBASE_CONFIG) {
           return;
         }
         el.innerHTML=buildHaDashboard(s); el.style.opacity=1;
-        requestAnimationFrame(function(){ drawHaHistory("haHistCanvas", history); });
       })
       .catch(function(){
         haLoading=false;
         el.innerHTML='<div class="hadash-msg">Couldn’t reach Home Assistant — check the URL, token, and that HTTPS/CORS are set up.</div>';
         el.style.opacity=1;
       });
-  }
-  function drawHaHistory(canvasId, history){
-    var cv=$(canvasId); if(!cv) return;
-    var ctx=cv.getContext("2d");
-    ctx.clearRect(0,0,cv.width,cv.height);
-    var values=(history||[]).map(function(h){ return parseFloat(h.state); }).filter(function(v){ return !isNaN(v); });
-    if(values.length<2){
-      ctx.fillStyle="#ffffff"; ctx.font="14px Arial"; ctx.textAlign="center";
-      ctx.fillText("No history yet", cv.width/2, cv.height/2);
-      return;
-    }
-    var min=Math.min.apply(null,values), max=Math.max.apply(null,values), range=(max-min)||1, pad=8;
-    ctx.beginPath();
-    values.forEach(function(v,i){
-      var x=pad+(i/(values.length-1))*(cv.width-2*pad);
-      var y=cv.height-pad-((v-min)/range)*(cv.height-2*pad);
-      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
-    });
-    ctx.strokeStyle="#00cc44"; ctx.lineWidth=3; ctx.stroke();
   }
   function buildHaDashboard(s){
     var battery=haNum(s.haBattery), range=haNum(s.haRange), odo=haNum(s.haOdometer), cabin=haNum(s.haCabinTemp);
@@ -1595,9 +1558,6 @@ if (FIREBASE_CONFIG) {
       +(pct!==null && charging ? '<div class="hadash-bolt">⚡</div>' : '')
       +'<div>'+(pct!==null?Math.round(pct)+"%":"--")+'</div>'
       +'</div></div></div>';
-
-    var hist = '<div class="hadash-hist"><div class="hadash-hist-label">Battery, last week</div>'
-      +'<canvas id="haHistCanvas" width="220" height="220"></canvas></div>';
 
     function row(label,valueHtml){ return '<div class="hadash-row"><span>'+label+'</span><span>'+valueHtml+'</span></div>'; }
     var rows='';
@@ -1621,7 +1581,7 @@ if (FIREBASE_CONFIG) {
 
     return '<div class="hadash">'
       +'<div class="hadash-title"><i class="msym">directions_car</i>BYD Atto 3</div>'
-      +'<div class="hadash-columns">'+gauge+hist+'<div class="hadash-info"><div class="hadash-rows">'+rows+'</div>'+tires+'</div></div>'
+      +'<div class="hadash-columns">'+gauge+'<div class="hadash-info"><div class="hadash-rows">'+rows+'</div>'+tires+'</div></div>'
       +'</div>';
   }
 
