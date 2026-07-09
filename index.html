@@ -167,7 +167,8 @@ if (FIREBASE_CONFIG) {
   .fc-hi{font-weight:400;color:var(--bright);text-align:right;font-size:clamp(13px,3vmin,17px)}
   .fc-lo{font-weight:400;color:var(--faint);text-align:right;font-size:clamp(13px,3vmin,17px)}
 
-  /* bottom-right info: week number + sun times */
+  /* week number + sun times, between the date and the greeting */
+  #infoRegion{margin-top:14px}
   .info-week{font-family:var(--label);text-transform:uppercase;letter-spacing:.16em;color:var(--accent);
     font-weight:700;font-size:clamp(20px,4.6vmin,26px)}
   .info-sun{font-family:var(--label);letter-spacing:.06em;color:var(--dim);font-size:clamp(12px,3vmin,16px);margin-top:9px}
@@ -408,16 +409,7 @@ if (FIREBASE_CONFIG) {
       <div class="hint">Colours the date, labels and details. The clock stays white for brightness behind glass.</div>
     </div>
 
-    <div class="field opt-home">
-      <span class="label">Bottom-left panel</span>
-      <div class="seg" id="blSeg">
-        <button data-v="off">Off</button>
-        <button data-v="bus" class="on">Bus</button>
-        <button data-v="elpris">Electricity</button>
-      </div>
-    </div>
-
-    <div class="field opt-home" id="zoneField" style="display:none">
+    <div class="field opt-home" id="zoneField">
       <span class="label">Electricity area</span>
       <div class="seg" id="zoneSeg">
         <button data-v="SE1">SE1</button>
@@ -447,14 +439,6 @@ if (FIREBASE_CONFIG) {
     <div class="m3sec">
     <button type="button" class="m3sec-h"><span class="chev">›</span> Screen &amp; motion</button>
     <div class="m3sec-b">
-
-    <div class="field">
-      <span class="label">Keep screen on</span>
-      <div class="seg" id="awakeSeg">
-        <button data-v="on" class="on">On</button>
-        <button data-v="off">Off</button>
-      </div>
-    </div>
 
     <div class="field">
       <span class="label">Motion wake</span>
@@ -536,6 +520,10 @@ if (FIREBASE_CONFIG) {
   <div class="region r-tl" id="clockRegion">
     <div class="time" id="mTime">--:--</div>
     <div class="date" id="mDate"></div>
+    <div id="infoRegion">
+      <div class="info-week" id="infoWeek"></div>
+      <div class="info-sun" id="infoSun"></div>
+    </div>
     <div class="greet" id="mGreet"></div>
   </div>
   <div class="region r-tr" id="wxRegion">
@@ -550,16 +538,12 @@ if (FIREBASE_CONFIG) {
   <div class="region r-mc" id="stockRowsRegion" style="display:none">
     <div class="stockrows" id="stockRowsList"></div>
   </div>
-  <div class="region r-bl" id="busRegion" style="display:none">
+  <div class="region r-br" id="busRegion" style="display:none">
     <div class="label bus-h" id="busHead">Departures</div>
     <div id="busList"></div>
   </div>
   <div class="region r-bl" id="elprisRegion" style="display:none">
     <div id="elprisList"></div>
-  </div>
-  <div class="region r-br" id="infoRegion">
-    <div class="info-week" id="infoWeek"></div>
-    <div class="info-sun" id="infoSun"></div>
   </div>
   <div id="mirrorTag"></div>
   <div class="region r-bl" id="stockTimeRegion" style="display:none">
@@ -670,7 +654,7 @@ if (FIREBASE_CONFIG) {
   // ---------- state + storage (storage is best-effort; falls back to memory) ----------
   var DEFAULTS = { loc:"", lat:null, lon:null, place:"", name:"",
     unit:"celsius", clock:"24", lang:"sv", seconds:"on", comments:"sv",
-    awake:"on", motion:"off", motionFor:"60", motionSens:"med", camShare:"off", biz:"off", bizTop:"", bizMid:"", bizTopData:"", bizMidData:"", bizPdf:"", bizTopScale:100, bizMidScale:100, stockSym:"AAPL", stockRange:"month", stock1:"", stock2:"", stock3:"", stock4:"", stock5:"", remoteSync:"off", mirrorId:"main", accent:"#e9c98a", bottomLeft:"bus", elzone:"SE3", eyeMode:"off",
+    motion:"off", motionFor:"60", motionSens:"med", camShare:"off", biz:"off", bizTop:"", bizMid:"", bizTopData:"", bizMidData:"", bizPdf:"", bizTopScale:100, bizMidScale:100, stockSym:"AAPL", stockRange:"month", stock1:"", stock2:"", stock3:"", stock4:"", stock5:"", remoteSync:"off", mirrorId:"main", accent:"#e9c98a", elzone:"SE3", eyeMode:"off",
     busUrl:"https://still-wave-afbc.ecksquad.workers.dev", busId:"" };
   var state = Object.assign({}, DEFAULTS);
   var KEY = "mirror.config.v1";
@@ -906,12 +890,11 @@ if (FIREBASE_CONFIG) {
     $("elprisList").innerHTML = chart + '<svg viewBox="0 0 220 158" class="elp-gauge">'+s+'</svg>';
   }
 
-  // ---------- bottom-left dispatcher ----------
+  // ---------- bottom panels: elpris (bottom-left) + bus (bottom-right), both always on ----------
   function refreshBottomLeft(force){
     if(state.biz==="stock"){ $("busRegion").style.display="none"; $("elprisRegion").style.display="none"; return; }
-    if(state.bottomLeft==="elpris"){ $("busRegion").style.display="none"; loadElpris(force); }
-    else if(state.bottomLeft==="bus"){ $("elprisRegion").style.display="none"; loadBus(force); }
-    else { $("busRegion").style.display="none"; $("elprisRegion").style.display="none"; }
+    loadElpris(force);
+    loadBus(force);
   }
 
   // ---------- clock / date / greeting ----------
@@ -953,7 +936,6 @@ if (FIREBASE_CONFIG) {
   // ---------- wake lock (keep screen on; honours the toggle) ----------
   var wl=null, noSleep=null;
   function keepAwake(){
-    if(state.awake!=="on") return;
     try{ if(!noSleep && window.NoSleep) noSleep=new NoSleep(); if(noSleep) { var r=noSleep.enable(); if(r&&r.catch) r.catch(function(){}); } }catch(e){}
   }
   function releaseAwake(){ try{ if(noSleep) noSleep.disable(); }catch(e){} try{ if(wl){ wl.release(); wl=null; } }catch(e){} }
@@ -1687,12 +1669,10 @@ if (FIREBASE_CONFIG) {
       b.classList.add("on"); state[prop]=b.getAttribute("data-v");
     });
   }
-  seg("unitSeg","unit"); seg("clockSeg","clock"); seg("langSeg","lang"); seg("secSeg","seconds"); seg("compSeg","comments"); seg("awakeSeg","awake");
-  seg("blSeg","bottomLeft"); seg("zoneSeg","elzone");
+  seg("unitSeg","unit"); seg("clockSeg","clock"); seg("langSeg","lang"); seg("secSeg","seconds"); seg("compSeg","comments");
+  seg("zoneSeg","elzone");
   seg("motionSeg","motion"); seg("motionTimeoutSeg","motionFor"); seg("motionSensSeg","motionSens"); seg("camShareSeg","camShare"); seg("modeSeg","biz"); seg("stockRangeSeg","stockRange"); seg("remoteSeg","remoteSync");
 
-  function updateZoneVis(){ $("zoneField").style.display = state.bottomLeft==="elpris" ? "block" : "none"; }
-  $("blSeg").addEventListener("click", updateZoneVis);
 
   function updateCompImgVis(){ $("compImgField").style.display = state.comments==="user" ? "block" : "none"; }
   $("compSeg").addEventListener("click", updateCompImgVis);
@@ -1771,8 +1751,8 @@ if (FIREBASE_CONFIG) {
     $("busUrl").value=state.busUrl||""; $("busId").value=state.busId||""; $("stockSym").value=state.stockSym||""; $("stock1").value=state.stock1||""; $("stock2").value=state.stock2||""; $("stock3").value=state.stock3||""; $("stock4").value=state.stock4||""; $("stock5").value=state.stock5||""; $("mirrorId").value=state.mirrorId||"main"; $("bizTop").value=(state.bizTop&&state.bizTop!=="idb"&&state.bizTop!=="data")?state.bizTop:""; $("bizMid").value=(state.bizMid&&state.bizMid!=="idb"&&state.bizMid!=="data")?state.bizMid:""; $("bizTopScale").value=state.bizTopScale||100; $("bizTopScaleVal").textContent=(state.bizTopScale||100)+"%"; $("bizMidScale").value=state.bizMidScale||100; $("bizMidScaleVal").textContent=(state.bizMidScale||100)+"%";
     setSeg("unitSeg",state.unit); setSeg("clockSeg",state.clock);
     setSeg("langSeg",state.lang); setSeg("secSeg",state.seconds); setSeg("compSeg",state.comments);
-    setSeg("awakeSeg",state.awake); setSeg("accentSw",state.accent); applyAccent();
-    setSeg("blSeg",state.bottomLeft); setSeg("zoneSeg",state.elzone); updateZoneVis(); updateCompImgVis(); eyeBtnLabel();
+    setSeg("accentSw",state.accent); applyAccent();
+    setSeg("zoneSeg",state.elzone); updateCompImgVis(); eyeBtnLabel();
     setSeg("motionSeg",state.motion); setSeg("motionTimeoutSeg",state.motionFor); setSeg("motionSensSeg",state.motionSens); setSeg("camShareSeg",state.camShare); setSeg("modeSeg",state.biz); setSeg("stockRangeSeg",state.stockRange); setSeg("remoteSeg",state.remoteSync); applyMode();
     if(state.busId){ $("advToggle").classList.add("open"); $("adv").classList.add("open"); }
   }
@@ -1892,7 +1872,7 @@ if (FIREBASE_CONFIG) {
     state=Object.assign({},DEFAULTS,{
       lat:57.7089, lon:11.9746, loc:"Göteborg", name:"",
       mirrorId:kioskId.trim(), remoteSync:"on",
-      comments:"sv", bottomLeft:"bus", motion:"off", camShare:"off"
+      comments:"sv", motion:"off", camShare:"off"
     });
     fillForm();
     showMirror();
