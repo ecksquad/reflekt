@@ -1661,9 +1661,11 @@ if (FIREBASE_CONFIG) {
   // Today's journey: positions are recorded on every poll (the poll runs even
   // while the clock page is up), drawn as a line, and reset at local midnight.
   var cmDay="", cmPts=[];
-  (function(){ try{ var o=JSON.parse(localStorage.getItem("carTrail")||"null"); if(o && o.d && o.pts){ cmDay=o.d; cmPts=o.pts; } }catch(e){} })();
+  function cmOkPt(lat,lon){ return typeof lat==="number" && typeof lon==="number" && isFinite(lat) && isFinite(lon) && Math.abs(lat)<=85 && Math.abs(lon)<=180 && !(lat===0&&lon===0); }
+  (function(){ try{ var o=JSON.parse(localStorage.getItem("carTrail")||"null"); if(o && o.d && o.pts){ cmDay=o.d; cmPts=o.pts.filter(function(p){ return p && cmOkPt(p[0],p[1]); }); } }catch(e){} })();
   function cmToday(){ var d=new Date(); return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate(); }
   function cmRecord(lat,lon){
+    if(!cmOkPt(lat,lon)) return;                            // GPS glitch (0,0 / out of range): never let it into the bounds
     var day=cmToday();
     if(day!==cmDay){ cmDay=day; cmPts=[]; }
     var p=cmPts[cmPts.length-1];
@@ -1711,8 +1713,12 @@ if (FIREBASE_CONFIG) {
       else cmCar.setLatLng(car);
       var hasHome = state.lat!=null && state.lon!=null;
       if(hasHome && !cmHome) cmHome=L.marker([state.lat,state.lon],{icon:L.divIcon({className:"cm-home",iconSize:[14,14]})}).addTo(cmMap);
+      // Fitting against a stale/zero container size collapses the zoom to a
+      // black world view, so always re-measure first and never fit at size 0.
+      try{ cmMap.invalidateSize(); }catch(e){}
+      var szOk; try{ var sz=cmMap.getSize(); szOk=sz.x>0&&sz.y>0; }catch(e){ szOk=false; }
       var sig=car[0].toFixed(5)+","+car[1].toFixed(5)+","+cmPts.length;
-      if(sig!==cmLastFit){                                  // only re-fit when the car actually moved
+      if(szOk && sig!==cmLastFit){                          // only re-fit when the car actually moved
         cmLastFit=sig;
         var bp=cmPts.concat([car]); if(hasHome) bp.push([state.lat,state.lon]);
         if(bp.length>1) cmMap.fitBounds(L.latLngBounds(bp).pad(0.2),{maxZoom:17});
@@ -1739,8 +1745,14 @@ if (FIREBASE_CONFIG) {
     dots.children[0].classList.toggle("on", !showMap);
     dots.children[1].classList.toggle("on", showMap);
     if(showMap){
-      // Leaflet measures its container, which was display:none until now.
-      if(cmEnsure()) setTimeout(function(){ try{ cmMap.invalidateSize(); }catch(e){} },60);
+      // Leaflet measures its container, which was display:none until now —
+      // re-measure synchronously (and again shortly after, belt and braces)
+      // and force a re-fit so the view always recovers on page-open.
+      cmLastFit="";
+      if(cmEnsure()){
+        try{ cmMap.invalidateSize(); }catch(e){}
+        setTimeout(function(){ try{ cmMap.invalidateSize(); }catch(e){} },60);
+      }
       loadCarPos();
     }
   }
