@@ -462,12 +462,12 @@ if (FIREBASE_CONFIG) {
     </div>
 
     <div class="field opt-home" id="carSwipeField" style="display:none">
-      <span class="label">Hand-swipe to change page</span>
+      <span class="label">Hand-wave to change page</span>
       <div class="seg" id="carSwipeSeg">
         <button data-v="off">Off</button>
         <button data-v="on" class="on">On</button>
       </div>
-      <div class="hint">Swipe a hand sideways past the camera &mdash; or simply wave at it for about a second &mdash; to flip between the mirror and the map. The page dots pulse when a gesture is caught. Works best in a lit room; the dots are also a tap fallback, and the &ldquo;Flip mirror page&rdquo; button below works from a connected phone. Frames are processed on-device, never stored or sent anywhere.</div>
+      <div class="hint">Wave a hand back and forth in front of the camera to flip between the mirror and the map &mdash; the side-to-side reversal is what counts, so simply walking past won&rsquo;t flip it. The page dots pulse when a wave is caught. Works best in a lit room; the dots are also a tap fallback, and the &ldquo;Flip mirror page&rdquo; button below works from a connected phone. Frames are processed on-device, never stored or sent anywhere.</div>
     </div>
 
     <div class="field opt-home">
@@ -1120,15 +1120,15 @@ if (FIREBASE_CONFIG) {
       if(state.motion==="on") wakeScreen();
       var SENS={low:[30,22], med:[24,12], high:[18,6], max:[12,3]}[state.motionSens] || [24,12];
       var PD=SENS[0], THRESH=SENS[1];
-      // Two page-flip gestures, both needing much more motion than the wake
-      // threshold so walking past doesn't flip the page:
-      //  - swipe: the motion's centre of gravity travels sideways >=10 of the
-      //    64 sample columns across >=2 busy frames, OR
-      //  - wave: big motion (a hand near the mirror) sustained ~3/4s, no
-      //    direction needed — the forgiving one the hint text teaches.
+      // Page flip = a hand waved BACK AND FORTH in front of the camera: the
+      // motion's centre of gravity must travel >=8 of the 64 sample columns
+      // one way, then reverse and come >=8 back. Walking past is big motion
+      // too, but it's one-directional — it wakes the screen and can never
+      // flip the page. (Earlier one-way-swipe and sustained-wave detectors
+      // both false-triggered on walk-past for exactly that reason.)
       // Sampling speeds up to ~9 fps while a gesture may be in progress; at
-      // the idle 5 fps a quick swipe only ever landed on 2-3 frames.
-      var SWIPE_MIN=25, WAVE_MIN=110, swT=null, wvT=null, swCool=0, swActive=0;
+      // the idle 5 fps a quick wave only lands on 2-3 frames.
+      var SWIPE_MIN=25, LEG=8, gT=null, swCool=0, swActive=0;
       var last=0;
       function loop(ts){
         mRAF=requestAnimationFrame(loop);
@@ -1143,18 +1143,14 @@ if (FIREBASE_CONFIG) {
           if(swipeOn && changed>SWIPE_MIN){
             swActive=ts+1500;
             var cx=sx/changed;
-            if(!swT || ts-swT.last>700){ swT={x0:cx, t0:ts, n:0}; }
-            swT.last=ts; swT.x1=cx; swT.n++;
-            if(swT.n>=2 && ts-swT.t0<=1400 && Math.abs(swT.x1-swT.x0)>=10 && ts>=swCool){
-              swCool=ts+2500; swT=null; wvT=null;
-              flipPage();
-            }
-          }
-          if(swipeOn && changed>WAVE_MIN){
-            if(!wvT || ts-wvT.last>500){ wvT={t0:ts, n:0}; }
-            wvT.last=ts; wvT.n++;
-            if(wvT.n>=5 && ts-wvT.t0>=650 && ts>=swCool){
-              swCool=ts+2500; swT=null; wvT=null;
+            if(!gT || ts-gT.last>700 || ts-gT.t0>2200){ gT={t0:ts, ext:cx, dir:0, legs:0}; }
+            gT.last=ts;
+            var d=cx-gT.ext;
+            if(gT.dir===0){ if(Math.abs(d)>=LEG){ gT.dir=d>0?1:-1; gT.legs=1; gT.ext=cx; } }
+            else if(d*gT.dir>0){ gT.ext=cx; }                // still travelling the same way
+            else if(Math.abs(d)>=LEG){ gT.dir=-gT.dir; gT.legs++; gT.ext=cx; }  // reversed
+            if(gT.legs>=2 && ts>=swCool){
+              swCool=ts+2500; gT=null;
               flipPage();
             }
           }
