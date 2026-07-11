@@ -1675,10 +1675,10 @@ if (FIREBASE_CONFIG) {
     if(cmMap) return true;
     if(typeof L==="undefined"){ cmMsg("The map library didn't load — check the connection and reload."); return false; }
     cmMap=L.map("carmapMap",{zoomControl:false});
-    // Esri "hybrid": satellite imagery + roads + place labels stacked.
-    L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",{maxZoom:19,attribution:"Esri, Maxar, Earthstar Geographics"}).addTo(cmMap);
-    L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}",{maxZoom:19}).addTo(cmMap);
-    L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",{maxZoom:19}).addTo(cmMap);
+    // Stamen Toner (Stadia-hosted) — same basemap as the main Pi mirror's
+    // car page. Key is domain-usable from ecksquad.github.io; keyless
+    // access only covers localhost so the key is required here.
+    L.tileLayer("https://tiles.stadiamaps.com/tiles/stamen_toner/{z}/{x}/{y}.png?api_key=b7b20a15-ef47-47a0-82d1-166e1e116c67",{maxZoom:18,attribution:"Stadia Maps, Stamen Design, OpenStreetMap"}).addTo(cmMap);
     cmMap.setView([state.lat!=null?state.lat:57.7, state.lon!=null?state.lon:11.97], 13);
     return true;
   }
