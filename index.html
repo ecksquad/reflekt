@@ -2063,7 +2063,14 @@ if (FIREBASE_CONFIG) {
   function idbGet(k){ return idbOpen().then(function(db){ return new Promise(function(res,rej){ var tx=db.transaction("kv","readonly"); var rq=tx.objectStore("kv").get(k); rq.onsuccess=function(){res(rq.result);}; rq.onerror=function(){rej(rq.error);}; }); }); }
   function setBizImg(img, val, key, which, dataVal){
     if(val==="data"){
-      if(dataVal){ if(img.getAttribute("src")!==dataVal) img.src=dataVal; img.style.display="block"; }
+      if(dataVal){
+        // A GIF must have its src reassigned to (re)start the animation from
+        // frame 0 when the biz overlay is shown; a static image keeps the
+        // no-flicker guard (only re-set if the src actually changed).
+        if(dataVal.indexOf("data:image/gif")===0){ img.src=""; img.src=dataVal; }
+        else if(img.getAttribute("src")!==dataVal){ img.src=dataVal; }
+        img.style.display="block";
+      }
       else { img.removeAttribute("src"); img.style.display="none"; }
     } else if(val==="idb"){
       idbGet(key).then(function(blob){
@@ -2102,6 +2109,31 @@ if (FIREBASE_CONFIG) {
   }
   function bizPick(fileEl, key, urlEl, stateKey){
     var f=fileEl.files && fileEl.files[0]; if(!f){ return; }
+    // A GIF must NEVER go through fileToPushData's canvas resize — that
+    // flattens it to a single static JPEG frame (the "my GIF is just an
+    // image" bug). Keep it as-is: embed as a data URL if it's small enough
+    // to sync, otherwise stash the animated GIF in IndexedDB (this device
+    // only). Non-GIFs keep the resize-and-embed path below.
+    if(f.type==="image/gif" || /\.gif$/i.test(f.name||"")){
+      var r=new FileReader();
+      r.onload=function(){
+        var d=r.result;
+        if(d && d.length<=BIZ_IMG_MAX){
+          state[stateKey+"Data"]=d; state[stateKey]="data"; if(urlEl) urlEl.value=""; save();
+          if($("mirror").classList.contains("show")) startBiz();
+          else if(CTRLMODE) alert("GIF ready — tap “Push settings to mirror” to send it.");
+        } else {
+          idbSet(key, f).then(function(){
+            state[stateKey]="idb"; state[stateKey+"Data"]=""; if(urlEl) urlEl.value=""; save();
+            if($("mirror").classList.contains("show")) startBiz();
+            alert("GIF saved and it will animate — but it's too large to sync, so it stays on this mirror only.");
+          }).catch(function(){ alert("Couldn't store that GIF (too large or blocked)."); });
+        }
+      };
+      r.onerror=function(){ alert("Couldn't read that GIF."); };
+      r.readAsDataURL(f);
+      fileEl.value=""; return;
+    }
     // Embedded as a data URL so the image travels with pushes — the old
     // IndexedDB path stayed on the picking device, so "Choose from device" on
     // a phone never reached the mirror. Legacy "idb" configs still display.
