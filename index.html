@@ -802,10 +802,33 @@ if (FIREBASE_CONFIG) {
     busUrl:"https://still-wave-afbc.ecksquad.workers.dev", busId:"" };
   var state = Object.assign({}, DEFAULTS);
   var KEY = "mirror.config.v1";
+  // The business/centre images are data URLs — too big to sit in localStorage
+  // next to the settings. Two of them overflow localStorage's quota, so the
+  // whole save() throws and NOTHING persists (the "my logo/GIF is forgotten
+  // after a restart" bug). Keep the images in IndexedDB; localStorage holds
+  // only the lightweight settings.
+  var IMG_FIELDS = ["bizTopData","bizMidData","compImgData"];
   function load(){ try{ var s=localStorage.getItem(KEY); if(s) state=Object.assign({},DEFAULTS,JSON.parse(s)); }catch(e){}
     if(!state.busUrl) state.busUrl = DEFAULTS.busUrl;  // always fall back to the built-in departures service
     if(state.comments==="on") state.comments="sv"; }   // migrate old on/off to the new modes
-  function save(){ if(KIOSK) return; try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} }
+  function save(){ if(KIOSK) return; try{
+      var lite={}; for(var k in state){ if(IMG_FIELDS.indexOf(k)<0) lite[k]=state[k]; }
+      localStorage.setItem(KEY, JSON.stringify(lite));
+    }catch(e){} }
+  // Set an image data URL: kept in memory (so it displays and still travels
+  // with a push) AND written to IndexedDB (its persistent home).
+  function setImg(field, value){ state[field]=value||""; try{ idbSet("img_"+field, state[field]); }catch(e){} }
+  // On boot, restore the images from IndexedDB into state; migrate any legacy
+  // copy that's still sitting in localStorage into IndexedDB, then re-save.
+  function loadImages(cb){
+    var pending=IMG_FIELDS.length;
+    IMG_FIELDS.forEach(function(f){
+      idbGet("img_"+f).then(function(v){
+        if(v){ state[f]=v; }
+        else if(state[f]){ try{ idbSet("img_"+f, state[f]); }catch(e){} }   // migrate legacy localStorage value
+      }).catch(function(){}).then(function(){ if(--pending===0){ save(); if(cb) cb(); } });
+    });
+  }
 
   var $ = function(id){ return document.getElementById(id); };
 
@@ -2119,12 +2142,12 @@ if (FIREBASE_CONFIG) {
       r.onload=function(){
         var d=r.result;
         if(d && d.length<=BIZ_IMG_MAX){
-          state[stateKey+"Data"]=d; state[stateKey]="data"; if(urlEl) urlEl.value=""; save();
+          setImg(stateKey+"Data", d); state[stateKey]="data"; if(urlEl) urlEl.value=""; save();
           if($("mirror").classList.contains("show")) startBiz();
           else if(CTRLMODE) alert("GIF ready — tap “Push settings to mirror” to send it.");
         } else {
           idbSet(key, f).then(function(){
-            state[stateKey]="idb"; state[stateKey+"Data"]=""; if(urlEl) urlEl.value=""; save();
+            state[stateKey]="idb"; setImg(stateKey+"Data", ""); if(urlEl) urlEl.value=""; save();
             if($("mirror").classList.contains("show")) startBiz();
             alert("GIF saved and it will animate — but it's too large to sync, so it stays on this mirror only.");
           }).catch(function(){ alert("Couldn't store that GIF (too large or blocked)."); });
@@ -2139,7 +2162,7 @@ if (FIREBASE_CONFIG) {
     // a phone never reached the mirror. Legacy "idb" configs still display.
     fileToPushData(f, function(d){
       if(!d){ alert("Couldn't read that image."); return; }
-      state[stateKey+"Data"]=d; state[stateKey]="data"; if(urlEl) urlEl.value=""; save();
+      setImg(stateKey+"Data", d); state[stateKey]="data"; if(urlEl) urlEl.value=""; save();
       if($("mirror").classList.contains("show")) startBiz();
       else if(CTRLMODE) alert("Image ready — tap “Push settings to mirror” to send it.");
     }, BIZ_IMG_MAX);
@@ -2260,14 +2283,14 @@ if (FIREBASE_CONFIG) {
     var f=$("compImgFile").files && $("compImgFile").files[0]; if(!f) return;
     fileToPushData(f, function(d){
       if(!d){ alert("Couldn't read that image."); return; }
-      state.compImgData=d; state.compImg="data"; save();
+      setImg("compImgData", d); state.compImg="data"; save();
       if($("mirror").classList.contains("show")) startComp();
       else if(CTRLMODE) alert("Image ready — tap “Push settings to mirror” to send it.");
     });
     $("compImgFile").value="";
   });
   $("compImgClear").addEventListener("click",function(){
-    state.compImgData=""; state.compImg="";
+    setImg("compImgData", ""); state.compImg="";
     idbDel("compImgBlob").then(function(){
       save();
       if($("mirror").classList.contains("show")) startComp();
@@ -2368,8 +2391,8 @@ if (FIREBASE_CONFIG) {
   $("bizTopFile").addEventListener("change",function(){ bizPick($("bizTopFile"),"bizTopBlob",$("bizTop"),"bizTop"); });
   $("bizMidPick").addEventListener("click",function(){ $("bizMidFile").click(); });
   $("bizMidFile").addEventListener("change",function(){ bizPick($("bizMidFile"),"bizMidBlob",$("bizMid"),"bizMid"); });
-  $("bizTop").addEventListener("input",function(){ state.bizTop=$("bizTop").value.trim(); state.bizTopData=""; save(); });
-  $("bizMid").addEventListener("input",function(){ state.bizMid=$("bizMid").value.trim(); state.bizMidData=""; save(); });
+  $("bizTop").addEventListener("input",function(){ state.bizTop=$("bizTop").value.trim(); setImg("bizTopData",""); save(); });
+  $("bizMid").addEventListener("input",function(){ state.bizMid=$("bizMid").value.trim(); setImg("bizMidData",""); save(); });
   $("modeSeg").addEventListener("click",function(){ setTimeout(function(){ applyMode(); if($("mirror").classList.contains("show")){ startBiz(); startComp(); startStockRows(); refreshBottomLeft(true); } },0); });
   $("bizPdfPick").addEventListener("click",function(){ $("bizPdfFile").click(); });
   $("bizPdfFile").addEventListener("change",function(){ var f=$("bizPdfFile").files&&$("bizPdfFile").files[0]; if(!f){return;} idbSet("bizPdfBlob",f).then(function(){ state.bizPdf="idb"; save(); if($("mirror").classList.contains("show")) startBiz(); }).catch(function(){ alert("Couldn't store that PDF (too large or blocked)."); }); $("bizPdfFile").value=""; });
@@ -2414,6 +2437,9 @@ if (FIREBASE_CONFIG) {
   $("bizMidScale").addEventListener("input",function(){ var v=+$("bizMidScale").value; state.bizMidScale=v; $("bizMidScaleVal").textContent=v+"%"; save(); var im=$("bizMidImg"); if(im) im.style.width=v+"%"; });
 
   // ---------- boot ----------
+  // Ask the browser to keep our storage (helps stop mobile browsers evicting
+  // IndexedDB/localStorage when the tab closes). Best-effort; may be denied.
+  if(navigator.storage && navigator.storage.persist){ try{ navigator.storage.persist(); }catch(e){} }
   load(); fillForm();
   var kioskId=new URLSearchParams(location.search).get("kiosk");
   var ctrlId=new URLSearchParams(location.search).get("mirror");
@@ -2442,6 +2468,12 @@ if (FIREBASE_CONFIG) {
     pullConfig();
   } else if(state.lat!=null){ showMirror(); } else { showSetup(); }
   renderPairQr();
+  // Restore the business/centre images from IndexedDB (their persistent home),
+  // migrating any legacy localStorage copy, then re-render if a mirror is up.
+  if(!KIOSK) loadImages(function(){
+    fillForm();
+    if($("mirror").classList.contains("show")){ startBiz(); startComp(); }
+  });
 })();
 </script>
 
