@@ -467,7 +467,7 @@ if (FIREBASE_CONFIG) {
         <button data-v="off">Off</button>
         <button data-v="on" class="on">On</button>
       </div>
-      <div class="hint"><b>Wink one eye</b> (hold it shut about half a second) to flip between the mirror and the car map. <b>Hold an open palm</b> up to the camera for a second to switch between home and business mode. Because both need a deliberate, recognised gesture, simply walking past can&rsquo;t trigger them &mdash; unlike the old wave. Needs a lit room and you facing the mirror; the page dots pulse when a gesture lands, and the dots (tap) plus the &ldquo;Flip mirror page&rdquo; button on a connected phone still work as fallbacks. The gesture models load once from Google&rsquo;s MediaPipe CDN; all camera frames are processed on-device and never stored or sent anywhere.</div>
+      <div class="hint"><b>Close both eyes</b> for about half a second to flip between the mirror and the car map (a normal blink is too quick to count). <b>Hold an open palm</b> up to the camera for a second to switch between home and business mode. Because both need a deliberate, recognised gesture, simply walking past can&rsquo;t trigger them &mdash; unlike the old wave. Needs a lit room and you facing the mirror; the page dots pulse when a gesture lands, and the dots (tap) plus the &ldquo;Flip mirror page&rdquo; button on a connected phone still work as fallbacks. The gesture models load once from Google&rsquo;s MediaPipe CDN; all camera frames are processed on-device and never stored or sent anywhere.</div>
     </div>
 
     <div class="field opt-home">
@@ -1177,36 +1177,61 @@ if (FIREBASE_CONFIG) {
     return gLoading;
   }
   function blendScore(cats,name){ for(var i=0;i<cats.length;i++){ if(cats[i].categoryName===name) return cats[i].score; } return 0; }
+  // Eye-aspect-ratio from face-mesh points (vertical eyelid gap / eye width).
+  // Open ~0.28-0.35, shut ~0.10. Uses geometry directly rather than the
+  // blendshape category names, so it can't be broken by a model/name change.
+  function eyeEAR(lm, top, bot, l, r){
+    var v=Math.hypot(lm[top].x-lm[bot].x, lm[top].y-lm[bot].y);
+    var h=Math.hypot(lm[l].x-lm[r].x, lm[l].y-lm[r].y);
+    return h>0 ? v/h : 1;
+  }
+  var gDebugEl=null;
+  function gDebug(txt){
+    if(location.search.indexOf("gdebug=1")<0) return;
+    if(!gDebugEl){ gDebugEl=document.createElement("div"); gDebugEl.style.cssText="position:fixed;left:6px;bottom:6px;z-index:99999;font:12px monospace;color:#0f0;background:rgba(0,0,0,.7);padding:4px 7px;border-radius:5px;white-space:pre"; document.body.appendChild(gDebugEl); }
+    gDebugEl.textContent=txt;
+  }
   function startGestures(video){
     stopGestures();
+    gDebug("gestures: loading models…");
     loadGestures().then(function(ok){
-      if(!ok || !video) return;
-      // Face (wink) checked every tick; hand (palm) on alternate ticks, so
-      // the heavier hand model runs at half rate — plenty for a 1s hold.
+      if(!ok || !video){ gDebug("gestures: models FAILED to load"); return; }
+      gDebug("gestures: ready");
+      // Face (eyes) checked every tick; hand (palm) on alternate ticks so the
+      // heavier hand model runs at half rate — plenty for a 1s hold.
       gTimer=setInterval(function(){
         if(!video || video.readyState<2) return;
         if(!$("mirror").classList.contains("show")) return;      // only on the mirror view
         if($("sleepveil").classList.contains("on")) return;      // asleep: ignore gestures
         var now=performance.now(); gTick++;
+        var dbgFace="no face", dbgHand="";
         try{
           var fr=gFace.detectForVideo(video, now);
-          var cats=(fr.faceBlendshapes && fr.faceBlendshapes[0] && fr.faceBlendshapes[0].categories) || [];
-          var bl=blendScore(cats,"eyeBlinkLeft"), br=blendScore(cats,"eyeBlinkRight");
-          var wink=(bl>0.5 && br<0.25)||(br>0.5 && bl<0.25);     // one eye shut, one open (a blink shuts both)
-          winkStreak = wink ? winkStreak+1 : 0;
-          if(winkStreak>=2 && now>=gWinkCool){ gWinkCool=now+2500; winkStreak=0; flipPage(); }
-        }catch(e){}
+          var lm=(fr.faceLandmarks && fr.faceLandmarks[0]) || null;
+          if(lm){
+            var earR=eyeEAR(lm,159,145,33,133);                  // one eye
+            var earL=eyeEAR(lm,386,374,362,263);                 // other eye
+            // Page flip = BOTH eyes held shut ~0.5s. A natural blink (~0.1s)
+            // lands on 1 tick at most; we need >=3 (~0.55s) so it can't flip.
+            var shut=(earR<0.16 && earL<0.16);
+            winkStreak = shut ? winkStreak+1 : 0;
+            if(winkStreak>=3 && now>=gWinkCool){ gWinkCool=now+2500; winkStreak=0; flipPage(); }
+            dbgFace="EAR L:"+earL.toFixed(2)+" R:"+earR.toFixed(2)+(shut?" SHUT("+winkStreak+")":"");
+          }
+        }catch(e){ dbgFace="face err "+e.message; }
         if(gTick%2===0){
           try{
             var hr=gHand.recognizeForVideo(video, now);
             var g=(hr.gestures && hr.gestures[0] && hr.gestures[0][0]) ? hr.gestures[0][0].categoryName : null;
+            dbgHand="hand:"+(g||"-");
             if(g==="Open_Palm"){
               palmSeen=now;
               if(!palmSince) palmSince=now;
               else if(now-palmSince>=1000 && now>=gPalmCool){ gPalmCool=now+3000; palmSince=0; toggleBizMode(); }
             } else if(palmSince && now-palmSeen>500){ palmSince=0; }   // palm dropped: reset the hold
-          }catch(e){}
+          }catch(e){ dbgHand="hand err "+e.message; }
         }
+        gDebug(dbgFace+"  "+dbgHand);
       }, 180);
     });
   }
