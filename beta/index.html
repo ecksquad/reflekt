@@ -1,0 +1,2578 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#000000">
+<link rel="manifest" href='data:application/manifest+json,{"name":"Mini Mirror","short_name":"Mini Mirror","display":"fullscreen","orientation":"any","background_color":"%23000000","theme_color":"%23000000","start_url":"."}'>
+<script>/*! NoSleep.min.js v0.12.0 - git.io/vfn01 - Rich Tibbett - MIT license */
+!function(A,e){"object"==typeof exports&&"object"==typeof module?module.exports=e():"function"==typeof define&&define.amd?define([],e):"object"==typeof exports?exports.NoSleep=e():A.NoSleep=e()}(this,(function(){return function(A){var e={};function B(g){if(e[g])return e[g].exports;var o=e[g]={i:g,l:!1,exports:{}};return A[g].call(o.exports,o,o.exports,B),o.l=!0,o.exports}return B.m=A,B.c=e,B.d=function(A,e,g){B.o(A,e)||Object.defineProperty(A,e,{enumerable:!0,get:g})},B.r=function(A){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(A,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(A,"__esModule",{value:!0})},B.t=function(A,e){if(1&e&&(A=B(A)),8&e)return A;if(4&e&&"object"==typeof A&&A&&A.__esModule)return A;var g=Object.create(null);if(B.r(g),Object.defineProperty(g,"default",{enumerable:!0,value:A}),2&e&&"string"!=typeof A)for(var o in A)B.d(g,o,function(e){return A[e]}.bind(null,o));return g},B.n=function(A){var e=A&&A.__esModule?function(){return A.default}:function(){return A};return B.d(e,"a",e),e},B.o=function(A,e){return Object.prototype.hasOwnProperty.call(A,e)},B.p="",B(B.s=0)}([function(A,e,B){"use strict";var g=function(){function A(A,e){for(var B=0;B<e.length;B++){var g=e[B];g.enumerable=g.enumerable||!1,g.configurable=!0,"value"in g&&(g.writable=!0),Object.defineProperty(A,g.key,g)}}return function(e,B,g){return B&&A(e.prototype,B),g&&A(e,g),e}}();var o=B(1),E=o.webm,n=o.mp4,C=function(){return"undefined"!=typeof navigator&&parseFloat((""+(/CPU.*OS ([0-9_]{3,4})[0-9_]{0,1}|(CPU like).*AppleWebKit.*Mobile/i.exec(navigator.userAgent)||[0,""])[1]).replace("undefined","3_2").replace("_",".").replace("_",""))<10&&!window.MSStream},Q=function(){return"wakeLock"in navigator},i=function(){function A(){var e=this;if(function(A,e){if(!(A instanceof e))throw new TypeError("Cannot call a class as a function")}(this,A),this.enabled=!1,Q()){this._wakeLock=null;var B=function(){null!==e._wakeLock&&"visible"===document.visibilityState&&e.enable()};document.addEventListener("visibilitychange",B),document.addEventListener("fullscreenchange",B)}else C()?this.noSleepTimer=null:(this.noSleepVideo=document.createElement("video"),this.noSleepVideo.setAttribute("title","No Sleep"),this.noSleepVideo.setAttribute("playsinline",""),this._addSourceToVideo(this.noSleepVideo,"webm",E),this._addSourceToVideo(this.noSleepVideo,"mp4",n),this.noSleepVideo.addEventListener("loadedmetadata",(function(){e.noSleepVideo.duration<=1?e.noSleepVideo.setAttribute("loop",""):e.noSleepVideo.addEventListener("timeupdate",(function(){e.noSleepVideo.currentTime>.5&&(e.noSleepVideo.currentTime=Math.random())}))})))}return g(A,[{key:"_addSourceToVideo",value:function(A,e,B){var g=document.createElement("source");g.src=B,g.type="video/"+e,A.appendChild(g)}},{key:"enable",value:function(){var A=this;return Q()?navigator.wakeLock.request("screen").then((function(e){A._wakeLock=e,A.enabled=!0,console.log("Wake Lock active."),A._wakeLock.addEventListener("release",(function(){console.log("Wake Lock released.")}))})).catch((function(e){throw A.enabled=!1,console.error(e.name+", "+e.message),e})):C()?(this.disable(),console.warn("\n        NoSleep enabled for older iOS devices. This can interrupt\n        active or long-running network requests from completing successfully.\n        See https://github.com/richtr/NoSleep.js/issues/15 for more details.\n      "),this.noSleepTimer=window.setInterval((function(){document.hidden||(window.location.href=window.location.href.split("#")[0],window.setTimeout(window.stop,0))}),15e3),this.enabled=!0,Promise.resolve()):this.noSleepVideo.play().then((function(e){return A.enabled=!0,e})).catch((function(e){throw A.enabled=!1,e}))}},{key:"disable",value:function(){Q()?(this._wakeLock&&this._wakeLock.release(),this._wakeLock=null):C()?this.noSleepTimer&&(console.warn("\n          NoSleep now disabled for older iOS devices.\n        "),window.clearInterval(this.noSleepTimer),this.noSleepTimer=null):this.noSleepVideo.pause(),this.enabled=!1}},{key:"isEnabled",get:function(){return this.enabled}}]),A}();A.exports=i},function(A,e,B){"use strict";A.exports={webm:"data:video/webm;base64,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",mp4:"data:video/mp4;base64,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"}}])}));</script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<title>Mini Mirror</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;700&family=Roboto+Condensed:wght@300;400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/weather-icons/2.0.10/css/weather-icons.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,300,0,0">
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+<script>
+// Firestore config sync: paste the Firebase web config here to move pushes off
+// the relay Worker onto Firestore — instant sync (no polling) and the free
+// Spark plan hard-stops at its daily quota instead of ever billing.
+// null = relay Worker (?config=get/set), exactly as before.
+var FIREBASE_CONFIG = {
+  apiKey: "AIzaSyB1c_oaSHoLS5f7rpGGgd2VgHF6zvwlpk8",
+  authDomain: "reflekt-mirror.firebaseapp.com",
+  projectId: "reflekt-mirror",
+  appId: "1:358119410050:web:3ab46f877304ffc339a79b"
+};
+if (FIREBASE_CONFIG) {
+  document.write('<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"><\/script>');
+  document.write('<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"><\/script>');
+}
+</script>
+<style>
+  :root{
+    --bg:#000;
+    --bright:#ffffff;
+    --dim:#ffffff;
+    --faint:#ffffff;
+    --line:rgba(255,255,255,.12);
+    --accent:#e9c98a;
+    --disp:'Roboto', system-ui, sans-serif;
+    --label:'Roboto Condensed', system-ui, sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%;background:#000}
+  body{
+    background:var(--bg);color:var(--bright);
+    font-family:var(--disp);
+    -webkit-font-smoothing:antialiased;
+    overflow:hidden;
+    height:100dvh;
+    touch-action:none;
+    user-select:none;-webkit-user-select:none;
+  }
+  .label{font-family:var(--label);text-transform:uppercase;letter-spacing:.18em;color:var(--faint);font-weight:300}
+
+  /* ---------- SETUP ---------- */
+  #setup{
+    position:fixed;inset:0;overflow-y:auto;
+    display:flex;align-items:flex-start;justify-content:center;
+    padding:max(28px,6vh) 22px;
+    background:radial-gradient(120% 80% at 50% -10%, #0d0d0d 0%, #000 60%);
+  }
+  #setup.hidden{display:none}
+  .card{width:100%;max-width:440px;padding-bottom:40px}
+  .brand{font-weight:100;font-size:34px;letter-spacing:.02em;margin-bottom:4px}
+  .brand b{font-weight:400}
+  .tagline{font-family:var(--label);color:var(--faint);letter-spacing:.14em;text-transform:uppercase;font-size:12px;margin-bottom:30px}
+  .field{margin-bottom:20px}
+  .field > .label{display:block;font-size:11px;margin-bottom:8px}
+  .input,.select{
+    width:100%;background:#1b1b1b;border:1px solid #2c2c2c;
+    color:var(--bright);font-family:var(--disp);font-weight:300;font-size:17px;
+    padding:13px 14px;border-radius:10px;outline:none;
+  }
+  .input:focus,.select:focus{border-color:#ffdd00}
+  .input::placeholder{color:var(--faint)}
+  .row{display:flex;gap:12px}
+  .row .field{flex:1}
+  .hint{font-family:var(--label);color:var(--faint);font-size:12px;margin-top:7px;line-height:1.5}
+  .seg{display:flex;border:1px solid #2c2c2c;border-radius:10px;overflow:hidden}
+  .seg button{flex:1;background:#1b1b1b;border:none;color:var(--dim);
+    font-family:var(--label);text-transform:uppercase;letter-spacing:.12em;font-size:13px;
+    padding:13px 0;cursor:pointer}
+  .seg button.on{background:#ffdd00;color:#000}
+  .swatches{display:flex;gap:12px}
+  .swatches button{width:38px;height:38px;border-radius:50%;border:2px solid transparent;
+    background:var(--c);cursor:pointer;padding:0;transition:transform .12s}
+  .swatches button.on{border-color:#fff;transform:scale(1.08)}
+  .swatches button[data-v="#ffffff"]{box-shadow:inset 0 0 0 1px rgba(0,0,0,.25)}
+  .adv-toggle{background:none;border:none;color:var(--dim);font-family:var(--label);
+    text-transform:uppercase;letter-spacing:.14em;font-size:12px;cursor:pointer;
+    padding:6px 0;margin:6px 0 14px;display:flex;align-items:center;gap:8px}
+  .adv-toggle .chev{transition:transform .2s}
+  .adv-toggle.open .chev{transform:rotate(90deg)}
+  #adv{display:none}
+  #adv.open{display:block}
+  #haAdv{display:none}
+  #haAdv.open{display:block}
+  .start{width:100%;margin-top:14px;background:#ffdd00;color:#000;border:none;
+    font-family:var(--label);text-transform:uppercase;letter-spacing:.18em;font-weight:700;font-size:15px;
+    padding:16px;border-radius:10px;cursor:pointer}
+  .start:active{opacity:.85}
+  /* Mirror 3-style collapsible settings sections */
+  .m3sec{margin-bottom:12px}
+  .m3sec-h{width:100%;display:flex;align-items:center;gap:9px;background:none;border:none;cursor:pointer;
+    font-family:var(--label);text-transform:uppercase;letter-spacing:.1em;font-size:13px;font-weight:700;
+    color:#ffdd00;padding:10px 2px;text-align:left}
+  .m3sec-h .chev{transition:transform .2s;display:inline-block}
+  .m3sec.open .m3sec-h .chev{transform:rotate(90deg)}
+  .m3sec-b{display:none;background:#131313;border:1px solid #222222;border-radius:14px;padding:20px 18px 6px}
+  .m3sec.open .m3sec-b{display:block}
+  .status{font-family:var(--label);font-size:12px;margin-top:12px;min-height:16px;color:var(--faint);letter-spacing:.04em}
+  .status.err{color:#ff8a8a}
+  .status.ok{color:#8affb0}
+
+  /* ---------- MIRROR ---------- */
+  #mirror{position:fixed;inset:0;display:none;padding:clamp(22px,5vw,60px)}
+  #mirror.show{display:block}
+  .region{position:absolute}
+  .r-tl{top:clamp(22px,5vw,60px);left:clamp(22px,5vw,60px)}
+  .r-tr{top:clamp(22px,5vw,60px);right:clamp(22px,5vw,60px);text-align:right}
+  .r-bl{bottom:clamp(22px,5vw,60px);left:clamp(22px,5vw,60px)}
+  .r-br{bottom:clamp(22px,5vw,60px);right:clamp(22px,5vw,60px);text-align:right}
+  .r-mc{inset:0;display:flex;align-items:center;justify-content:center;padding:0 6vw;pointer-events:none}
+  .compliment{font-weight:300;font-style:italic;font-size:clamp(29px,calc(4.4vmin + 10px),42px);line-height:1.35;
+    text-align:center;max-width:680px;color:var(--bright);opacity:0;transition:opacity .6s ease}
+  .compliment.emoji{font-style:normal;font-size:clamp(64px,20vmin,180px);line-height:1}
+  .compliment .comp-eye{max-width:min(58vw,440px);max-height:42vh;object-fit:contain;filter:contrast(1.4) brightness(1.15)}
+  .compliment .comp-user{max-width:min(70vw,560px);max-height:46vh;object-fit:contain}
+  .stock{width:94vw;text-align:left;font-family:var(--label)}
+  .stock .stk-top{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:10px}
+  .stock .stk-sym{font-weight:600;letter-spacing:.04em;color:var(--bright);font-size:clamp(28px,5.6vw,54px)}
+  .stock .stk-price{font-weight:300;color:var(--bright);font-size:clamp(32px,7vw,72px)}
+  .stock .stk-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:18px}
+  .stock .stk-metrics div{color:var(--faint);letter-spacing:.14em;text-transform:uppercase;font-size:clamp(13px,2.2vw,18px)}
+  .stock .stk-metrics b{display:block;color:var(--bright);font-weight:300;letter-spacing:0;text-transform:none;font-size:clamp(20px,4vw,34px);margin-top:4px}
+  .stock .stk-canvas{display:block;width:94vw;height:46vh;margin-top:22px}
+  .stock .stk-range{color:var(--faint);letter-spacing:.14em;margin-top:10px;font-size:clamp(13px,2.2vw,16px)}
+  .stock .stk-msg{color:var(--faint);font-size:clamp(13px,2.4vw,18px)}
+  .stockrows{display:flex;flex-direction:column;gap:clamp(10px,1.8vh,20px);align-items:center;font-family:var(--label);width:94vw}
+  .stockrows .srow{width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:14px;padding:14px 20px}
+  .stockrows .srow-top{display:flex;align-items:baseline;justify-content:center;gap:clamp(14px,2.4vw,28px)}
+  .stockrows .ssym{font-weight:600;letter-spacing:.04em;color:var(--bright);font-size:clamp(18px,3.2vw,30px);min-width:3.6em;text-align:right}
+  .stockrows .sprice{font-weight:300;color:var(--bright);font-size:clamp(20px,3.6vw,34px);min-width:4.4em;text-align:right}
+  .stockrows .schg{font-size:clamp(12px,2vw,17px);min-width:7em;text-align:left}
+  .stockrows .srow-canvas{display:block;width:100%;height:9vh;margin-top:8px}
+  .stockrows .stk-msg{color:var(--faint);font-size:clamp(13px,2.4vw,18px);text-align:center}
+
+  .hadash{display:flex;flex-direction:column;align-items:center;gap:16px;font-family:Arial,sans-serif;width:94vw;
+    transform:scale(var(--hadash-scale,1.43))}
+  .hadash-msg{color:#fff;font-family:var(--label);font-size:clamp(13px,2.4vw,18px);text-align:center}
+  .hadash-title{font-size:clamp(16px,2.6vw,22px);color:#fff}
+  .hadash-title .msym{color:#ffdd00;vertical-align:-2px;margin-right:6px}
+  .hadash-columns{display:inline-flex;align-items:center;justify-content:center;gap:clamp(14px,3vw,30px);flex-wrap:wrap}
+
+  .hadash-stage{perspective:900px;width:291px;height:291px;display:flex;align-items:center;justify-content:center}
+  .hadash-scene{position:relative;width:213px;height:213px;transform-style:preserve-3d;animation:hadash-wobble 4.8s ease-in-out infinite}
+  .hadash-ring-group{position:absolute;inset:0}
+  .hadash-ring{position:absolute;inset:0;border-radius:50%;
+    -webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 20px),#000 calc(100% - 18px));
+    mask:radial-gradient(farthest-side,transparent calc(100% - 20px),#000 calc(100% - 18px))}
+  .hadash-ring-outline-outer,.hadash-ring-outline-inner{position:absolute;border-radius:50%;border:1px solid #fff;pointer-events:none}
+  .hadash-ring-outline-outer{inset:0}
+  .hadash-ring-outline-inner{inset:20px}
+  .hadash-face{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    font-weight:bold;font-size:45px;font-variant-numeric:tabular-nums;color:#fff}
+  .hadash-bolt{font-size:25px;color:#ffdd00;margin-bottom:3px;line-height:1}
+  @keyframes hadash-wobble{0%,100%{transform:rotateY(-45deg)}50%{transform:rotateY(45deg)}}
+  @media (prefers-reduced-motion:reduce){.hadash-scene{animation:none}}
+
+  .hadash-info{min-width:260px;white-space:nowrap;text-align:left}
+  .hadash-rows{font-size:16px;line-height:1.3}
+  .hadash-row{display:flex;justify-content:space-between;gap:24px;border-bottom:1px solid #222;padding:2px 0}
+  .hadash-row span:first-child{color:#fff}
+  .hadash-row .msym{font-size:1.1em;color:#ffdd00;vertical-align:-2px}
+  .hadash-tires{margin-top:12px;font-size:13px;color:#fff}
+
+  @media (max-width:820px){ .hadash{--hadash-scale:1.03} }
+
+  .time{font-weight:700;font-size:clamp(56px,16vmin,160px);line-height:1;letter-spacing:-.01em}
+  .time .sec{font-size:.32em;color:var(--accent);font-weight:300;margin-left:.12em;vertical-align:.55em}
+  .date{font-family:var(--label);font-weight:400;font-size:clamp(15px,4.2vw,26px);color:var(--accent);
+    text-transform:uppercase;letter-spacing:.14em;margin-top:10px}
+  .greet{font-weight:300;font-size:clamp(18px,5vw,30px);color:var(--bright);margin-top:18px}
+
+  .wx-temp{font-weight:700;font-size:clamp(36px,10vmin,90px);line-height:1;color:#ffdd00}
+  .wx-temp .wi{font-size:.55em;margin-right:.18em;vertical-align:.04em}
+  .wx-cond{font-family:var(--label);text-transform:uppercase;letter-spacing:.12em;color:var(--accent);
+    font-size:clamp(13px,3.4vw,18px);margin-top:6px}
+  .wx-meta{font-family:var(--label);color:var(--faint);letter-spacing:.08em;font-size:clamp(11px,2.8vmin,14px);margin-top:6px}
+  .fc{display:inline-block;text-align:left;margin-top:15px}
+  .fc-row{display:grid;grid-template-columns:3.4em 1.5em 2.3em 2.3em;align-items:center;gap:6px;margin-top:8px}
+  .fc-d{font-family:var(--label);text-transform:uppercase;letter-spacing:.1em;color:var(--accent);font-size:clamp(11px,2.6vmin,14px)}
+  .fc-i{font-size:clamp(14px,3.4vmin,18px);text-align:center}
+  .fc-hi{font-weight:400;color:var(--bright);text-align:right;font-size:clamp(13px,3vmin,17px)}
+  .fc-lo{font-weight:400;color:var(--faint);text-align:right;font-size:clamp(13px,3vmin,17px)}
+
+  /* week number + sun times, between the date and the greeting */
+  #infoRegion{margin-top:14px}
+  .info-week{font-family:var(--label);text-transform:uppercase;letter-spacing:.16em;color:var(--accent);
+    font-weight:700;font-size:clamp(20px,4.6vmin,26px)}
+  .info-sun{font-family:var(--label);letter-spacing:.06em;color:var(--dim);font-size:clamp(12px,3vmin,16px);margin-top:9px}
+  .info-sun .wi{color:var(--accent);margin:0 .25em 0 0}
+  .info-sun .gap{display:inline-block;width:.9em}
+
+  .bus-h{font-size:11px;margin-bottom:10px;color:var(--accent)}
+  .msym{font-family:'Material Symbols Outlined';font-weight:normal;font-style:normal;line-height:1;
+    letter-spacing:normal;text-transform:none;white-space:nowrap;-webkit-font-feature-settings:'liga';font-feature-settings:'liga'}
+  .dep{display:flex;align-items:center;gap:12px;margin-bottom:8px;font-weight:300}
+  .dep .mi{font-size:1.15em;color:var(--accent);flex:0 0 auto;width:1.2em;text-align:center}
+  .dep .ln{font-family:var(--label);font-weight:400;min-width:2.4em;color:var(--bright)}
+  .dep .dst{color:var(--dim);font-size:clamp(14px,3.6vw,19px);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:42vw}
+  .dep .tm{font-family:var(--label);color:var(--accent);letter-spacing:.04em}
+  .bus-msg{font-family:var(--label);color:var(--faint);font-size:13px;letter-spacing:.04em;line-height:1.5;max-width:60vw}
+  .elp-gauge{width:clamp(160px,34vmin,280px);height:auto;display:block;overflow:visible}
+  .elp-chart{width:clamp(160px,34vmin,280px);height:auto;display:block;overflow:visible;margin-bottom:4px}
+
+  .gear{position:fixed;bottom:14px;right:14px;width:26px;height:26px;border-radius:50%;
+    background:rgba(255,255,255,.06);border:none;color:var(--faint);cursor:pointer;
+    display:flex;align-items:center;justify-content:center;font-size:14px;z-index:10}
+  .gear:active{background:rgba(255,255,255,.18)}
+
+  #mirror.show .region{animation:fade .9s ease both}
+  .r-tr{animation-delay:.1s}.r-bl{animation-delay:.2s}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion: reduce){#mirror.show .region{animation:none}}
+
+  /* short landscape (phones on their side): hide greeting so corners never collide */
+  @media (orientation:landscape) and (max-height:430px){
+    .greet{display:none}
+    .date{margin-top:7px}
+  }
+
+  /* phone mirror (rendered at the fixed desktop width): keep the two bottom corners apart */
+  @media (max-width:660px){
+    #mirror.show .r-bl{max-width:56vw}
+    #mirror.show .dep{gap:10px}
+    #mirror.show .dep .dst{max-width:30vw}
+    #mirror.show .r-br{max-width:42vw;bottom:64px}
+    /* top-left 15% smaller */
+    #mirror.show .time{font-size:clamp(48px,13.6vmin,136px)}
+    #mirror.show .date{font-size:clamp(13px,3.6vw,22px)}
+    #mirror.show .greet{font-size:clamp(15px,4.25vw,26px)}
+    /* tighter gap between day name and weather icon */
+    #mirror.show .fc-row{grid-template-columns:2.6em 1.4em 2.2em 2.2em;gap:4px;margin-top:7px}
+    /* sunrise stacked above sunset */
+    #mirror.show .info-sun .sunr,#mirror.show .info-sun .suns{display:block}
+    #mirror.show .info-sun .suns{margin-top:5px}
+    #mirror.show .info-sun .gap{display:none}
+  }
+
+  .useloc{width:100%;background:#1b1b1b;border:1px solid #2c2c2c;color:var(--bright);
+    font-family:var(--label);text-transform:uppercase;letter-spacing:.14em;font-size:13px;
+    padding:13px;border-radius:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px}
+  .useloc:active{background:#1a1a1a}
+  .useloc .x{font-size:16px;line-height:0}
+  .or{font-family:var(--label);color:var(--faint);font-size:11px;letter-spacing:.16em;
+    text-transform:uppercase;text-align:center;margin:11px 0 9px}
+
+  /* --- BOLD TEXT EXPERIMENT (2026-07-09) ---
+     Daytime readability: forces every text weight on the mirror display to bold.
+     To revert to the original thin/light hierarchy, delete this block. */
+  #mirror *{font-weight:700!important}
+  /* --- end bold text experiment --- */
+</style>
+</head>
+<body>
+<div id="sleepveil"></div>
+<div id="focus"><div id="focusInner"></div></div>
+<div id="eyesaver"><img src="https://media4.giphy.com/media/v1.Y2lkPTZjMDliOTUyeTloMmF1Y2hicDQyeDlpcHh0b2J5Y3FwMW1jem9heGJvemIyeDZobyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3ohs4CacylzFaHjMM8/giphy.gif" alt="Eye"></div>
+<div id="biz">
+  <img id="bizTopImg" class="biz-img" alt="">
+  <div class="biz-middle"><img id="bizMidImg" class="biz-img" alt=""></div>
+  <div class="biz-foot">
+    <div class="biz-foot-l"><div id="bizTime" class="biz-time"></div><div id="bizDate" class="biz-date"></div></div>
+    <div id="bizWx" class="biz-wx"></div>
+  </div>
+  <div id="bizPdf"><canvas id="bizPdfCanvas"></canvas></div>
+  <button class="gear" id="bizGear" title="Settings">&#9881;</button>
+</div>
+
+<div id="setup">
+  <div class="card">
+    <div class="brand">mini mirror<b>.</b></div>
+    <div class="tagline">Set up your display</div>
+
+    <div class="m3sec open">
+    <button type="button" class="m3sec-h"><span class="chev">›</span> Basics</button>
+    <div class="m3sec-b">
+
+    <div class="field">
+      <span class="label">Mode</span>
+      <div class="seg" id="modeSeg">
+        <button data-v="off" class="on">Home</button>
+        <button data-v="on">Business</button>
+        <button data-v="stock">Stock</button>
+      </div>
+    </div>
+
+    <div class="field opt-home">
+      <span class="label">Location</span>
+      <button class="useloc" id="useLoc"><span class="x">&#9678;</span> Use my location</button>
+      <div class="or">or enter a place</div>
+      <input id="loc" class="input" placeholder="t.ex. Göteborg" autocomplete="off">
+      <div class="hint" id="locHint">Used for weather only.</div>
+    </div>
+
+    <div class="field opt-home">
+      <span class="label">Name (optional)</span>
+      <input id="name" class="input" placeholder="Cameron" autocomplete="off">
+    </div>
+
+    </div>
+    </div>
+
+    <div class="m3sec">
+    <button type="button" class="m3sec-h"><span class="chev">›</span> Clock &amp; language</button>
+    <div class="m3sec-b">
+
+    <div class="row opt-home">
+      <div class="field">
+        <span class="label">Units</span>
+        <div class="seg" id="unitSeg">
+          <button data-v="celsius" class="on">°C</button>
+          <button data-v="fahrenheit">°F</button>
+        </div>
+      </div>
+      <div class="field">
+        <span class="label">Clock</span>
+        <div class="seg" id="clockSeg">
+          <button data-v="24" class="on">24h</button>
+          <button data-v="12">12h</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="row opt-home">
+      <div class="field">
+        <span class="label">Language</span>
+        <div class="seg" id="langSeg">
+          <button data-v="sv" class="on">Svenska</button>
+          <button data-v="en">English</button>
+        </div>
+      </div>
+      <div class="field">
+        <span class="label">Seconds</span>
+        <div class="seg" id="secSeg">
+          <button data-v="on" class="on">On</button>
+          <button data-v="off">Off</button>
+        </div>
+      </div>
+    </div>
+
+    </div>
+    </div>
+
+    <div class="m3sec">
+    <button type="button" class="m3sec-h"><span class="chev">›</span> Content &amp; panels</button>
+    <div class="m3sec-b">
+
+    <div class="field opt-home">
+      <span class="label">Centre display</span>
+      <div class="seg" id="compSeg">
+        <button data-v="off">Off</button>
+        <button data-v="sv" class="on">Svenska</button>
+        <button data-v="en">English</button>
+        <button data-v="user">User</button>
+        <button data-v="stock">Stock</button>
+        <button data-v="ha">Home Assistant</button>
+      </div>
+      <div class="hint">Rotating one-liners (Swedish/English), your own image, a full-width live stock chart, or a Home Assistant dashboard.</div>
+    </div>
+
+    <div class="field opt-home" id="compImgField" style="display:none">
+      <span class="label">Centre image</span>
+      <input id="compImgFile" type="file" accept="image/png,image/jpeg,image/gif" style="display:none">
+      <button class="start ghost" id="compImgPick" type="button">Choose from device</button>
+      <button class="start ghost" id="compImgClear" type="button">Clear image</button>
+      <div class="hint">PNG, JPEG or GIF (animated GIFs under 490KB play). Choosing it on your phone? It travels with &ldquo;Push settings to mirror&rdquo;. Larger photos are shrunk automatically to fit.</div>
+    </div>
+
+    <div class="field opt-home" id="haField" style="display:none">
+      <span class="label">Home Assistant URL</span>
+      <input id="haUrl" class="input" placeholder="https://your-ha.your-tailnet.ts.net:8123" autocomplete="off">
+      <div class="hint">Needs a real HTTPS address reachable from this device (e.g. a Tailscale HTTPS hostname) &mdash; a plain http:// local address won&rsquo;t work from this page. Your Home Assistant also needs <code>cors_allowed_origins</code> set to this site&rsquo;s address.</div>
+    </div>
+    <div class="field opt-home" id="haTokenField" style="display:none">
+      <span class="label">Home Assistant long-lived access token</span>
+      <input id="haToken" class="input" type="password" placeholder="paste a long-lived access token" autocomplete="off">
+      <div class="hint">Created in Home Assistant under your profile &rarr; Security &rarr; Long-Lived Access Tokens. Stays on THIS device only &mdash; it never travels with &ldquo;Push settings to mirror&rdquo; or leaves your browser.</div>
+    </div>
+    <button type="button" class="adv-toggle opt-home" id="haAdvToggle" style="display:none"><span class="chev">›</span> Entity IDs (advanced)</button>
+    <div id="haAdv" class="opt-home">
+      <div class="field">
+        <span class="label">Battery %</span>
+        <input id="haBattery" class="input" autocomplete="off">
+      </div>
+      <div class="field">
+        <span class="label">Range</span>
+        <input id="haRange" class="input" autocomplete="off">
+      </div>
+      <div class="field">
+        <span class="label">Odometer</span>
+        <input id="haOdometer" class="input" autocomplete="off">
+      </div>
+      <div class="field">
+        <span class="label">Cabin temperature</span>
+        <input id="haCabinTemp" class="input" autocomplete="off">
+      </div>
+      <div class="field">
+        <span class="label">Tire pressure &mdash; front left / front right / rear left / rear right</span>
+        <input id="haTireFL" class="input" autocomplete="off" style="margin-bottom:8px">
+        <input id="haTireFR" class="input" autocomplete="off" style="margin-bottom:8px">
+        <input id="haTireRL" class="input" autocomplete="off" style="margin-bottom:8px">
+        <input id="haTireRR" class="input" autocomplete="off">
+      </div>
+      <div class="field">
+        <span class="label">Charging (binary_sensor)</span>
+        <input id="haCharging" class="input" autocomplete="off">
+      </div>
+      <div class="field">
+        <span class="label">Plugged in (binary_sensor)</span>
+        <input id="haPlug" class="input" autocomplete="off">
+      </div>
+      <div class="field">
+        <span class="label">Locked (binary_sensor)</span>
+        <input id="haLocked" class="input" autocomplete="off">
+      </div>
+      <div class="field">
+        <span class="label">Doors open (binary_sensor)</span>
+        <input id="haDoors" class="input" autocomplete="off">
+      </div>
+      <div class="field">
+        <span class="label">Windows open (binary_sensor)</span>
+        <input id="haWindows" class="input" autocomplete="off">
+      </div>
+      <div class="field">
+        <span class="label">Online (binary_sensor)</span>
+        <input id="haOnline" class="input" autocomplete="off">
+      </div>
+      <div class="field">
+        <span class="label">Car position (device_tracker) &mdash; used by the car map page</span>
+        <input id="haTracker" class="input" autocomplete="off">
+      </div>
+      <div class="hint">Defaults are set for a BYD Atto 3 via the hass-byd-vehicle integration &mdash; replace any of these with your own entity IDs, or leave blank to hide that tile.</div>
+    </div>
+
+    <div class="field opt-home">
+      <span class="label">Car map page</span>
+      <div class="seg" id="carMapSeg">
+        <button data-v="off" class="on">Off</button>
+        <button data-v="on">On</button>
+      </div>
+      <div class="hint">A second mirror page: a satellite map with the car&rsquo;s live position from Home Assistant (same URL + token as the dashboard above). The day&rsquo;s journey is drawn as a line and resets at midnight; the map keeps the journey, home and the car in view together.</div>
+    </div>
+
+    <div class="field opt-home" id="carSwipeField">
+      <span class="label">Hand &amp; face gestures</span>
+      <div class="seg" id="carSwipeSeg">
+        <button data-v="off">Off</button>
+        <button data-v="on" class="on">On</button>
+      </div>
+      <div class="hint"><b>Close both eyes</b> for about half a second to flip between the mirror and the car map (a normal blink is too quick to count). <b>Hold an open palm</b> up to the camera for a second to switch between home and business mode. Because both need a deliberate, recognised gesture, simply walking past can&rsquo;t trigger them &mdash; unlike the old wave. Needs a lit room and you facing the mirror; the page dots pulse when a gesture lands, and the dots (tap) plus the &ldquo;Flip mirror page&rdquo; button on a connected phone still work as fallbacks. The gesture models load once from Google&rsquo;s MediaPipe CDN; all camera frames are processed on-device and never stored or sent anywhere.</div>
+    </div>
+
+    <div class="field opt-home">
+      <span class="label">Stock symbol</span>
+      <input id="stockSym" class="input" placeholder="e.g. AAPL, TSLA, MSFT" autocomplete="off">
+      <div class="hint">Live prices via your relay Worker (the Departures service URL) &mdash; no key, no cap.</div>
+    </div>
+
+    <div class="field stock-range-field">
+      <span class="label">Stock range</span>
+      <div class="seg" id="stockRangeSeg">
+        <button data-v="day">Day</button>
+        <button data-v="week">Week</button>
+        <button data-v="month" class="on">Month</button>
+        <button data-v="year">Year</button>
+        <button data-v="all">All</button>
+      </div>
+      <div class="hint">Applies to the centre stock chart (Home) and all rows below (Stock mode).</div>
+    </div>
+
+    <div class="field opt-stock">
+      <span class="label">Stock rows (up to 5)</span>
+      <input id="stock1" class="input" placeholder="e.g. AAPL" autocomplete="off" style="margin-bottom:8px">
+      <input id="stock2" class="input" placeholder="e.g. TSLA" autocomplete="off" style="margin-bottom:8px">
+      <input id="stock3" class="input" placeholder="e.g. MSFT" autocomplete="off" style="margin-bottom:8px">
+      <input id="stock4" class="input" placeholder="optional" autocomplete="off" style="margin-bottom:8px">
+      <input id="stock5" class="input" placeholder="optional" autocomplete="off">
+      <div class="hint">Leave a row blank to hide it. Shown full-screen below the clock and weather.</div>
+    </div>
+
+    <div class="field opt-biz">
+      <span class="label">Business top image</span>
+      <input id="bizTop" class="input" placeholder="paste a URL, or choose a file" autocomplete="off">
+      <input id="bizTopFile" type="file" accept="image/*" style="display:none">
+      <button class="start ghost" id="bizTopPick" type="button">Choose from device</button>
+      <label class="sizerow"><span>Size</span><input id="bizTopScale" type="range" min="30" max="100" step="5" value="100"><span id="bizTopScaleVal">100%</span></label>
+    </div>
+
+    <div class="field opt-biz">
+      <span class="label">Business middle image (optional)</span>
+      <input id="bizMid" class="input" placeholder="paste a URL, or choose a file" autocomplete="off">
+      <input id="bizMidFile" type="file" accept="image/*" style="display:none">
+      <button class="start ghost" id="bizMidPick" type="button">Choose from device</button>
+      <label class="sizerow"><span>Size</span><input id="bizMidScale" type="range" min="30" max="100" step="5" value="100"><span id="bizMidScaleVal">100%</span></label>
+    </div>
+
+    <div class="field opt-biz">
+      <span class="label">Business PDF (full screen, optional)</span>
+      <input id="bizPdfFile" type="file" accept="application/pdf" style="display:none">
+      <button class="start ghost" id="bizPdfPick" type="button">Choose PDF from device</button>
+      <button class="start ghost" id="bizPdfClear" type="button">Clear PDF</button>
+      <div class="hint">If set, the business screen shows this PDF full-screen instead of the images.</div>
+    </div>
+
+    <div class="field opt-home">
+      <span class="label">Accent colour</span>
+      <div class="swatches" id="accentSw">
+        <button data-v="#e9c98a" style="--c:#e9c98a" class="on" aria-label="Gold"></button>
+        <button data-v="#ffdd00" style="--c:#ffdd00" aria-label="Yellow"></button>
+        <button data-v="#7fd3ff" style="--c:#7fd3ff" aria-label="Ice"></button>
+        <button data-v="#5fe3a1" style="--c:#5fe3a1" aria-label="Mint"></button>
+        <button data-v="#ff8aa8" style="--c:#ff8aa8" aria-label="Rose"></button>
+        <button data-v="#ffffff" style="--c:#ffffff" aria-label="White"></button>
+      </div>
+      <div class="hint">Colours the date, labels and details. The clock stays white for brightness behind glass.</div>
+    </div>
+
+    <div class="field opt-home" id="zoneField">
+      <span class="label">Electricity area</span>
+      <div class="seg" id="zoneSeg">
+        <button data-v="SE1">SE1</button>
+        <button data-v="SE2">SE2</button>
+        <button data-v="SE3" class="on">SE3</button>
+        <button data-v="SE4">SE4</button>
+      </div>
+      <div class="hint">Swedish spot price for your bidding area (Gothenburg is SE3).</div>
+    </div>
+
+    <button class="adv-toggle opt-home" id="advToggle"><span class="chev">›</span> Bus departures (optional)</button>
+    <div id="adv" class="opt-home">
+      <div class="field">
+        <span class="label">Departures service URL</span>
+        <input id="busUrl" class="input" placeholder="https://your-worker.workers.dev" autocomplete="off">
+      </div>
+      <div class="field">
+        <span class="label">Specific stop ID (optional)</span>
+        <input id="busId" class="input" placeholder="leave blank for nearest stop" autocomplete="off" inputmode="numeric">
+      </div>
+      <div class="hint">Departures for your nearest stop work automatically once location is allowed. Advanced: override the service URL or pin a specific stop ID.</div>
+    </div>
+
+    </div>
+    </div>
+
+    <div class="m3sec">
+    <button type="button" class="m3sec-h"><span class="chev">›</span> Screen &amp; motion</button>
+    <div class="m3sec-b">
+
+    <div class="field">
+      <span class="label">Motion wake</span>
+      <div class="seg" id="motionSeg">
+        <button data-v="off" class="on">Off</button>
+        <button data-v="on">On</button>
+      </div>
+      <div class="hint">Uses the front camera to detect movement and wake the screen; it sleeps to black when no one is around. Frames are processed on-device and never stored or sent anywhere.</div>
+    </div>
+
+    <div class="field">
+      <span class="label">Stay awake for</span>
+      <div class="seg" id="motionTimeoutSeg">
+        <button data-v="30">30s</button>
+        <button data-v="60" class="on">1 min</button>
+        <button data-v="180">3 min</button>
+        <button data-v="300">5 min</button>
+      </div>
+      <div class="hint">How long the screen stays on after the last movement.</div>
+    </div>
+
+    <div class="field">
+      <span class="label">Motion sensitivity</span>
+      <div class="seg" id="motionSensSeg">
+        <button data-v="low">Low</button>
+        <button data-v="med" class="on">Medium</button>
+        <button data-v="high">High</button>
+        <button data-v="max">Max</button>
+      </div>
+      <div class="hint">How much movement wakes the screen. High trips easily; Low needs bigger movement.</div>
+    </div>
+
+    </div>
+    </div>
+
+    <div class="m3sec">
+    <button type="button" class="m3sec-h"><span class="chev">›</span> Remote &amp; phone control</button>
+    <div class="m3sec-b">
+
+    <div class="field">
+      <span class="label">Remote camera view</span>
+      <div class="seg" id="camShareSeg">
+        <button data-v="off" class="on">Off</button>
+        <button data-v="on">On</button>
+      </div>
+      <button class="start ghost" id="camViewBtn" type="button">View mirror camera</button>
+      <div class="hint">On the mirror tablet: set On, then press Start mirror &mdash; the mirror only listens for viewers while the mirror display is showing. On your phone: tap &ldquo;View mirror camera&rdquo; to watch live. Video streams directly device-to-device &mdash; the relay only sets up the connection.</div>
+      <div class="hint" id="camShareStatus" style="color:var(--accent)">Status: idle</div>
+    </div>
+
+    <div class="field">
+      <span class="label">Remote control</span>
+      <div class="seg" id="remoteSeg">
+        <button data-v="off" class="on">Off</button>
+        <button data-v="on">On</button>
+      </div>
+      <div class="hint">On the mirror tablet: set On so it receives settings pushed from another device. On your phone: leave Off and use &ldquo;Push to mirror&rdquo; below.</div>
+    </div>
+
+    <div class="field">
+      <span class="label">Mirror ID</span>
+      <input id="mirrorId" class="input" placeholder="main" autocomplete="off">
+      <button class="start ghost" id="genId" type="button">Generate new code</button>
+      <div class="hint" id="mirrorIdHint">This is <b>this mirror's</b> code &mdash; it acts as a light password. Generate makes a new one (any phone using the old code loses access). To pair a phone, just scan the QR below with its camera.</div>
+      <div id="pairQr"></div>
+    </div>
+
+    </div>
+    </div>
+
+    <button class="start ghost" id="pushBtn" type="button">Push settings to mirror</button>
+    <button class="start" id="startBtn">Start mirror</button>
+    <button class="start ghost" id="eyeBtn">Eye screensaver</button>
+    <button class="start ghost" id="carPageBtn" style="display:none">Flip mirror page (clock &harr; car map)</button>
+    <div class="status" id="status"></div>
+  </div>
+</div>
+
+<div id="mirror">
+  <div class="region r-tl" id="clockRegion">
+    <div class="time" id="mTime">--:--</div>
+    <div class="date" id="mDate"></div>
+    <div id="infoRegion">
+      <div class="info-week" id="infoWeek"></div>
+      <div class="info-sun" id="infoSun"></div>
+    </div>
+    <div class="greet" id="mGreet"></div>
+  </div>
+  <div class="region r-tr" id="wxRegion">
+    <div class="wx-temp" id="wxTemp">--°</div>
+    <div class="wx-cond" id="wxCond"></div>
+    <div class="wx-meta" id="wxMeta"></div>
+    <div class="fc" id="wxFc"></div>
+  </div>
+  <div class="region r-mc" id="compRegion" style="display:none">
+    <div class="compliment" id="compText"></div>
+  </div>
+  <div class="region r-mc" id="stockRowsRegion" style="display:none">
+    <div class="stockrows" id="stockRowsList"></div>
+  </div>
+  <div class="region r-br" id="busRegion" style="display:none">
+    <div class="label bus-h" id="busHead">Departures</div>
+    <div id="busList"></div>
+  </div>
+  <div class="region r-bl" id="elprisRegion" style="display:none">
+    <div id="elprisList"></div>
+  </div>
+  <div id="mirrorTag"></div>
+  <div class="region r-bl" id="stockTimeRegion" style="display:none">
+    <div class="biz-time" id="stockTime"></div>
+    <div class="biz-date" id="stockDate"></div>
+  </div>
+  <div class="region r-br" id="stockWxRegion" style="display:none">
+    <div class="biz-wx" id="stockWx"></div>
+  </div>
+  <div id="carmap">
+    <div id="carmapMap"></div>
+    <div id="carmapTop">
+      <div class="cm-title" id="carmapTitle"></div>
+      <div class="cm-sub" id="carmapSub"></div>
+    </div>
+    <div id="carmapMsg"></div>
+  </div>
+  <div id="pageDots"><span class="pd on"></span><span class="pd"></span></div>
+  <button class="gear" id="gear" title="Settings">&#9881;</button>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // STUN finds a direct route; the free TURN relay is the fallback when phone and
+  // mirror sit on different networks (e.g. mobile data vs home wifi) and a direct
+  // route is blocked by NAT. ICE simply skips servers it can't reach.
+  var RTC_ICE=[
+    {urls:"stun:stun.l.google.com:19302"},
+    {urls:["turn:openrelay.metered.ca:80","turn:openrelay.metered.ca:443","turn:openrelay.metered.ca:443?transport=tcp"],username:"openrelayproject",credential:"openrelayproject"}
+  ];
+  // Vanilla ICE: wait for candidate gathering to finish so the SDP we post carries
+  // every candidate in one write. The relay's ICE-list store drops candidates that
+  // arrive in a burst (parallel read-modify-write), so trickling them one POST at a
+  // time loses most routes — that made connections succeed only ~1 time in 20.
+  function waitIce(pc, ms){
+    return new Promise(function(res){
+      if(pc.iceGatheringState==="complete") return res();
+      var t=setTimeout(function(){ pc.removeEventListener("icegatheringstatechange",h); res(); }, ms||4000);
+      function h(){ if(pc.iceGatheringState==="complete"){ clearTimeout(t); pc.removeEventListener("icegatheringstatechange",h); res(); } }
+      pc.addEventListener("icegatheringstatechange",h);
+    });
+  }
+
+  // ---------- remote camera VIEWER mode: open this page with ?cam=1&id=<mirrorId> to watch ----------
+  if(new URLSearchParams(location.search).get("cam")==="1"){
+    document.title="Mini Mirror camera";
+    document.body.innerHTML='<div id="camView" style="position:fixed;inset:0;background:#000;display:flex;align-items:center;justify-content:center;overflow:hidden">'
+      +'<video id="camVideo" autoplay playsinline muted style="width:100%;height:100%;object-fit:contain;background:#000"></video>'
+      +'<div id="camStatus" style="position:absolute;bottom:24px;left:0;right:0;text-align:center;color:#fff;font-family:\'Roboto Condensed\',sans-serif;font-size:14px;letter-spacing:.08em;text-transform:uppercase">Connecting&hellip;</div>'
+      +'</div>';
+    var qs=new URLSearchParams(location.search);
+    var camId=qs.get("id")||"main";
+    var camBase=qs.get("relay")||"https://still-wave-afbc.ecksquad.workers.dev";
+    function cU(p){ return camBase+(camBase.indexOf("?")>=0?"&":"?")+p; }
+    var cPc=null, cIceT=null, cAnsT=null;
+    function cStatus(t){ var s=document.getElementById("camStatus"); if(s) s.textContent=t; }
+    function cConnect(){
+      cStatus("Connecting\u2026");
+      fetch(cU("rtc=reset&id="+encodeURIComponent(camId)),{method:"POST"}).catch(function(){}).then(function(){
+        cPc=new RTCPeerConnection({iceServers:RTC_ICE});
+        cPc.addTransceiver("video",{direction:"recvonly"});
+        cPc.ontrack=function(ev){
+          var v=document.getElementById("camVideo");
+          if(v && v.srcObject!==ev.streams[0]){
+            v.srcObject=ev.streams[0]; v.play().catch(function(){});
+            v.onloadedmetadata=function(){ cStatus("Live"); };
+          }
+        };
+        cPc.onconnectionstatechange=function(){
+          var v=document.getElementById("camVideo");
+          if(cPc.connectionState==="connected" && !(v&&v.srcObject)) cStatus("Connected, waiting for video\u2026");
+          else if(cPc.connectionState==="failed"||cPc.connectionState==="disconnected") cStatus("Connection lost \u2014 tap to retry");
+        };
+        return cPc.createOffer().then(function(offer){ return cPc.setLocalDescription(offer); })
+          .then(function(){ cStatus("Finding a route…"); return waitIce(cPc,4000); });
+      }).then(function(){
+        return fetch(cU("rtc=sdp&role=offer&id="+encodeURIComponent(camId)),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"offer",sdp:cPc.localDescription.sdp,_ts:Date.now()})});
+      }).then(function(){
+        cStatus("Waiting for mirror\u2026");
+        var answered=false;
+        setTimeout(function(){ if(!answered) cStatus("Still waiting \u2014 on the mirror, set Remote camera view to On and press Start mirror"); },15000);
+        clearInterval(cAnsT);
+        cAnsT=setInterval(function(){
+          if(answered) return;
+          fetch(cU("rtc=sdp&role=answer&id="+encodeURIComponent(camId))).then(function(r){return r.json();}).then(function(ans){
+            if(!ans||!ans.sdp) return;
+            answered=true; clearInterval(cAnsT);
+            cPc.setRemoteDescription({type:"answer",sdp:ans.sdp}).then(function(){
+              var since=0;
+              clearInterval(cIceT);
+              cIceT=setInterval(function(){
+                fetch(cU("rtc=ice&role=mirror&id="+encodeURIComponent(camId)+"&since="+since)).then(function(r){return r.json();}).then(function(d){
+                  var list=(d&&d.candidates)||[];
+                  list.forEach(function(c){ try{ cPc.addIceCandidate(c); }catch(e){} });
+                  since=(d&&d.total)||since;
+                }).catch(function(){});
+              },2000);
+            });
+          }).catch(function(){});
+        },2000);
+      }).catch(function(){ cStatus("Couldn't connect \u2014 check the relay URL and Mirror ID"); });
+    }
+    document.getElementById("camView").addEventListener("click",function(){
+      var v=document.getElementById("camVideo");
+      if(v && v.srcObject && v.paused){ v.play().catch(function(){}); }
+      if(cPc && cPc.connectionState==="connected") return;
+      clearInterval(cIceT); clearInterval(cAnsT);
+      if(cPc){ try{cPc.close();}catch(e){} }
+      cConnect();
+    });
+    cConnect();
+    return;
+  }
+
+  // ---------- state + storage (storage is best-effort; falls back to memory) ----------
+  var DEFAULTS = { loc:"", lat:null, lon:null, place:"", name:"",
+    unit:"celsius", clock:"24", lang:"sv", seconds:"on", comments:"sv",
+    motion:"off", motionFor:"60", motionSens:"med", camShare:"off", biz:"off", bizTop:"", bizMid:"", bizTopData:"", bizMidData:"", bizPdf:"", bizTopScale:100, bizMidScale:100, stockSym:"AAPL", stockRange:"month", stock1:"", stock2:"", stock3:"", stock4:"", stock5:"", remoteSync:"off", mirrorId:"main", accent:"#e9c98a", elzone:"SE3", eyeMode:"off",
+    haUrl:"", haToken:"",
+    haBattery:"sensor.byd_atto3zuo_duo_battery_level", haRange:"sensor.byd_atto3zuo_duo_range", haOdometer:"sensor.byd_atto3zuo_duo_odometer",
+    haCabinTemp:"sensor.byd_atto3zuo_duo_cabin_temperature",
+    haTireFL:"sensor.byd_atto3zuo_duo_front_left_tire_pressure", haTireFR:"sensor.byd_atto3zuo_duo_front_right_tire_pressure",
+    haTireRL:"sensor.byd_atto3zuo_duo_rear_left_tire_pressure", haTireRR:"sensor.byd_atto3zuo_duo_rear_right_tire_pressure",
+    haCharging:"binary_sensor.byd_atto3zuo_duo_charging", haPlug:"binary_sensor.byd_atto3zuo_duo_plug", haLocked:"binary_sensor.byd_atto3zuo_duo_locked",
+    haDoors:"binary_sensor.byd_atto3zuo_duo_doors", haWindows:"binary_sensor.byd_atto3zuo_duo_windows", haOnline:"binary_sensor.byd_atto3zuo_duo_online",
+    haTracker:"device_tracker.byd_atto3zuo_duo_location", carMap:"off", carSwipe:"on", carFlip:0,
+    busUrl:"https://still-wave-afbc.ecksquad.workers.dev", busId:"" };
+  var state = Object.assign({}, DEFAULTS);
+  var KEY = "mirror.config.v1";
+  // The business/centre images are data URLs — too big to sit in localStorage
+  // next to the settings. Two of them overflow localStorage's quota, so the
+  // whole save() throws and NOTHING persists (the "my logo/GIF is forgotten
+  // after a restart" bug). Keep the images in IndexedDB; localStorage holds
+  // only the lightweight settings.
+  var IMG_FIELDS = ["bizTopData","bizMidData","compImgData"];
+  function load(){ try{ var s=localStorage.getItem(KEY); if(s) state=Object.assign({},DEFAULTS,JSON.parse(s)); }catch(e){}
+    if(!state.busUrl) state.busUrl = DEFAULTS.busUrl;  // always fall back to the built-in departures service
+    if(state.comments==="on") state.comments="sv"; }   // migrate old on/off to the new modes
+  function save(){ if(KIOSK) return; try{
+      var lite={}; for(var k in state){ if(IMG_FIELDS.indexOf(k)<0) lite[k]=state[k]; }
+      localStorage.setItem(KEY, JSON.stringify(lite));
+    }catch(e){} }
+  // Set an image data URL: kept in memory (so it displays and still travels
+  // with a push) AND written to IndexedDB (its persistent home).
+  function setImg(field, value){ state[field]=value||""; try{ idbSet("img_"+field, state[field]); }catch(e){} }
+  // On boot, restore the images from IndexedDB into state; migrate any legacy
+  // copy that's still sitting in localStorage into IndexedDB, then re-save.
+  function loadImages(cb){
+    var pending=IMG_FIELDS.length;
+    IMG_FIELDS.forEach(function(f){
+      idbGet("img_"+f).then(function(v){
+        if(v){ state[f]=v; }
+        else if(state[f]){ try{ idbSet("img_"+f, state[f]); }catch(e){} }   // migrate legacy localStorage value
+      }).catch(function(){}).then(function(){ if(--pending===0){ save(); if(cb) cb(); } });
+    });
+  }
+
+  var $ = function(id){ return document.getElementById(id); };
+
+  // ---------- i18n ----------
+  var T = {
+    sv:{ morning:"God morgon", forenoon:"God förmiddag", afternoon:"God eftermiddag", evening:"God kväll", night:"God natt",
+         min:"min", now:"nu", locale:"sv-SE", feels:"Känns som", wind:"m/s", week:"Vecka", noBus:"Inga avgångar just nu.", busWait:"Väntar på position\u2026",
+         busErr:"Kunde inte hämta avgångar. Kontrollera Stop ID och nyckel (eller blockeras anropet av CORS).",
+         elpris:"Elpris", low:"Lågt", mid:"Normalt", high:"Högt", today:"idag", elprisErr:"Kunde inte hämta elpris.",
+         carFrom:"hemifrån", carHome:"Hemma", carUpd:"uppdaterad" },
+    en:{ morning:"Good morning", forenoon:"Good morning", afternoon:"Good afternoon", evening:"Good evening", night:"Good night",
+         min:"min", now:"now", locale:"en-GB", feels:"Feels like", wind:"m/s", week:"Week", noBus:"No departures right now.", busWait:"Waiting for location\u2026",
+         busErr:"Couldn't load departures. Check the Stop ID and key (or the request was blocked by CORS).",
+         elpris:"Electricity", low:"Low", mid:"Normal", high:"High", today:"today", elprisErr:"Couldn't load prices.",
+         carFrom:"from home", carHome:"At home", carUpd:"updated" }
+  };
+  function t(k){ return (T[state.lang]||T.sv)[k]; }
+
+  // WMO weather code -> { icon class, sv label, en label }
+  function wx(code){
+    var m = {
+      0:["wi-day-sunny","Klart","Clear"],
+      1:["wi-day-sunny-overcast","Mest klart","Mostly clear"],
+      2:["wi-day-cloudy","Halvklart","Partly cloudy"],
+      3:["wi-cloudy","Mulet","Overcast"],
+      45:["wi-fog","Dimma","Fog"],48:["wi-fog","Dimma","Fog"],
+      51:["wi-sprinkle","Duggregn","Drizzle"],53:["wi-sprinkle","Duggregn","Drizzle"],55:["wi-sprinkle","Duggregn","Drizzle"],
+      56:["wi-sleet","Underkylt","Freezing drizzle"],57:["wi-sleet","Underkylt","Freezing drizzle"],
+      61:["wi-rain","Regn","Rain"],63:["wi-rain","Regn","Rain"],65:["wi-rain","Kraftigt regn","Heavy rain"],
+      66:["wi-rain-mix","Underkylt regn","Freezing rain"],67:["wi-rain-mix","Underkylt regn","Freezing rain"],
+      71:["wi-snow","Snö","Snow"],73:["wi-snow","Snö","Snow"],75:["wi-snow","Kraftig snö","Heavy snow"],
+      77:["wi-snowflake-cold","Snökorn","Snow grains"],
+      80:["wi-showers","Regnskurar","Showers"],81:["wi-showers","Regnskurar","Showers"],82:["wi-showers","Kraftiga skurar","Heavy showers"],
+      85:["wi-snow","Snöbyar","Snow showers"],86:["wi-snow","Snöbyar","Snow showers"],
+      95:["wi-thunderstorm","Åska","Thunderstorm"],96:["wi-thunderstorm","Åska","Thunderstorm"],99:["wi-thunderstorm","Åska","Thunderstorm"]
+    };
+    var e = m[code] || ["wi-na","—","—"];
+    // semantic colour by condition family (kept gentle, not neon)
+    var col = "#cfd6dd"; // cloud/overcast default
+    if(code===0||code===1) col="#ffd27a";            // sun
+    else if(code===2) col="#ffe0a3";                 // partly
+    else if(code===45||code===48) col="#b8c0c8";     // fog
+    else if(code>=51&&code<=67) col="#7fb8ff";       // drizzle/rain
+    else if(code>=80&&code<=82) col="#7fb8ff";       // showers
+    else if((code>=71&&code<=77)||code===85||code===86) col="#bfe9ff"; // snow
+    else if(code>=95) col="#c9a8ff";                 // thunder
+    return { icon:e[0], label: state.lang==="en" ? e[2] : e[1], color:col };
+  }
+
+  // ---------- geocoding + weather (Open-Meteo, keyless, CORS-ok) ----------
+  function geocode(name){
+    var u = "https://geocoding-api.open-meteo.com/v1/search?name="+encodeURIComponent(name)+"&count=1&language="+state.lang+"&format=json";
+    return fetch(u).then(function(r){return r.json();}).then(function(d){
+      if(!d.results || !d.results.length) throw new Error("notfound");
+      var g = d.results[0];
+      return { lat:g.latitude, lon:g.longitude, place:g.name + (g.country_code? ", "+g.country_code : "") };
+    });
+  }
+
+  function dayName(iso){
+    try{ return new Intl.DateTimeFormat((T[state.lang]||T.sv).locale,{weekday:"short"}).format(new Date(iso+"T12:00:00")).replace(".",""); }
+    catch(e){ return iso.slice(5); }
+  }
+
+  var lastWx = 0;
+  function loadWeather(force){
+    if(state.lat==null) return;
+    var now = Date.now();
+    if(!force && now-lastWx < 10*60*1000) return; // refresh every 10 min
+    lastWx = now;
+    var u = "https://api.open-meteo.com/v1/forecast?latitude="+state.lat+"&longitude="+state.lon
+          + "&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code"
+          + "&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset"
+          + "&forecast_days=7&timezone=auto&wind_speed_unit=ms&temperature_unit="+state.unit;
+    fetch(u).then(function(r){return r.json();}).then(function(d){
+      var c = d.current;
+      if(c){
+        var w = wx(c.weather_code);
+        $("wxTemp").innerHTML = '<i class="wi '+w.icon+'" style="color:'+w.color+'"></i>'+Math.round(c.temperature_2m)+"°";
+        $("wxCond").textContent = w.label;
+        var parts=[];
+        if(c.apparent_temperature!=null) parts.push(t("feels")+" "+Math.round(c.apparent_temperature)+"°");
+        if(c.wind_speed_10m!=null) parts.push(Math.round(c.wind_speed_10m)+" "+t("wind"));
+        if(c.relative_humidity_2m!=null) parts.push(c.relative_humidity_2m+"%");
+        $("wxMeta").textContent = parts.join("  ·  ");
+      }
+      var dy=d.daily;
+      if(dy && dy.time){
+        var rows="";
+        for(var i=1;i<dy.time.length && i<=5;i++){
+          var fw=wx(dy.weather_code[i]);
+          rows += '<div class="fc-row">'
+                + '<span class="fc-d">'+esc(dayName(dy.time[i]))+'</span>'
+                + '<i class="wi '+fw.icon+' fc-i" style="color:'+fw.color+'"></i>'
+                + '<span class="fc-hi">'+Math.round(dy.temperature_2m_max[i])+'°</span>'
+                + '<span class="fc-lo">'+Math.round(dy.temperature_2m_min[i])+'°</span>'
+                + '</div>';
+        }
+        $("wxFc").innerHTML = rows;
+        if(dy.sunrise && dy.sunset){
+          var sr=(dy.sunrise[0]||"").slice(11,16), ss=(dy.sunset[0]||"").slice(11,16);
+          $("infoSun").innerHTML = '<span class="sunr"><i class="wi wi-sunrise"></i>'+sr+'</span>'
+                + '<span class="gap"></span>'
+                + '<span class="suns"><i class="wi wi-sunset"></i>'+ss+'</span>';
+        }
+      }
+    }).catch(function(){ /* keep last shown */ });
+  }
+
+  // ---------- bus (via your relay Worker: nearest stop to your coordinates) ----------
+  var lastBus = 0;
+  function loadBus(force){
+    if(!state.busUrl){ $("busRegion").style.display="none"; return; }
+    $("busRegion").style.display="block";
+    if(state.lat==null){ $("busHead").textContent="Departures"; $("busList").innerHTML='<div class="bus-msg">'+t("busWait")+'</div>'; return; }
+    var now=Date.now();
+    if(!force && now-lastBus < 60*1000) return; // refresh each minute
+    lastBus = now;
+    var u = state.busUrl + (state.busUrl.indexOf("?")>=0?"&":"?")
+          + "lat="+encodeURIComponent(state.lat) + "&lon="+encodeURIComponent(state.lon)
+          + (state.busId ? "&id="+encodeURIComponent(state.busId) : "");
+    fetch(u).then(function(r){return r.json();}).then(function(d){
+      if(!d || d.error){ $("busHead").textContent="Departures"; $("busList").innerHTML='<div class="bus-msg">'+t("busErr")+'</div>'; return; }
+      $("busHead").textContent = d.stop || "Departures";
+      var deps = d.departures || [];
+      if(!deps.length){ $("busList").innerHTML = '<div class="bus-msg">'+t("noBus")+'</div>'; return; }
+      var html = deps.slice(0,8).map(function(dep){
+        var hhmm = (dep.time || "").slice(0,5);
+        var mins = minsUntil(dep.date, dep.time);
+        var when = (mins!=null && mins<=20) ? (mins<=0? t("now") : mins+" "+t("min")) : hhmm;
+        return '<div class="dep">'+modeIcon(dep.mode)+'<span class="ln">'+esc(dep.line)+'</span><span class="dst">'+esc(dep.dir)+'</span><span class="tm">'+esc(when)+'</span></div>';
+      }).join("");
+      $("busList").innerHTML = html;
+    }).catch(function(){ $("busList").innerHTML = '<div class="bus-msg">'+t("busErr")+'</div>'; });
+  }
+  function modeIcon(m){
+    var g = {tram:"tram", bus:"directions_bus", train:"train", metro:"subway", boat:"directions_boat"}[m] || "directions_transit";
+    return '<span class="msym mi">'+g+'</span>';
+  }
+  function minsUntil(date,time){
+    if(!date||!time) return null;
+    var dt = new Date((date+"T"+time).replace(/\//g,"-"));
+    if(isNaN(dt)) return null;
+    return Math.round((dt - new Date())/60000);
+  }
+  function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];}); }
+
+  // ---------- electricity price (Swedish spot price via the relay Worker) ----------
+  var lastElpris = 0, elprisCache = null;
+  function loadElpris(force){
+    if(!state.busUrl){ $("elprisRegion").style.display="none"; return; }
+    $("elprisRegion").style.display="block";
+    var now=Date.now();
+    if(!force && now-lastElpris < 10*60*1000){ if(elprisCache) renderElpris(elprisCache); return; }
+    lastElpris = now;
+    var u = state.busUrl + (state.busUrl.indexOf("?")>=0?"&":"?") + "elpris=" + encodeURIComponent(state.elzone||"SE3");
+    fetch(u).then(function(r){return r.json();}).then(function(d){
+      if(!d || d.error || d.price==null){ $("elprisList").innerHTML='<div class="bus-msg">'+t("elprisErr")+'</div>'; return; }
+      elprisCache = d; renderElpris(d);
+    }).catch(function(){ $("elprisList").innerHTML='<div class="bus-msg">'+t("elprisErr")+'</div>'; });
+  }
+  function buildElprisChart(series){
+    var W=220, H=86, padL=6, padR=6, padT=22, padB=16;
+    var innerW=W-padL-padR, innerH=H-padT-padB;
+    var CHARGE=0.20;
+    var vals = series.map(function(p){ return p.v; });
+    var vMin=Math.min.apply(null,vals.concat([CHARGE])), vMax=Math.max.apply(null,vals.concat([CHARGE]));
+    var span=(vMax-vMin)||1; vMin-=span*0.08; vMax+=span*0.08; span=vMax-vMin;
+    function x(i){ return series.length>1 ? padL + innerW*(i/(series.length-1)) : padL+innerW/2; }
+    function y(v){ return padT + innerH*(1-(v-vMin)/span); }
+    var pts = series.map(function(p,i){ return [x(i), y(p.v)]; });
+    var line = pts.map(function(p,i){ return (i===0?'M':'L')+p[0].toFixed(1)+' '+p[1].toFixed(1); }).join(' ');
+    var bottom=(padT+innerH).toFixed(1);
+    var area = line+' L'+pts[pts.length-1][0].toFixed(1)+' '+bottom+' L'+pts[0][0].toFixed(1)+' '+bottom+' Z';
+    var cheapIdx=0;
+    for(var i=1;i<series.length;i++){ if(series[i].v<series[cheapIdx].v) cheapIdx=i; }
+    var nowPt=pts[0], cheapPt=pts[cheapIdx], thresholdY=y(CHARGE);
+    var s = '<defs><linearGradient id="elpGrad" x1="0" y1="0" x2="0" y2="1">'
+          + '<stop offset="0%" stop-color="#4cc15a" stop-opacity="0.55"/>'
+          + '<stop offset="100%" stop-color="#4cc15a" stop-opacity="0"/></linearGradient></defs>';
+    if(thresholdY>padT-2 && thresholdY<padT+innerH+2){
+      s += '<line x1="'+padL+'" y1="'+thresholdY.toFixed(1)+'" x2="'+(padL+innerW)+'" y2="'+thresholdY.toFixed(1)+'" stroke="#fff" stroke-opacity="0.4" stroke-width="1" stroke-dasharray="3,3"/>';
+    }
+    s += '<path d="'+area+'" fill="url(#elpGrad)"/>';
+    s += '<path d="'+line+'" fill="none" stroke="#4cc15a" stroke-width="2.2"/>';
+    series.forEach(function(p,i){
+      var hr = new Date(p.t).getHours();
+      if(hr%6===0){
+        s += '<text x="'+x(i).toFixed(1)+'" y="'+(H-3)+'" text-anchor="middle" fill="#fff" fill-opacity="0.55" font-family="Roboto Condensed,sans-serif" font-size="9">'+String(hr).padStart(2,"0")+'</text>';
+      }
+    });
+    if(cheapIdx!==0){
+      s += '<circle cx="'+cheapPt[0].toFixed(1)+'" cy="'+cheapPt[1].toFixed(1)+'" r="2.6" fill="#4cc15a"/>';
+      s += '<text x="'+cheapPt[0].toFixed(1)+'" y="'+(cheapPt[1]-8).toFixed(1)+'" text-anchor="middle" fill="#4cc15a" font-family="Roboto,sans-serif" font-weight="700" font-size="11">'+series[cheapIdx].v.toFixed(2)+'</text>';
+    }
+    s += '<circle cx="'+nowPt[0].toFixed(1)+'" cy="'+nowPt[1].toFixed(1)+'" r="3.4" fill="#fff"/>';
+    s += '<text x="'+(nowPt[0]+6).toFixed(1)+'" y="'+(nowPt[1]-6).toFixed(1)+'" text-anchor="start" fill="#fff" font-family="Roboto,sans-serif" font-weight="700" font-size="12">'+series[0].v.toFixed(2)+'</text>';
+    return '<svg viewBox="0 0 '+W+' '+H+'" class="elp-chart">'+s+'</svg>';
+  }
+  function renderElpris(d){
+    var GREEN="#4cc15a", AMBER="#f4a92b", RED="#c93a2e", MAX=3, T1=0.8, T2=1.3;
+    var VAL = d.price;
+    var cx=110, cy=118, r=90, w=16;
+    function pol(rr,deg){ var a=deg*Math.PI/180; return [cx+rr*Math.cos(a), cy-rr*Math.sin(a)]; }
+    function ang(v){ return 180*(1 - Math.max(0,Math.min(MAX,v))/MAX); }   // 0->180deg(left), MAX->0deg(right)
+    function arc(a1,a2,col,op){ var p1=pol(r,a1), p2=pol(r,a2), large=(a1-a2)>180?1:0;
+      return '<path d="M'+p1[0].toFixed(2)+' '+p1[1].toFixed(2)+' A'+r+' '+r+' 0 '+large+' 1 '+p2[0].toFixed(2)+' '+p2[1].toFixed(2)+'" fill="none" stroke="'+col+'" stroke-opacity="'+op+'" stroke-width="'+w+'"/>'; }
+    function zone(v){ return v<T1?GREEN:v<T2?AMBER:RED; }
+    var TRACK=1;                                    // whole arc fully visible, no fading
+    var s = arc(180,ang(T1),GREEN,TRACK)
+          + arc(ang(T1),ang(T2),AMBER,TRACK)
+          + arc(ang(T2),0,RED,TRACK);
+    // tick marks every 0.5
+    for(var v=0; v<=MAX+0.001; v+=0.5){
+      var ta=ang(v), o1=pol(r-w/2-3,ta), o2=pol(r-w/2-9,ta);
+      s+='<line x1="'+o1[0].toFixed(1)+'" y1="'+o1[1].toFixed(1)+'" x2="'+o2[0].toFixed(1)+'" y2="'+o2[1].toFixed(1)+'" stroke="#fff" stroke-width="1.4"/>';
+    }
+    // triangle needle (tip sweeps with price)
+    var na=ang(VAL), tip=pol(r-w/2-6,na), b1=pol(5,na+90), b2=pol(5,na-90);
+    s+='<polygon points="'+tip[0].toFixed(1)+','+tip[1].toFixed(1)+' '+b1[0].toFixed(1)+','+b1[1].toFixed(1)+' '+b2[0].toFixed(1)+','+b2[1].toFixed(1)+'" fill="#fff"/>';
+    s+='<circle cx="'+cx+'" cy="'+cy+'" r="4" fill="#fff"/>';
+    // value below + end labels
+    var col=zone(VAL);
+    s+='<text x="'+cx+'" y="'+(cy+28)+'" text-anchor="middle" fill="'+col+'" font-family="Roboto,sans-serif" font-weight="300" font-size="26">'+VAL.toFixed(2)+'<tspan font-family="Roboto Condensed,sans-serif" font-size="12" fill="#fff" dx="4">SEK</tspan></text>';
+    s+='<text x="'+(cx-r)+'" y="'+(cy+18)+'" text-anchor="middle" fill="#fff" font-family="Roboto Condensed,sans-serif" font-size="13">0</text>';
+    s+='<text x="'+(cx+r)+'" y="'+(cy+18)+'" text-anchor="middle" fill="#fff" font-family="Roboto Condensed,sans-serif" font-size="13">'+MAX+'</text>';
+    var chart = (d.series && d.series.length>1) ? buildElprisChart(d.series) : '';
+    $("elprisList").innerHTML = chart + '<svg viewBox="0 0 220 158" class="elp-gauge">'+s+'</svg>';
+  }
+
+  // ---------- bottom panels: elpris (bottom-left) + bus (bottom-right), both always on ----------
+  function refreshBottomLeft(force){
+    if(state.biz==="stock"){ $("busRegion").style.display="none"; $("elprisRegion").style.display="none"; return; }
+    loadElpris(force);
+    loadBus(force);
+  }
+
+  // ---------- clock / date / greeting ----------
+  function greeting(h){
+    if(h<5) return t("night");
+    if(h<10) return t("morning");
+    if(h<12) return t("forenoon");
+    if(h<17) return t("afternoon");
+    if(h<22) return t("evening");
+    return t("night");
+  }
+  function pad(n){ return n<10? "0"+n : ""+n; }
+  function isoWeek(d){
+    var t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));
+    var day=(t.getUTCDay()+6)%7; t.setUTCDate(t.getUTCDate()-day+3);
+    var first=new Date(Date.UTC(t.getUTCFullYear(),0,4));
+    var fday=(first.getUTCDay()+6)%7; first.setUTCDate(first.getUTCDate()-fday+3);
+    return 1+Math.round((t-first)/(7*864e5));
+  }
+  function tick(){
+    var d = new Date();
+    var h = d.getHours(), m = d.getMinutes(), s = d.getSeconds();
+    var hh = h, ampm = "";
+    if(state.clock==="12"){ ampm = h<12?" AM":" PM"; hh = h%12; if(hh===0) hh=12; }
+    var main = (state.clock==="12"? hh : pad(hh)) + ":" + pad(m);
+    var sec = state.seconds==="on" ? '<span class="sec">'+pad(s)+(state.clock==="12"?ampm:"")+'</span>'
+              : (state.clock==="12"? '<span class="sec">'+ampm.trim()+'</span>' : "");
+    $("mTime").innerHTML = main + sec;
+    var loc = (T[state.lang]||T.sv).locale;
+    try{
+      $("mDate").textContent = new Intl.DateTimeFormat(loc,{weekday:"long",day:"numeric",month:"long"}).format(d);
+    }catch(e){ $("mDate").textContent = d.toDateString(); }
+    var g = greeting(h);
+    $("mGreet").textContent = state.name ? g+", "+state.name : g;
+    $("infoWeek").textContent = t("week")+" "+isoWeek(d);
+    $("infoRegion").style.display = (state.biz==="stock") ? "none" : "";
+  }
+
+  // ---------- wake lock (keep screen on; honours the toggle) ----------
+  var wl=null, noSleep=null;
+  function keepAwake(){
+    try{ if(!noSleep && window.NoSleep) noSleep=new NoSleep(); if(noSleep) { var r=noSleep.enable(); if(r&&r.catch) r.catch(function(){}); } }catch(e){}
+  }
+  function releaseAwake(){ try{ if(noSleep) noSleep.disable(); }catch(e){} try{ if(wl){ wl.release(); wl=null; } }catch(e){} }
+  document.addEventListener("visibilitychange",function(){
+    if(document.visibilityState==="visible" && $("mirror").classList.contains("show")) keepAwake();
+  });
+
+  // ---------- motion-gated display (camera presence -> wake; idle -> true black) ----------
+  var mStream=null, mRAF=null, mTimer=null, mPrev=null, mCv=null, mCtx=null, mVid=null;
+  function setSleep(on){ var v=$("sleepveil"); if(v) v.classList.toggle("on", on); }
+  function wakeScreen(){
+    setSleep(false);
+    clearTimeout(mTimer);
+    var ms=(parseInt(state.motionFor,10)||60)*1000;
+    mTimer=setTimeout(function(){ setSleep(true); }, ms);
+  }
+  function stopMotion(){
+    if(mRAF){ cancelAnimationFrame(mRAF); mRAF=null; }
+    clearTimeout(mTimer); mTimer=null;
+    stopGestures();
+    if(mStream){ mStream.getTracks().forEach(function(t){t.stop();}); mStream=null; }
+    mPrev=null; setSleep(false);
+  }
+  function startMotion(){
+    stopMotion();
+    // The camera loop serves two features: motion wake (cheap 64x48 frame
+    // diff), and hand/face gestures (MediaPipe: a wink flips the page, an
+    // open palm held ~1s toggles home/business mode). Run it if either is on.
+    var gestOn = state.carSwipe==="on";
+    if(state.motion!=="on" && !gestOn) return;
+    if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
+    navigator.mediaDevices.getUserMedia({video:{facingMode:"user"},audio:false}).then(function(stream){
+      mStream=stream;
+      mVid=document.createElement("video"); mVid.muted=true; mVid.playsInline=true;
+      mVid.srcObject=stream; mVid.play().catch(function(){});
+      mCv=document.createElement("canvas"); mCv.width=64; mCv.height=48;
+      mCtx=mCv.getContext("2d",{willReadFrequently:true});
+      if(state.motion==="on") wakeScreen();
+      if(gestOn) startGestures(mVid);
+      // Frame diff now serves ONLY motion-wake — gestures moved to MediaPipe
+      // (the old motion-centroid wave false-triggered on any big movement).
+      if(state.motion==="on"){
+        var SENS={low:[30,22], med:[24,12], high:[18,6], max:[12,3]}[state.motionSens] || [24,12];
+        var PD=SENS[0], THRESH=SENS[1];
+        var last=0;
+        function loop(ts){
+          mRAF=requestAnimationFrame(loop);
+          if(ts-last < 200) return; last=ts;
+          if(mVid.readyState<2) return;
+          var cur;
+          try{ mCtx.drawImage(mVid,0,0,64,48); cur=mCtx.getImageData(0,0,64,48).data; }catch(e){ return; }
+          if(mPrev){
+            var changed=0;
+            for(var i=0;i<cur.length;i+=16){ if(Math.abs(cur[i]-mPrev[i])>PD) changed++; }
+            if(changed>THRESH) wakeScreen();
+          }
+          mPrev=cur;
+        }
+        mRAF=requestAnimationFrame(loop);
+      }
+    }).catch(function(){ setSleep(false); });             // denied / no camera -> never sleep
+  }
+
+  // ---------- hand/face gestures (MediaPipe Tasks Vision) ----------
+  // Wink (one eye closed, the other open, held ~0.4s) = flip the page.
+  // Open palm held up ~1s = toggle home <-> business mode. Both require an
+  // INTENTIONAL, recognisable pose, so walking past can't trigger them
+  // (which is what plagued the old motion-only wave). Models load lazily
+  // from the MediaPipe CDN the first time gestures are enabled, then cache.
+  var gLoaded=false, gLoading=null, gFace=null, gHand=null, gTimer=null, gTick=0;
+  var winkStreak=0, gWinkCool=0, palmSince=0, palmSeen=0, gPalmCool=0;
+  function stopGestures(){ clearInterval(gTimer); gTimer=null; winkStreak=0; palmSince=0; }
+  function loadGestures(){
+    if(gLoaded) return Promise.resolve(true);
+    if(gLoading) return gLoading;
+    var V="https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
+    var FACE="https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task";
+    var HANDM="https://storage.googleapis.com/mediapipe-models/gesture_recognizer/gesture_recognizer/float16/1/gesture_recognizer.task";
+    gLoading=import(V+"/vision_bundle.mjs").then(function(m){
+      return m.FilesetResolver.forVisionTasks(V+"/wasm").then(function(fs){
+        // Try the GPU (WebGL) delegate for speed, fall back to CPU on any
+        // device where GPU init fails — otherwise gestures silently die.
+        function mk(deleg){
+          return Promise.all([
+            m.FaceLandmarker.createFromOptions(fs,{baseOptions:{modelAssetPath:FACE,delegate:deleg},outputFaceBlendshapes:true,runningMode:"VIDEO",numFaces:1}),
+            m.GestureRecognizer.createFromOptions(fs,{baseOptions:{modelAssetPath:HANDM,delegate:deleg},runningMode:"VIDEO",numHands:1})
+          ]);
+        }
+        return mk("GPU").catch(function(e){ console.warn("[reflekt] GPU gesture delegate failed, using CPU",e); return mk("CPU"); })
+          .then(function(r){ gFace=r[0]; gHand=r[1]; gLoaded=true; return true; });
+      });
+    }).catch(function(e){ gLoading=null; console.warn("[reflekt] gesture models failed to load",e); return false; });
+    return gLoading;
+  }
+  function blendScore(cats,name){ for(var i=0;i<cats.length;i++){ if(cats[i].categoryName===name) return cats[i].score; } return 0; }
+  // Eye-aspect-ratio from face-mesh points (vertical eyelid gap / eye width).
+  // Open ~0.28-0.35, shut ~0.10. Uses geometry directly rather than the
+  // blendshape category names, so it can't be broken by a model/name change.
+  function eyeEAR(lm, top, bot, l, r){
+    var v=Math.hypot(lm[top].x-lm[bot].x, lm[top].y-lm[bot].y);
+    var h=Math.hypot(lm[l].x-lm[r].x, lm[l].y-lm[r].y);
+    return h>0 ? v/h : 1;
+  }
+  var gDebugEl=null;
+  function gDebug(txt){
+    if(location.search.indexOf("gdebug=1")<0) return;
+    if(!gDebugEl){ gDebugEl=document.createElement("div"); gDebugEl.style.cssText="position:fixed;left:6px;bottom:6px;z-index:99999;font:12px monospace;color:#0f0;background:rgba(0,0,0,.7);padding:4px 7px;border-radius:5px;white-space:pre"; document.body.appendChild(gDebugEl); }
+    gDebugEl.textContent=txt;
+  }
+  function startGestures(video){
+    stopGestures();
+    gDebug("gestures: loading models…");
+    loadGestures().then(function(ok){
+      if(!ok || !video){ gDebug("gestures: models FAILED to load"); return; }
+      gDebug("gestures: ready");
+      // Face (eyes) checked every tick; hand (palm) on alternate ticks so the
+      // heavier hand model runs at half rate — plenty for a 1s hold.
+      gTimer=setInterval(function(){
+        if(!video || video.readyState<2) return;
+        if(!$("mirror").classList.contains("show")) return;      // only on the mirror view
+        if($("sleepveil").classList.contains("on")) return;      // asleep: ignore gestures
+        var now=performance.now(); gTick++;
+        var dbgFace="no face", dbgHand="";
+        try{
+          var fr=gFace.detectForVideo(video, now);
+          var lm=(fr.faceLandmarks && fr.faceLandmarks[0]) || null;
+          if(lm){
+            var earR=eyeEAR(lm,159,145,33,133);                  // one eye
+            var earL=eyeEAR(lm,386,374,362,263);                 // other eye
+            // Page flip = BOTH eyes held shut ~0.5s. A natural blink (~0.1s)
+            // lands on 1 tick at most; we need >=3 (~0.55s) so it can't flip.
+            var shut=(earR<0.16 && earL<0.16);
+            winkStreak = shut ? winkStreak+1 : 0;
+            if(winkStreak>=3 && now>=gWinkCool){ gWinkCool=now+2500; winkStreak=0; flipPage(); }
+            dbgFace="EAR L:"+earL.toFixed(2)+" R:"+earR.toFixed(2)+(shut?" SHUT("+winkStreak+")":"");
+          }
+        }catch(e){ dbgFace="face err "+e.message; }
+        if(gTick%2===0){
+          try{
+            var hr=gHand.recognizeForVideo(video, now);
+            var g=(hr.gestures && hr.gestures[0] && hr.gestures[0][0]) ? hr.gestures[0][0].categoryName : null;
+            dbgHand="hand:"+(g||"-");
+            if(g==="Open_Palm"){
+              palmSeen=now;
+              if(!palmSince) palmSince=now;
+              else if(now-palmSince>=1000 && now>=gPalmCool){ gPalmCool=now+3000; palmSince=0; toggleBizMode(); }
+            } else if(palmSince && now-palmSeen>500){ palmSince=0; }   // palm dropped: reset the hold
+          }catch(e){ dbgHand="hand err "+e.message; }
+        }
+        gDebug(dbgFace+"  "+dbgHand);
+      }, 180);
+    });
+  }
+  // Home <-> business toggle. Business mode is just the #biz overlay, so a
+  // toggle only needs startBiz() (which shows/hides it per state.biz) — no
+  // full re-render / camera restart.
+  function toggleBizMode(){
+    if(!$("mirror").classList.contains("show") || $("sleepveil").classList.contains("on")) return;
+    if(state.biz==="stock") return;                          // don't clobber stock mode
+    state.biz = (state.biz==="on") ? "off" : "on";
+    save();
+    startBiz();
+    var d=$("pageDots"); if(d){ d.classList.add("flash"); setTimeout(function(){ d.classList.remove("flash"); },700); }
+  }
+  // a tap anywhere also wakes the screen
+  document.addEventListener("pointerdown",function(){ if(state.motion==="on") wakeScreen(); });
+
+  // ---------- remote camera view (WebRTC; the relay Worker + KV only set up the connection, video streams direct) ----------
+  var rtcPC=null, rtcPollT=null, rtcIcePollT=null, rtcLastOfferSeen=null;
+  function rtcUrl(params){ var b=state.busUrl; if(!b) return null; return b + (b.indexOf("?")>=0?"&":"?") + params; }
+  function rtcId(){ return encodeURIComponent(state.mirrorId||"main"); }
+  function camStatus(t){ var el=$("camShareStatus"); if(el) el.textContent="Status: "+t; }
+  var camWarmStream=null;
+  function stopCamShare(){
+    clearInterval(rtcPollT); rtcPollT=null;
+    clearInterval(rtcIcePollT); rtcIcePollT=null;
+    if(rtcPC){ try{ rtcPC.close(); }catch(e){} rtcPC=null; }
+    if(camWarmStream){ try{ camWarmStream.getTracks().forEach(function(t){t.stop();}); }catch(e){} camWarmStream=null; }
+    rtcLastOfferSeen=null;
+    camStatus("idle");
+  }
+  function startCamShare(){
+    stopCamShare();
+    if(state.camShare!=="on") return;
+    if(!rtcUrl("x=1")){ camStatus("no relay URL set (Departures service URL)"); return; }
+    camStatus("waiting for a viewer to connect");
+    // Ask for the camera now, while someone is standing at the tablet — not at the
+    // moment a viewer connects, when nobody is there to tap Allow on the prompt.
+    getCamStream().then(function(){
+      camStatus("camera ready — waiting for a viewer");
+    }).catch(function(e){
+      camStatus("camera blocked: "+(e&&e.message?e.message:"permission denied"));
+    });
+    checkForOffer();
+    rtcPollT=setInterval(checkForOffer, 3000);
+  }
+  function checkForOffer(){
+    var u=rtcUrl("rtc=sdp&role=offer&id="+rtcId()); if(!u) return;
+    fetch(u).then(function(r){return r.json();}).then(function(offer){
+      if(!offer || !offer.sdp) return;
+      var sig=offer.sdp+"|"+(offer._ts||"");
+      if(sig===rtcLastOfferSeen) return;
+      rtcLastOfferSeen=sig;
+      answerOffer(offer);
+    }).catch(function(e){ camStatus("couldn't reach relay ("+(e&&e.message?e.message:"error")+")"); });
+  }
+  function getCamStream(){
+    if(mStream) return Promise.resolve(mStream);
+    if(camWarmStream && camWarmStream.getTracks().some(function(t){return t.readyState==="live";})) return Promise.resolve(camWarmStream);
+    if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return Promise.reject(new Error("camera API not available (needs HTTPS)"));
+    camStatus("requesting camera\u2026");
+    return navigator.mediaDevices.getUserMedia({video:{facingMode:"user"},audio:false}).then(function(s){ camWarmStream=s; return s; });
+  }
+  function answerOffer(offer){
+    camStatus("viewer connecting\u2026");
+    getCamStream().then(function(stream){
+      camStatus("camera acquired, answering\u2026");
+      if(rtcPC){ try{ rtcPC.close(); }catch(e){} }
+      rtcPC=new RTCPeerConnection({iceServers:RTC_ICE});
+      rtcPC.onconnectionstatechange=function(){
+        var cs=rtcPC.connectionState;
+        if(cs==="connected") camStatus("streaming (connected)");
+        else if(cs==="failed") camStatus("connection failed \u2014 try again");
+        else if(cs==="disconnected") camStatus("viewer disconnected");
+      };
+      return rtcPC.setRemoteDescription({type:"offer", sdp:offer.sdp})
+        .then(function(){
+          var tracks=stream.getTracks();
+          if(!tracks.length) throw new Error("camera stream has no tracks");
+          tracks.forEach(function(tr){ rtcPC.addTrack(tr, stream); });
+          return rtcPC.createAnswer();
+        })
+        .then(function(answer){ return rtcPC.setLocalDescription(answer); })
+        .then(function(){ camStatus("finding a route…"); return waitIce(rtcPC,4000); })
+        .then(function(){
+          var u=rtcUrl("rtc=sdp&role=answer&id="+rtcId()); if(!u) return;
+          return fetch(u,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"answer",sdp:rtcPC.localDescription.sdp,_ts:Date.now()})});
+        })
+        .then(function(){
+          camStatus("answer sent, connecting\u2026");
+          var since=0;
+          clearInterval(rtcIcePollT);
+          rtcIcePollT=setInterval(function(){
+            var u=rtcUrl("rtc=ice&role=viewer&id="+rtcId()+"&since="+since); if(!u) return;
+            fetch(u).then(function(r){return r.json();}).then(function(d){
+              var list=(d&&d.candidates)||[];
+              list.forEach(function(c){ try{ rtcPC.addIceCandidate(c); }catch(e){} });
+              since=(d&&d.total)||since;
+            }).catch(function(){});
+          }, 2000);
+        });
+    }).catch(function(e){ camStatus("error: "+(e&&e.message?e.message:"couldn't get camera")); });
+  }
+
+  function applyAccent(){ document.documentElement.style.setProperty("--accent", state.accent || "#e9c98a"); }
+
+  // ---------- desktop-style layout on phones ----------
+  // Phones are too narrow for the corner layout, so render the MIRROR at a fixed
+  // desktop-ish width and let the browser scale it to fit — keeps the corner look,
+  // bigger than Safari's "request desktop site". Setup stays at device width so it's tappable.
+  var PHONE = Math.min(screen.width || 9999, screen.height || 9999) < 520;
+  var MIRROR_VW = 640; // smaller = bigger text (but less room); larger = smaller text
+  function setVP(wide){
+    var vp = document.querySelector('meta[name="viewport"]');
+    if(!vp) return;
+    vp.setAttribute("content", wide
+      ? "width="+MIRROR_VW+", viewport-fit=cover"
+      : "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover");
+  }
+
+  // ---------- fullscreen (removes browser chrome where supported) ----------
+  function goFullscreen(){
+    var el=document.documentElement;
+    var r=el.requestFullscreen||el.webkitRequestFullscreen||el.mozRequestFullScreen;
+    if(r){ try{ var p=r.call(el); if(p&&p.catch) p.catch(function(){}); }catch(e){} }
+  }
+
+  // ---------- compliments (rotating one-liners) ----------
+  var COMP = [
+    "Du överlevde natten. Imponerande, för fan.",
+    "Upp och hoppa, din trötta jävel.",
+    "Grattis, du andas fortfarande.",
+    "Ännu en dag i helvetet. Kaffe?",
+    "Du ser ut som du känner dig. Tyvärr.",
+    "Livet är kort. Som tur är.",
+    "Le, det förvirrar dina fiender.",
+    "Du är inte gammal, bara nära utgångsdatum.",
+    "Allt ordnar sig. Eller inte. Vi får se.",
+    "Världen är skit, men du har snyggt hår idag.",
+    "Drick vatten, din uttorkade krukväxt.",
+    "Du klarar det. Förmodligen. Kanske.",
+    "Ännu en måndag som vill döda dig långsamt.",
+    "Memento mori, men ät frukost först.",
+    "Du är unik. Precis som alla andra jävlar.",
+    "Existens är lidande. Men fika hjälper.",
+    "Tiden läker allt. Sen dör du.",
+    "Bra jobbat idag. Påstås det.",
+    "Du är gjord av stjärnstoff och dålig självkänsla.",
+    "Gravitationen vinner till slut. Men inte idag.",
+    "Allt är meningslöst, så slappna av.",
+    "Du är huvudpersonen. I en tragedi.",
+    "Andas in. Andas ut. Upprepa tills du dör.",
+    "Ingen kommer härifrån levande. Ta det lugnt.",
+    "Du ser pigg ut för att vara halvdöd.",
+    "Kämpa på. Eller låt bli. Skiten brinner ändå.",
+    "Du är en limited edition. Tyvärr defekt.",
+    "Lycka är bara dålig minnesförmåga.",
+    "Solen skiner. Provocerande, eller hur?",
+    "Du gör ditt bästa. Det syns. Tyvärr.",
+    "Förväntningar är bara framtida besvikelser.",
+    "Du är som ett fint vin: bäst med snacks.",
+    "Kaoset är gratis. Omfamna det.",
+    "Optimism är bara en charmig bugg.",
+    "Klockan tickar. Den hatar dig också.",
+    "Du är inte sen, tiden är bara rädd för dig.",
+    "Rosta i frid. Du är ändå halvvägs.",
+    "Allt tar slut. Börja ändå, din optimist.",
+    "Snyggt självförtroende för någon så dödlig.",
+    "Du är 70% vatten och 30% olöst ångest.",
+    "Tji fick döden. Du lever fortfarande, jävlar.",
+    "Ännu en runda i den här jävla simuleringen.",
+    "Du ser ut som att kaffet redan gett upp.",
+    "Var det oförklarliga ljud grannarna oroar sig för.",
+    "Skratta nu. Tomheten skrattar med dig.",
+    "Du har huvudpersonsenergi och statistbudget.",
+    "Allt är fan kört, men du har fina ögon.",
+    "Överlevnad är din enda hobby nu.",
+    "Du är en katastrof. Men en söt en.",
+    "Kör hårt. Eller lägg dig ner. Universum bryr sig inte."
+  ];
+  var COMP_EN = [
+    "You survived the night. Impressive, damn it.",
+    "Up and at 'em, you tired wretch.",
+    "Congrats, you're still breathing.",
+    "Another day in hell. Coffee?",
+    "You look how you feel. Unfortunately.",
+    "Life is short. Luckily.",
+    "Smile — it confuses your enemies.",
+    "You're not old, just near your expiry date.",
+    "It'll all work out. Or not. We'll see.",
+    "The world's a mess, but your hair looks great today.",
+    "Drink water, you dehydrated houseplant.",
+    "You've got this. Probably. Maybe.",
+    "Another Monday that wants to kill you slowly.",
+    "Memento mori — but eat breakfast first.",
+    "You're unique. Just like every other sod.",
+    "Existence is suffering. But fika helps.",
+    "Time heals all. Then you die.",
+    "Good job today. Allegedly.",
+    "You're made of stardust and low self-esteem.",
+    "Gravity wins in the end. But not today.",
+    "Everything's meaningless, so relax.",
+    "You're the main character. In a tragedy.",
+    "Breathe in. Breathe out. Repeat until you die.",
+    "Nobody gets out alive. Take it easy.",
+    "You look lively for someone half-dead.",
+    "Keep fighting. Or don't. It all burns anyway.",
+    "You're a limited edition. Sadly defective.",
+    "Happiness is just a bad memory.",
+    "The sun's shining. Provocative, isn't it?",
+    "You're doing your best. It shows. Unfortunately.",
+    "Expectations are just future disappointments.",
+    "You're like fine wine: best with snacks.",
+    "Chaos is free. Embrace it.",
+    "Optimism is just a charming bug.",
+    "The clock's ticking. It hates you too.",
+    "You're not late, time's just scared of you.",
+    "Rust in peace. You're halfway there anyway.",
+    "Everything ends. Start anyway, you optimist.",
+    "Nice confidence for someone so mortal.",
+    "You're 70% water and 30% unresolved anxiety.",
+    "Death missed again. You're still here, damn it.",
+    "Another round in this cursed simulation.",
+    "You look like the coffee already gave up.",
+    "Be the unexplained noise the neighbours worry about.",
+    "Laugh now. The void laughs with you.",
+    "You've got main-character energy and an extra's budget.",
+    "It's all gone to hell, but you have lovely eyes.",
+    "Survival is your only hobby now.",
+    "You're a disaster. But a cute one.",
+    "Go hard. Or lie down. The universe doesn't care."
+  ];
+  var EMOJI = ["🌞","🌈","⭐","🌸","🚀","🎉","🍀","🌻","💫","🦊","🐳","🌍","☕","🎈","🌟","🌴","🍉","🐝","🌙","❤️"];
+  function compSet(){
+    if(state.comments==="en") return COMP_EN;
+    if(state.comments==="emoji") return EMOJI;
+    return COMP; // "sv"
+  }
+  var compIdx=-1, compTimer=null, stockRowsTimer=null, stockFootTimer=null, compUserObj=null;
+  function rotateComp(){
+    var el=$("compText");
+    el.style.opacity=0;
+    setTimeout(function(){
+      var set=compSet();
+      compIdx=(compIdx+1)%set.length;
+      el.textContent=set[compIdx];
+      el.style.opacity=1;
+    },650);
+  }
+  function startComp(){
+    var reg=$("compRegion"), el=$("compText");
+    if(state.biz==="stock"){ reg.style.display="none"; clearInterval(compTimer); compTimer=null; return; }
+    if(state.comments==="off"){ reg.style.display="none"; clearInterval(compTimer); compTimer=null; return; }
+    reg.style.display="flex";
+    // .compliment's max-width:680px (for nicely wrapped quotes) fights the HA
+    // dashboard's own 94vw width, since vw ignores the parent's max-width -
+    // widen the box only in "ha" mode so the dashboard is actually centered.
+    el.style.maxWidth = state.comments==="ha" ? "96vw" : "";
+    if(state.comments==="stock"){
+      clearInterval(compTimer); compTimer=null;
+      el.classList.remove("emoji");
+      loadStock();
+      compTimer=setInterval(loadStock, 60*1000);
+      return;
+    }
+    if(state.comments==="ha"){
+      clearInterval(compTimer); compTimer=null;
+      el.classList.remove("emoji");
+      loadHA();
+      compTimer=setInterval(loadHA, 60*1000);
+      return;
+    }
+    if(state.comments==="user"){
+      clearInterval(compTimer); compTimer=null;
+      el.classList.remove("emoji");
+      el.textContent=""; el.style.opacity=1;
+      if(state.compImgData){
+        el.innerHTML='<img class="comp-user" src="'+state.compImgData+'" alt="">';
+        return;
+      }
+      idbGet("compImgBlob").then(function(blob){
+        if(blob){
+          if(compUserObj){ try{URL.revokeObjectURL(compUserObj);}catch(e){} }
+          compUserObj=URL.createObjectURL(blob);
+          el.innerHTML='<img class="comp-user" src="'+compUserObj+'" alt="">';
+        } else {
+          el.textContent="Choose a centre image in settings.";
+        }
+      }).catch(function(){ el.textContent="Couldn't load the centre image."; });
+      return;
+    }
+    el.classList.toggle("emoji", state.comments==="emoji");
+    var set=compSet();
+    compIdx=Math.floor(Math.random()*set.length);
+    el.textContent=set[compIdx]; el.style.opacity=1;
+    clearInterval(compTimer); compTimer=setInterval(rotateComp,30000);
+  }
+  function stockCfg(){
+    var r=state.stockRange;
+    if(r==="day")  return {range:"1d",  interval:"5m",  lbl:"1D"};
+    if(r==="week") return {range:"5d",  interval:"30m", lbl:"1W"};
+    if(r==="year") return {range:"1y",  interval:"1d",  lbl:"1Y"};
+    if(r==="all")  return {range:"max", interval:"1mo", lbl:"MAX"};
+    return {range:"1mo", interval:"1d", lbl:"1M"};
+  }
+  function loadStock(){
+    var el=$("compText"); if(!el) return;
+    var sym=(state.stockSym||"AAPL").toUpperCase();
+    var base=state.busUrl;
+    if(!base){ el.innerHTML='<div class="stockrows"><div class="srow-top"><span class="stk-msg">Set the relay URL (Departures service URL) in settings</span></div></div>'; el.style.opacity=1; return; }
+    var c=stockCfg();
+    var u=base + (base.indexOf("?")>=0?"&":"?") + "stock="+encodeURIComponent(sym)+"&range="+c.range+"&interval="+c.interval;
+    fetch(u).then(function(r){return r.json();}).then(function(d){
+      var rawC=(d&&d.closes)||[];
+      var closes=[]; for(var k=0;k<rawC.length;k++){ var cvn=parseFloat(rawC[k]); if(!isNaN(cvn)) closes.push(cvn); }
+      if(closes.length<2){ el.innerHTML='<div class="stockrows"><div class="srow-top"><span class="stk-msg">'+((d&&d.message)||("No data for "+sym))+'</span></div></div>'; el.style.opacity=1; return; }
+      var last=(d.price!=null?Number(d.price):closes[closes.length-1]), first=closes[0];
+      var chg=last-first, pct=first?(chg/first*100):0, up=chg>=0, col=up?"#4cc15a":"#e0533f";
+      el.innerHTML='<div class="stockrows"><div class="srow">'
+        +'<div class="srow-top"><span class="ssym">'+sym+'</span><span class="sprice">'+last.toFixed(2)+'</span>'
+        +'<span class="schg" style="color:'+col+'">'+(up?"+":"")+chg.toFixed(2)+' ('+(up?"+":"")+pct.toFixed(2)+'%)</span></div>'
+        +'<canvas class="srow-canvas" id="stkCanvas"></canvas>'
+        +'</div></div>';
+      el.style.opacity=1;
+      requestAnimationFrame(function(){ drawMiniStock("stkCanvas", closes); });
+    }).catch(function(){ el.innerHTML='<div class="stockrows"><div class="srow-top"><span class="stk-msg">Couldn\'t load stock</span></div></div>'; el.style.opacity=1; });
+  }
+  function stkLabel(sec, range){
+    var d=new Date(sec*1000);
+    var mo=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    if(range==="day") return pad(d.getHours())+":"+pad(d.getMinutes());
+    if(range==="week") return ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]+" "+d.getDate();
+    if(range==="year"||range==="all") return mo[d.getMonth()]+" '"+String(d.getFullYear()).slice(2);
+    return d.getDate()+" "+mo[d.getMonth()];
+  }
+  function drawStock(closes, times, range){
+    var cv=$("stkCanvas"); if(!cv) return;
+    var w=cv.clientWidth||600, h=cv.clientHeight||160, dpr=window.devicePixelRatio||1;
+    cv.width=w*dpr; cv.height=h*dpr;
+    var ctx=cv.getContext("2d"); ctx.scale(dpr,dpr);
+    var padL=6, padR=58, padT=10, padB=22;
+    var min=Math.min.apply(null,closes), max=Math.max.apply(null,closes), rng=(max-min)||1, n=closes.length;
+    function X(i){ return padL+(w-padL-padR)*(n>1?i/(n-1):0); }
+    function Y(v){ return padT+(h-padT-padB)*(1-(v-min)/rng); }
+    ctx.strokeStyle="rgba(255,255,255,.12)"; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(padL,Y(max)+0.5); ctx.lineTo(w-padR,Y(max)+0.5); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(padL,Y(min)+0.5); ctx.lineTo(w-padR,Y(min)+0.5); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(X(0),Y(closes[0]));
+    for(var i=1;i<n;i++) ctx.lineTo(X(i),Y(closes[i]));
+    ctx.strokeStyle="#fff"; ctx.lineWidth=2; ctx.lineJoin="round"; ctx.stroke();
+    ctx.lineTo(X(n-1),h-padB); ctx.lineTo(X(0),h-padB); ctx.closePath();
+    ctx.globalAlpha=0.10; ctx.fillStyle="#fff"; ctx.fill(); ctx.globalAlpha=1;
+    ctx.fillStyle="rgba(255,255,255,.6)"; ctx.font="11px Roboto,sans-serif"; ctx.textAlign="left"; ctx.textBaseline="middle";
+    ctx.fillText(max.toFixed(2), w-padR+6, Y(max));
+    ctx.fillText(min.toFixed(2), w-padR+6, Y(min));
+    ctx.textBaseline="alphabetic";
+    var lbl0, lbl1;
+    if(times){ lbl0=stkLabel(times[0],range); lbl1=stkLabel(times[times.length-1],range); }
+    else { var now=Date.now()/1000, step=range==="day"?300:range==="week"?1800:range==="year"?86400:range==="all"?2629800:86400; lbl0=stkLabel(now-(n-1)*step,range); lbl1=stkLabel(now,range); }
+    ctx.textAlign="left"; ctx.fillText(lbl0, padL, h-7);
+    ctx.textAlign="right"; ctx.fillText(lbl1, w-padR, h-7);
+  }
+
+  function loadStockRows(){
+    var reg=$("stockRowsRegion"), list=$("stockRowsList"); if(!reg||!list) return;
+    var syms=[state.stock1,state.stock2,state.stock3,state.stock4,state.stock5]
+      .map(function(s){return (s||"").trim().toUpperCase();}).filter(Boolean);
+    if(!syms.length){ list.innerHTML='<div class="stk-msg">Add up to 5 stock symbols in settings</div>'; return; }
+    var base=state.busUrl;
+    if(!base){ list.innerHTML='<div class="stk-msg">Set the relay URL (Departures service URL) in settings</div>'; return; }
+    var c=stockCfg();
+    Promise.all(syms.map(function(sym){
+      var u=base+(base.indexOf("?")>=0?"&":"?")+"stock="+encodeURIComponent(sym)+"&range="+c.range+"&interval="+c.interval;
+      return fetch(u).then(function(r){return r.json();}).then(function(d){
+        var rawC=(d&&d.closes)||[];
+        var closes=[]; for(var k=0;k<rawC.length;k++){ var cvn=parseFloat(rawC[k]); if(!isNaN(cvn)) closes.push(cvn); }
+        if(closes.length<2) return {sym:sym, err:true};
+        var last=(d.price!=null?Number(d.price):closes[closes.length-1]), first=closes[0];
+        var chg=last-first, pct=first?(chg/first*100):0;
+        return {sym:sym, last:last, chg:chg, pct:pct, closes:closes};
+      }).catch(function(){ return {sym:sym, err:true}; });
+    })).then(function(results){
+      list.innerHTML = results.map(function(r,i){
+        if(r.err) return '<div class="srow"><div class="srow-top"><span class="ssym">'+r.sym+'</span><span class="stk-msg">No data</span></div></div>';
+        var up=r.chg>=0, col=up?"#4cc15a":"#e0533f";
+        return '<div class="srow">'
+          +'<div class="srow-top"><span class="ssym">'+r.sym+'</span><span class="sprice">'+r.last.toFixed(2)+'</span>'
+          +'<span class="schg" style="color:'+col+'">'+(up?"+":"")+r.chg.toFixed(2)+' ('+(up?"+":"")+r.pct.toFixed(2)+'%)</span></div>'
+          +'<canvas class="srow-canvas" id="srowCanvas'+i+'"></canvas>'
+          +'</div>';
+      }).join("");
+      requestAnimationFrame(function(){
+        results.forEach(function(r,i){ if(!r.err) drawMiniStock("srowCanvas"+i, r.closes); });
+      });
+    });
+  }
+  function drawMiniStock(canvasId, closes){
+    var cv=$(canvasId); if(!cv||!closes||closes.length<2) return;
+    var w=cv.clientWidth||300, h=cv.clientHeight||60, dpr=window.devicePixelRatio||1;
+    cv.width=w*dpr; cv.height=h*dpr;
+    var ctx=cv.getContext("2d"); ctx.scale(dpr,dpr);
+    var min=Math.min.apply(null,closes), max=Math.max.apply(null,closes), rng=(max-min)||1, n=closes.length;
+    function X(i){ return w*(n>1?i/(n-1):0); }
+    function Y(v){ return 4+(h-8)*(1-(v-min)/rng); }
+    ctx.beginPath(); ctx.moveTo(X(0),Y(closes[0]));
+    for(var i=1;i<n;i++) ctx.lineTo(X(i),Y(closes[i]));
+    ctx.strokeStyle="#fff"; ctx.lineWidth=2; ctx.lineJoin="round"; ctx.stroke();
+  }
+
+  // ---------- Home Assistant dashboard (centre display "ha" mode) ----------
+  // Fetched directly from the browser (Home Assistant can't be reached through
+  // the relay Worker, which has no route into a home network) - needs a real
+  // HTTPS address (e.g. a Tailscale HTTPS hostname) and cors_allowed_origins
+  // set on the Home Assistant side. The URL and token are device-local only:
+  // excluded from pushConfig/applyRemoteCfg, same as remoteSync/camShare.
+  function haGet(entity){
+    if(!entity) return Promise.resolve(null);
+    var base=state.haUrl.replace(/\/+$/,"");
+    return fetch(base+"/api/states/"+encodeURIComponent(entity), {
+      headers:{ "Authorization":"Bearer "+state.haToken, "Content-Type":"application/json" }
+    }).then(function(r){ if(!r.ok) throw new Error("http "+r.status); return r.json(); })
+      .catch(function(){ return null; });
+  }
+  function haNum(s){
+    if(!s || s.state==="unavailable" || s.state==="unknown") return null;
+    var v=parseFloat(s.state); return isNaN(v) ? null : v;
+  }
+  function haOn(s){ return !!s && s.state==="on"; }
+  var haLoading=false;
+  function loadHA(){
+    var el=$("compText"); if(!el) return;
+    if(!state.haUrl || !state.haToken){
+      el.innerHTML='<div class="hadash-msg">Set up Home Assistant in settings (URL + access token).</div>'; el.style.opacity=1;
+      return;
+    }
+    if(haLoading) return;
+    haLoading=true;
+    var keys=["haBattery","haRange","haOdometer","haCabinTemp","haTireFL","haTireFR","haTireRL","haTireRR",
+              "haCharging","haPlug","haLocked","haDoors","haWindows","haOnline"];
+    Promise.all(
+      keys.map(function(k){ return haGet(state[k]); })
+    ).then(function(results){
+        haLoading=false;
+        var s={}; keys.forEach(function(k,i){ s[k]=results[i]; });
+        // any successful read at all means the connection itself is fine
+        if(results.every(function(r){ return r===null; })){
+          el.innerHTML='<div class="hadash-msg">Couldn’t reach Home Assistant — check the URL, token, and that HTTPS/CORS are set up.</div>';
+          el.style.opacity=1;
+          return;
+        }
+        el.innerHTML=buildHaDashboard(s); el.style.opacity=1;
+      })
+      .catch(function(){
+        haLoading=false;
+        el.innerHTML='<div class="hadash-msg">Couldn’t reach Home Assistant — check the URL, token, and that HTTPS/CORS are set up.</div>';
+        el.style.opacity=1;
+      });
+  }
+  function buildHaDashboard(s){
+    var battery=haNum(s.haBattery), range=haNum(s.haRange), odo=haNum(s.haOdometer), cabin=haNum(s.haCabinTemp);
+    var tFL=haNum(s.haTireFL), tFR=haNum(s.haTireFR), tRL=haNum(s.haTireRL), tRR=haNum(s.haTireRR);
+    var charging=haOn(s.haCharging), plugged=haOn(s.haPlug);
+    var locked = s.haLocked ? s.haLocked.state==="off" : null; // HA lock convention: on=unlocked, off=locked
+    var doorsOpen=haOn(s.haDoors), windowsOpen=haOn(s.haWindows), online=haOn(s.haOnline);
+    if(cabin===0) cabin=null; // BYD reports 0 while the car sleeps
+
+    var pct = battery!=null ? Math.max(0,Math.min(100,battery)) : null;
+    var col = pct===null ? "#333333" : (pct>50?"#00cc44":pct>20?"#ffaa00":"#ff3300");
+    var gauge = '<div class="hadash-stage"><div class="hadash-scene"><div class="hadash-ring-group">'
+      +'<div class="hadash-ring" style="background:conic-gradient(from -90deg, '+col+' '+(pct||0)+'%, #333333 0)"></div>'
+      +'<div class="hadash-ring-outline-outer"></div><div class="hadash-ring-outline-inner"></div>'
+      +'</div><div class="hadash-face" style="color:'+(pct!==null?col:"#ffffff")+'">'
+      +(pct!==null && charging ? '<div class="hadash-bolt">⚡</div>' : '')
+      +'<div>'+(pct!==null?Math.round(pct)+"%":"--")+'</div>'
+      +'</div></div></div>';
+
+    function row(label,valueHtml){ return '<div class="hadash-row"><span>'+label+'</span><span>'+valueHtml+'</span></div>'; }
+    var rows='';
+    if(s.haRange) rows+=row("Range", range!=null?Math.round(range)+" km":"--");
+    if(s.haCharging || s.haPlug){
+      var chargeVal = charging ? "yes" : (plugged ? "plugged in, idle" : "not connected");
+      rows+=row("Charging", chargeVal);
+    }
+    if(s.haLocked) rows+=row("Locked", '<i class="msym">'+(locked===false?"lock_open":"lock")+'</i> '+(locked===false?"unlocked":"locked"));
+    if(s.haDoors) rows+=row("Doors", doorsOpen?"open":"closed");
+    if(s.haWindows) rows+=row("Windows", windowsOpen?"open":"closed");
+    if(s.haCabinTemp) rows+=row("Cabin temp", cabin!=null?cabin.toFixed(1)+"°C":"--");
+    if(s.haOdometer) rows+=row("Odometer", odo!=null?Math.round(odo)+" km":"--");
+    if(s.haOnline) rows+=row("Online", online?"yes":"no");
+
+    var tires='';
+    if(tFL!=null||tFR!=null||tRL!=null||tRR!=null){
+      tires='<div class="hadash-tires">Tires (kPa): FL '+(tFL!=null?tFL:"--")+' · FR '+(tFR!=null?tFR:"--")
+        +' · RL '+(tRL!=null?tRL:"--")+' · RR '+(tRR!=null?tRR:"--")+'</div>';
+    }
+
+    return '<div class="hadash">'
+      +'<div class="hadash-title"><i class="msym">directions_car</i>BYD Atto 3</div>'
+      +'<div class="hadash-columns">'+gauge+'<div class="hadash-info"><div class="hadash-rows">'+rows+'</div>'+tires+'</div></div>'
+      +'</div>';
+  }
+
+  // ---------- car map page (page 2: hybrid satellite map with the car's live
+  // position, from the same Home Assistant URL + token as the dashboard).
+  // Keeps home and the car in view together, so it zooms out by itself as the
+  // car gets further away. Flip pages with a hand-swipe past the camera, or
+  // by tapping the page dots at the bottom.
+  var cmMap=null, cmCar=null, cmHome=null, cmTrail=null, cmTimer=null, cmPage=0, cmLastFit="";
+  // Today's journey: positions are recorded on every poll (the poll runs even
+  // while the clock page is up), drawn as a line, and reset at local midnight.
+  var cmDay="", cmPts=[];
+  function cmOkPt(lat,lon){ return typeof lat==="number" && typeof lon==="number" && isFinite(lat) && isFinite(lon) && Math.abs(lat)<=85 && Math.abs(lon)<=180 && !(lat===0&&lon===0); }
+  (function(){ try{ var o=JSON.parse(localStorage.getItem("carTrail")||"null"); if(o && o.d && o.pts){ cmDay=o.d; cmPts=o.pts.filter(function(p){ return p && cmOkPt(p[0],p[1]); }); } }catch(e){} })();
+  function cmToday(){ var d=new Date(); return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate(); }
+  function cmRecord(lat,lon){
+    if(!cmOkPt(lat,lon)) return;                            // GPS glitch (0,0 / out of range): never let it into the bounds
+    var day=cmToday();
+    if(day!==cmDay){ cmDay=day; cmPts=[]; }
+    var p=cmPts[cmPts.length-1];
+    if(p && cmDistKm(p[0],p[1],lat,lon)<0.025) return;      // parked / GPS jitter: don't grow the trail
+    cmPts.push([lat,lon]);
+    if(cmPts.length>2000) cmPts.splice(0, cmPts.length-2000);
+    try{ localStorage.setItem("carTrail", JSON.stringify({d:cmDay, pts:cmPts})); }catch(e){}
+  }
+  function cmMsg(txt){ var el=$("carmapMsg"); if(!el) return; el.textContent=txt||""; el.style.display=txt?"block":"none"; }
+  function cmEnsure(){
+    if(cmMap) return true;
+    if(typeof L==="undefined"){ cmMsg("The map library didn't load — check the connection and reload."); return false; }
+    cmMap=L.map("carmapMap",{zoomControl:false});
+    // Stamen Toner (Stadia-hosted) — same basemap as the main Pi mirror's
+    // car page. Key is domain-usable from ecksquad.github.io; keyless
+    // access only covers localhost so the key is required here.
+    L.tileLayer("https://tiles.stadiamaps.com/tiles/stamen_toner/{z}/{x}/{y}.png?api_key=b7b20a15-ef47-47a0-82d1-166e1e116c67",{maxZoom:18,attribution:"Stadia Maps, Stamen Design, OpenStreetMap"}).addTo(cmMap);
+    cmMap.setView([state.lat!=null?state.lat:57.7, state.lon!=null?state.lon:11.97], 13);
+    return true;
+  }
+  function cmDistKm(a,b,c,d){
+    var p=Math.PI/180, q=Math.sin((c-a)*p/2), w=Math.sin((d-b)*p/2);
+    var h=q*q+Math.cos(a*p)*Math.cos(c*p)*w*w;
+    return 2*6371*Math.asin(Math.sqrt(h));
+  }
+  function loadCarPos(){
+    if(!state.haUrl || !state.haToken){
+      if(cmPage===1) cmMsg("Set the Home Assistant URL and access token in settings (they're under Centre display when Home Assistant is selected, or turn the car map on to reveal them).");
+      return;
+    }
+    haGet(state.haTracker).then(function(s){
+      var at=s && s.attributes;
+      if(!at || typeof at.latitude!=="number" || typeof at.longitude!=="number"){
+        if(cmPage===1) cmMsg("No position from "+(state.haTracker||"the car tracker")+" — check the entity ID under Entity IDs (advanced).");
+        return;
+      }
+      cmRecord(at.latitude, at.longitude);                  // journey log runs whichever page is up
+      if(cmPage!==1) return;
+      cmMsg("");
+      if(!cmEnsure()) return;
+      var car=[at.latitude, at.longitude];
+      if(!cmTrail) cmTrail=L.polyline(cmPts,{color:"#4fc3f7",weight:3,opacity:.85}).addTo(cmMap);
+      else cmTrail.setLatLngs(cmPts);
+      if(!cmCar) cmCar=L.marker(car,{icon:L.divIcon({className:"cm-car",iconSize:[22,22]})}).addTo(cmMap);
+      else cmCar.setLatLng(car);
+      var hasHome = state.lat!=null && state.lon!=null;
+      if(hasHome && !cmHome) cmHome=L.marker([state.lat,state.lon],{icon:L.divIcon({className:"cm-home",iconSize:[14,14]})}).addTo(cmMap);
+      // Fitting against a stale/zero container size collapses the zoom to a
+      // black world view, so always re-measure first and never fit at size 0.
+      try{ cmMap.invalidateSize(); }catch(e){}
+      var szOk; try{ var sz=cmMap.getSize(); szOk=sz.x>0&&sz.y>0; }catch(e){ szOk=false; }
+      var sig=car[0].toFixed(5)+","+car[1].toFixed(5)+","+cmPts.length;
+      if(szOk && sig!==cmLastFit){                          // only re-fit when the car actually moved
+        cmLastFit=sig;
+        var bp=cmPts.concat([car]); if(hasHome) bp.push([state.lat,state.lon]);
+        if(bp.length>1) cmMap.fitBounds(L.latLngBounds(bp).pad(0.2),{maxZoom:17});
+        else cmMap.setView(car,15);
+      }
+      if(hasHome){
+        var km=cmDistKm(state.lat,state.lon,car[0],car[1]);
+        $("carmapTitle").textContent = km<0.2 ? t("carHome") : (km<10?km.toFixed(1):Math.round(km))+" km "+t("carFrom");
+      } else {
+        $("carmapTitle").textContent = (at.friendly_name||"").replace(/\s*Location\s*$/i,"");
+      }
+      var sub=[];
+      if(typeof at.gps_speed==="number" && at.gps_speed>0) sub.push(Math.round(at.gps_speed)+" km/h");
+      var ts=at.gps_timestamp ? new Date(at.gps_timestamp) : null;
+      if(ts && !isNaN(ts)) sub.push(t("carUpd")+" "+ts.toLocaleTimeString(t("locale"),{hour:"2-digit",minute:"2-digit"}));
+      $("carmapSub").textContent=sub.join(" · ");
+    });
+  }
+  function applyCarPage(){
+    var showMap = cmPage===1 && state.carMap==="on";
+    $("carmap").classList.toggle("show", showMap);
+    var dots=$("pageDots");
+    dots.style.display = state.carMap==="on" ? "flex" : "none";
+    dots.children[0].classList.toggle("on", !showMap);
+    dots.children[1].classList.toggle("on", showMap);
+    if(showMap){
+      // Leaflet measures its container, which was display:none until now —
+      // re-measure synchronously (and again shortly after, belt and braces)
+      // and force a re-fit so the view always recovers on page-open.
+      cmLastFit="";
+      if(cmEnsure()){
+        try{ cmMap.invalidateSize(); }catch(e){}
+        setTimeout(function(){ try{ cmMap.invalidateSize(); }catch(e){} },60);
+      }
+      loadCarPos();
+    }
+  }
+  function flipPage(){
+    if(state.carMap!=="on" || !$("mirror").classList.contains("show")) return;
+    if($("sleepveil").classList.contains("on")) return;    // asleep: a wave just wakes the screen
+    cmPage = cmPage===1 ? 0 : 1;
+    applyCarPage();
+    var d=$("pageDots");                                   // pulse the dots so a caught gesture is visible
+    d.classList.add("flash");
+    setTimeout(function(){ d.classList.remove("flash"); },700);
+  }
+  function startCarMap(){
+    clearInterval(cmTimer); cmTimer=null;
+    if(state.carMap!=="on") cmPage=0;
+    applyCarPage();
+    // Poll on both pages, not just while the map is showing — the day's
+    // journey line needs positions recorded all day.
+    if(state.carMap==="on" && state.haUrl && state.haToken) cmTimer=setInterval(loadCarPos, 20*1000);
+  }
+  function stopCarMap(){ clearInterval(cmTimer); cmTimer=null; $("carmap").classList.remove("show"); $("pageDots").style.display="none"; }
+
+  function stopStockRows(){
+    var reg=$("stockRowsRegion"); if(reg) reg.style.display="none";
+    clearInterval(stockRowsTimer); stockRowsTimer=null;
+    clearInterval(stockFootTimer); stockFootTimer=null;
+    $("stockTimeRegion").style.display="none";
+    $("stockWxRegion").style.display="none";
+    $("clockRegion").style.display="";
+    $("wxRegion").style.display="";
+  }
+  function startStockRows(){
+    var reg=$("stockRowsRegion"); if(!reg) return;
+    if(state.biz!=="stock"){ stopStockRows(); return; }
+    reg.style.display="flex";
+    loadStockRows();
+    clearInterval(stockRowsTimer);
+    stockRowsTimer=setInterval(loadStockRows, 60*1000);
+    $("clockRegion").style.display="none";
+    $("wxRegion").style.display="none";
+    $("stockTimeRegion").style.display="";
+    $("stockWxRegion").style.display="";
+    function paintFoot(){
+      $("stockTime").innerHTML = (($("mTime")||{}).innerHTML)||"";
+      $("stockDate").textContent = (($("mDate")||{}).textContent)||"";
+      var temp=(($("wxTemp")||{}).innerHTML)||"", cond=(($("wxCond")||{}).textContent)||"";
+      $("stockWx").innerHTML = temp + (cond?'<span class="biz-wxc">'+cond+'</span>':"");
+    }
+    paintFoot();
+    clearInterval(stockFootTimer); stockFootTimer=setInterval(paintFoot,1000);
+  }
+
+  // ---------- remote settings sync (Firestore, or the relay Worker + KV) ----------
+  // With FIREBASE_CONFIG set (top of the file) configs travel through
+  // Firestore: the mirror holds a live listener, so pushes land in seconds
+  // with no polling. With it null, everything falls back to the relay Worker.
+  var lastCfgTs=0, remoteTimer=null, fsDb=null, fsUnsub=null, CTRLMODE=false, KIOSK=false;
+  function fsInit(){
+    if(!window.FIREBASE_CONFIG || typeof firebase==="undefined") return null;
+    try{
+      if(!fsDb){ firebase.initializeApp(FIREBASE_CONFIG); fsDb=firebase.firestore(); }
+      return fsDb;
+    }catch(e){ return null; }
+  }
+  function pushConfig(){
+    var id=state.mirrorId||"main";
+    // Device-local switches never travel: the mirror owns whether IT accepts
+    // remote control / shares its camera — a phone with them Off must not
+    // switch them off on the mirror.
+    // JSON round-trip drops undefined values, which Firestore rejects.
+    var payload=JSON.parse(JSON.stringify(Object.assign({}, state, {_ts:Date.now()})));
+    delete payload.remoteSync; delete payload.camShare; delete payload.haUrl; delete payload.haToken;
+    var db=fsInit();
+    if(db){
+      // Website demo mirrors still self-clean: the TTL policy on expireAt
+      // (enabled in the Firebase console) deletes demo docs an hour after
+      // the last push.
+      if(id.slice(0,5)==="demo-") payload.expireAt=firebase.firestore.Timestamp.fromMillis(Date.now()+3600000);
+      db.collection("mirrors").doc(id).set(payload)
+        .then(function(){ alert("Pushed to mirror \""+id+"\"."); })
+        .catch(function(e){
+          if(e&&e.code==="resource-exhausted") alert("Push failed — the free daily quota is used up. It resets at 09:00 Swedish time.");
+          else alert("Push failed: "+(e&&e.message?e.message:"check the connection."));
+        });
+      return;
+    }
+    var base=state.busUrl; if(!base){ alert("Set the relay URL first (Departures service URL)."); return; }
+    fetch(base+(base.indexOf("?")>=0?"&":"?")+"config=set&id="+encodeURIComponent(id),
+      { method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify(payload) })
+      .then(function(r){
+        // Cloudflare KV free tier: 1000 writes/day. When exhausted, every store
+        // throws inside the Worker (error 1101 -> HTTP 500) until midnight UTC.
+        if(r.status>=500) throw new Error("quota");
+        return r.json();
+      })
+      .then(function(res){ if(res&&res.error) alert("Push failed: "+res.error); else alert("Pushed to mirror \""+id+"\"."); })
+      .catch(function(e){
+        if(e&&e.message==="quota") alert("Push failed \u2014 the relay's free daily write limit is used up. It resets at midnight UTC (02:00 Swedish time).");
+        else alert("Push failed \u2014 check the relay URL and Worker.");
+      });
+  }
+  // Website demo goes dormant after 30 min without a push — each open kiosk
+  // tab otherwise polls the relay forever (~17k reads/day per tab).
+  var KIOSK_IDLE_MS=30*60*1000, lastCfgActivity=Date.now();
+  function applyRemoteCfg(cfg){
+    if(!cfg || !cfg._ts || cfg._ts<=lastCfgTs) return;
+    lastCfgTs=cfg._ts; lastCfgActivity=Date.now();
+    var keep={remoteSync:state.remoteSync, camShare:state.camShare, mirrorId:state.mirrorId, lat:state.lat, lon:state.lon, haUrl:state.haUrl, haToken:state.haToken};
+    var prevFlip=state.carFlip;
+    Object.assign(state, cfg); delete state._ts; delete state.expireAt;
+    state.remoteSync=keep.remoteSync; state.camShare=keep.camShare; state.mirrorId=keep.mirrorId; state.lat=keep.lat; state.lon=keep.lon; state.haUrl=keep.haUrl; state.haToken=keep.haToken;
+    save(); fillForm();
+    if(CTRLMODE) return; // controller phone: update the form only, never switch views
+    // A bumped carFlip counter is the phone's "flip mirror page" command.
+    if(state.carFlip!==prevFlip && state.carMap==="on") cmPage = cmPage===1 ? 0 : 1;
+    if(state.eyeMode==="on"){ showEye(); }
+    else if($("eyesaver").classList.contains("show")){ showMirror(); }
+    else if($("mirror").classList.contains("show")) showMirror();
+  }
+  function pullConfig(){
+    var db=fsInit();
+    if(db){
+      db.collection("mirrors").doc(state.mirrorId||"main").get()
+        .then(function(snap){ applyRemoteCfg(snap.exists?snap.data():null); }).catch(function(){});
+      return;
+    }
+    var base=state.busUrl; if(!base) return;
+    if(KIOSK && Date.now()-lastCfgActivity>KIOSK_IDLE_MS){
+      stopRemote();
+      var tag=$("mirrorTag"); if(tag) tag.textContent="demo paused — reload the page to wake it";
+      return;
+    }
+    var id=state.mirrorId||"main";
+    fetch(base+(base.indexOf("?")>=0?"&":"?")+"config=get&id="+encodeURIComponent(id))
+      .then(function(r){ return r.json(); })
+      .then(applyRemoteCfg).catch(function(){});
+  }
+  function stopRemote(){
+    clearInterval(remoteTimer); remoteTimer=null;
+    if(fsUnsub){ try{fsUnsub();}catch(e){} fsUnsub=null; }
+  }
+  function startRemote(){
+    stopRemote();
+    if(state.remoteSync!=="on") return;
+    var db=fsInit();
+    if(db){
+      // An idle Firestore listener reads nothing, so no kiosk dormancy needed.
+      fsUnsub=db.collection("mirrors").doc(state.mirrorId||"main")
+        .onSnapshot(function(snap){ applyRemoteCfg(snap.exists?snap.data():null); },function(){});
+      return;
+    }
+    pullConfig();
+    // Kiosk demo polls fast so website visitors see their pushes within seconds.
+    remoteTimer=setInterval(pullConfig, KIOSK?5000:20000);
+  }
+  // Hidden tabs don't need to poll the relay; resume where the mirror (or the
+  // eye screensaver, which deliberately keeps listening) is showing.
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden){ stopRemote(); }
+    else if(state.remoteSync==="on" && !remoteTimer && !fsUnsub
+      && ($("mirror").classList.contains("show") || $("eyesaver").classList.contains("show"))){
+      lastCfgActivity=Date.now();
+      startRemote();
+    }
+  });
+
+  // ---------- view switching ----------
+  var timer=null, wxTimer=null, busTimer=null;
+  function showMirror(){
+    $("eyesaver").classList.remove("show");
+    unlockOrient();
+    $("setup").classList.add("hidden");
+    $("mirror").classList.add("show");
+    if(PHONE) setVP(true);
+    goFullscreen();
+    $("focus").classList.remove("show"); clearInterval(focusTimer); focusTimer=null;
+    $("mirrorTag").textContent = state.remoteSync==="on" ? "ID "+(state.mirrorId||"main") : "";
+    tick(); loadWeather(true); refreshBottomLeft(true); startComp(); startStockRows(); keepAwake(); startMotion(); startBiz(); startRemote(); startCamShare(); startCarMap();
+    clearInterval(timer); timer=setInterval(tick,1000);
+    clearInterval(wxTimer); wxTimer=setInterval(function(){loadWeather(false);},60*1000);
+    clearInterval(busTimer); busTimer=setInterval(function(){refreshBottomLeft(false);},30*1000);
+  }
+  function showSetup(){
+    $("eyesaver").classList.remove("show");
+    unlockOrient();
+    setVP(false);
+    $("mirror").classList.remove("show");
+    $("setup").classList.remove("hidden");
+    clearInterval(timer); clearInterval(wxTimer); clearInterval(busTimer);
+    clearInterval(compTimer); compTimer=null;
+    stopStockRows();
+    releaseAwake();
+    stopMotion(); stopBiz(); stopCamShare(); stopRemote(); stopCarMap();
+    $("focus").classList.remove("show"); clearInterval(focusTimer); focusTimer=null;
+  }
+
+  function showEye(){
+    $("setup").classList.add("hidden");
+    $("mirror").classList.remove("show");
+    clearInterval(timer); clearInterval(wxTimer); clearInterval(busTimer);
+    clearInterval(compTimer); compTimer=null;
+    stopStockRows();
+    stopMotion();
+    stopCamShare();
+    stopCarMap();
+    $("focus").classList.remove("show"); clearInterval(focusTimer); focusTimer=null;
+    $("eyesaver").classList.add("show");
+    setVP(false);                       // portrait, device width
+    var el=document.documentElement;
+    var rf=el.requestFullscreen||el.webkitRequestFullscreen||el.mozRequestFullScreen;
+    if(rf){ try{ var pr=rf.call(el); if(pr&&pr.then){ pr.then(lockPortrait,lockPortrait); } else { lockPortrait(); } }catch(e){ lockPortrait(); } }
+    else { lockPortrait(); }
+    keepAwake();
+  }
+  function lockPortrait(){
+    try{ if(screen.orientation && screen.orientation.lock){ var p=screen.orientation.lock("portrait"); if(p&&p.catch) p.catch(function(){}); } }catch(e){}
+  }
+  function unlockOrient(){
+    try{ if(screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); }catch(e){}
+  }
+
+  // ---------- business mode (image banner + time/date + weather) ----------
+  var bizTimer=null, bizTopObj=null, bizMidObj=null;
+  function idbOpen(){ return new Promise(function(res,rej){ try{ var r=indexedDB.open("reflekt",1); r.onupgradeneeded=function(){ r.result.createObjectStore("kv"); }; r.onsuccess=function(){res(r.result);}; r.onerror=function(){rej(r.error);}; }catch(e){ rej(e); } }); }
+  function idbSet(k,v){ return idbOpen().then(function(db){ return new Promise(function(res,rej){ var tx=db.transaction("kv","readwrite"); tx.objectStore("kv").put(v,k); tx.oncomplete=function(){res();}; tx.onerror=function(){rej(tx.error);}; }); }); }
+  function idbGet(k){ return idbOpen().then(function(db){ return new Promise(function(res,rej){ var tx=db.transaction("kv","readonly"); var rq=tx.objectStore("kv").get(k); rq.onsuccess=function(){res(rq.result);}; rq.onerror=function(){rej(rq.error);}; }); }); }
+  function setBizImg(img, val, key, which, dataVal){
+    if(val==="data"){
+      if(dataVal){
+        // A GIF must have its src reassigned to (re)start the animation from
+        // frame 0 when the biz overlay is shown; a static image keeps the
+        // no-flicker guard (only re-set if the src actually changed).
+        if(dataVal.indexOf("data:image/gif")===0){ img.src=""; img.src=dataVal; }
+        else if(img.getAttribute("src")!==dataVal){ img.src=dataVal; }
+        img.style.display="block";
+      }
+      else { img.removeAttribute("src"); img.style.display="none"; }
+    } else if(val==="idb"){
+      idbGet(key).then(function(blob){
+        if(blob){ var u=URL.createObjectURL(blob);
+          if(which==="top"){ if(bizTopObj) URL.revokeObjectURL(bizTopObj); bizTopObj=u; } else { if(bizMidObj) URL.revokeObjectURL(bizMidObj); bizMidObj=u; }
+          img.src=u; img.style.display="block";
+        } else { img.removeAttribute("src"); img.style.display="none"; }
+      }).catch(function(){ img.style.display="none"; });
+    } else if(val){ if(img.getAttribute("src")!==val) img.src=val; img.style.display="block"; }
+    else { img.removeAttribute("src"); img.style.display="none"; }
+  }
+  function stopBiz(){ $("biz").classList.remove("show"); clearInterval(bizTimer); bizTimer=null; }
+  function startBiz(){
+    if(state.biz!=="on"){ stopBiz(); return; }
+    var pdfOn = state.bizPdf==="idb";
+    $("bizPdf").style.display = pdfOn ? "flex" : "none";
+    if(pdfOn){
+      clearInterval(bizTimer); bizTimer=null;
+      idbGet("bizPdfBlob").then(function(blob){ if(blob) renderPdf(blob); });
+      $("biz").classList.add("show");
+      return;
+    }
+    setBizImg($("bizTopImg"), state.bizTop, "bizTopBlob", "top", state.bizTopData);
+    setBizImg($("bizMidImg"), state.bizMid, "bizMidBlob", "mid", state.bizMidData);
+    $("bizTopImg").style.width=(state.bizTopScale||100)+"%";
+    $("bizMidImg").style.width=(state.bizMidScale||100)+"%";
+    function paint(){
+      $("bizTime").innerHTML = (($("mTime")||{}).innerHTML)||"";
+      $("bizDate").textContent = (($("mDate")||{}).textContent)||"";
+      var temp=(($("wxTemp")||{}).innerHTML)||"", cond=(($("wxCond")||{}).textContent)||"";
+      $("bizWx").innerHTML = temp + (cond?'<span class="biz-wxc">'+cond+'</span>':"");
+    }
+    paint();
+    clearInterval(bizTimer); bizTimer=setInterval(paint,1000);
+    $("biz").classList.add("show");
+  }
+  function bizPick(fileEl, key, urlEl, stateKey){
+    var f=fileEl.files && fileEl.files[0]; if(!f){ return; }
+    // A GIF must NEVER go through fileToPushData's canvas resize — that
+    // flattens it to a single static JPEG frame (the "my GIF is just an
+    // image" bug). Keep it as-is: embed as a data URL if it's small enough
+    // to sync, otherwise stash the animated GIF in IndexedDB (this device
+    // only). Non-GIFs keep the resize-and-embed path below.
+    if(f.type==="image/gif" || /\.gif$/i.test(f.name||"")){
+      var r=new FileReader();
+      r.onload=function(){
+        var d=r.result;
+        if(d && d.length<=BIZ_IMG_MAX){
+          setImg(stateKey+"Data", d); state[stateKey]="data"; if(urlEl) urlEl.value=""; save();
+          if($("mirror").classList.contains("show")) startBiz();
+          else if(CTRLMODE) alert("GIF ready — tap “Push settings to mirror” to send it.");
+        } else {
+          idbSet(key, f).then(function(){
+            state[stateKey]="idb"; setImg(stateKey+"Data", ""); if(urlEl) urlEl.value=""; save();
+            if($("mirror").classList.contains("show")) startBiz();
+            alert("GIF saved and it will animate — but it's too large to sync, so it stays on this mirror only.");
+          }).catch(function(){ alert("Couldn't store that GIF (too large or blocked)."); });
+        }
+      };
+      r.onerror=function(){ alert("Couldn't read that GIF."); };
+      r.readAsDataURL(f);
+      fileEl.value=""; return;
+    }
+    // Embedded as a data URL so the image travels with pushes — the old
+    // IndexedDB path stayed on the picking device, so "Choose from device" on
+    // a phone never reached the mirror. Legacy "idb" configs still display.
+    fileToPushData(f, function(d){
+      if(!d){ alert("Couldn't read that image."); return; }
+      setImg(stateKey+"Data", d); state[stateKey]="data"; if(urlEl) urlEl.value=""; save();
+      if($("mirror").classList.contains("show")) startBiz();
+      else if(CTRLMODE) alert("Image ready — tap “Push settings to mirror” to send it.");
+    }, BIZ_IMG_MAX);
+    fileEl.value="";
+  }
+  function applyMode(){ var st=$("setup"); if(!st) return; st.classList.toggle("mode-biz", state.biz==="on"); st.classList.toggle("mode-home", state.biz==="off"); st.classList.toggle("mode-stock", state.biz==="stock"); }
+  function idbDel(k){ return idbOpen().then(function(db){ return new Promise(function(res){ var tx=db.transaction("kv","readwrite"); tx.objectStore("kv").delete(k); tx.oncomplete=function(){res();}; tx.onerror=function(){res();}; }); }); }
+  function renderPdf(blob){
+    if(!window.pdfjsLib) return;
+    try{ if(!pdfjsLib.GlobalWorkerOptions.workerSrc) pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"; }catch(e){}
+    var url=URL.createObjectURL(blob);
+    pdfjsLib.getDocument(url).promise.then(function(pdf){ return pdf.getPage(1); }).then(function(page){
+      var cv=$("bizPdfCanvas"), box=$("bizPdf").getBoundingClientRect();
+      var v1=page.getViewport({scale:1}), dpr=window.devicePixelRatio||1;
+      var fit=Math.min(box.width/v1.width, box.height/v1.height);
+      var vp=page.getViewport({scale:fit*dpr});
+      cv.width=vp.width; cv.height=vp.height;
+      cv.style.width=(vp.width/dpr)+"px"; cv.style.height=(vp.height/dpr)+"px";
+      return page.render({canvasContext:cv.getContext("2d"), viewport:vp}).promise;
+    }).then(function(){ try{URL.revokeObjectURL(url);}catch(e){} }).catch(function(){ try{URL.revokeObjectURL(url);}catch(e){} });
+  }
+
+  // ---------- focus views (big time / weather) ----------
+  var focusTimer=null;
+  function showFocus(kind){
+    showMirror();                       // keep data + timers live underneath
+    $("focus").setAttribute("data-kind",kind);
+    function paint(){
+      if(kind==="time"){
+        $("focusInner").innerHTML='<div class="f-time">'+((($("mTime")||{}).textContent)||"")+'</div>';
+      } else {
+        var t=(($("wxTemp")||{}).textContent)||"", c=(($("wxCond")||{}).textContent)||"";
+        $("focusInner").innerHTML='<div class="f-wx">'+t+'</div><div class="f-wxc">'+c+'</div>';
+      }
+    }
+    paint();
+    clearInterval(focusTimer); focusTimer=setInterval(paint,1000);
+    $("focus").classList.add("show");
+  }
+
+
+
+  // ---------- segmented controls ----------
+  function seg(id, prop){
+    var box=$(id);
+    box.addEventListener("click",function(e){
+      var b=e.target.closest("button"); if(!b) return;
+      Array.prototype.forEach.call(box.children,function(c){c.classList.remove("on");});
+      b.classList.add("on"); state[prop]=b.getAttribute("data-v");
+    });
+  }
+  seg("unitSeg","unit"); seg("clockSeg","clock"); seg("langSeg","lang"); seg("secSeg","seconds"); seg("compSeg","comments");
+  seg("zoneSeg","elzone");
+  seg("motionSeg","motion"); seg("motionTimeoutSeg","motionFor"); seg("motionSensSeg","motionSens"); seg("camShareSeg","camShare"); seg("modeSeg","biz"); seg("stockRangeSeg","stockRange"); seg("remoteSeg","remoteSync");
+  seg("carMapSeg","carMap"); seg("carSwipeSeg","carSwipe");
+
+
+  function updateCompImgVis(){ $("compImgField").style.display = state.comments==="user" ? "block" : "none"; }
+  function updateCarMapVis(){ var on=state.carMap==="on"; $("carPageBtn").style.display = on ? "" : "none"; }
+  $("carMapSeg").addEventListener("click", function(){ setTimeout(function(){ updateCarMapVis(); updateHaVis(); },0); });
+  function updateHaVis(){
+    // The HA URL/token fields serve both the centre dashboard and the car map page.
+    var show = state.comments==="ha" || state.carMap==="on";
+    $("haField").style.display = show ? "block" : "none";
+    $("haTokenField").style.display = show ? "block" : "none";
+    $("haAdvToggle").style.display = show ? "flex" : "none";
+    if(!show){ $("haAdv").classList.remove("open"); $("haAdvToggle").classList.remove("open"); }
+  }
+  $("compSeg").addEventListener("click", function(){ updateCompImgVis(); updateHaVis(); });
+  updateCompImgVis(); updateHaVis();
+  $("haAdvToggle").addEventListener("click",function(){
+    this.classList.toggle("open"); $("haAdv").classList.toggle("open");
+  });
+  ["haUrl","haToken","haBattery","haRange","haOdometer","haCabinTemp","haTireFL","haTireFR","haTireRL","haTireRR",
+   "haCharging","haPlug","haLocked","haDoors","haWindows","haOnline","haTracker"].forEach(function(id){
+    $(id).addEventListener("input",function(){ state[id]=$(id).value.trim(); save(); });
+  });
+  $("compImgPick").addEventListener("click",function(){ $("compImgFile").click(); });
+  // Convert the picked file to a data URL small enough to travel inside the
+  // config push. Firestore allows ~1MB per config TOTAL, so budgets are
+  // deliberately well under that, not summed up to it: the centre image gets
+  // ~700KB, leaving headroom for both business images (~300KB each) plus the
+  // rest of the config even in the (rare) case all three are set at once.
+  // Base64 inflates a file by ~37%, so the raw-file passthrough threshold
+  // (0.7x the budget below) is smaller than the pushed-size budget itself.
+  // Tiny files pass through raw (keeps GIF animation), anything bigger is
+  // canvas-downscaled to JPEG, shrinking until it fits.
+  var PUSH_IMG_MAX = 700*1024, BIZ_IMG_MAX = 300*1024;
+  function fileToPushData(f, cb, max){
+    max = max || PUSH_IMG_MAX;
+    if(f.size<=max*0.7){
+      var r=new FileReader();
+      r.onload=function(){ cb(r.result); };
+      r.onerror=function(){ cb(null); };
+      r.readAsDataURL(f);
+      return;
+    }
+    var img=new Image();
+    img.onload=function(){
+      try{ URL.revokeObjectURL(img.src); }catch(e){}
+      var sizes=max>200*1024 ? [1280,1024,800,640,520,420,340] : [800,640,520,420,340], d=null;
+      for(var s=0; s<sizes.length; s++){
+        var sc=Math.min(1, sizes[s]/Math.max(img.width,img.height));
+        var cv=document.createElement("canvas");
+        cv.width=Math.max(1,Math.round(img.width*sc)); cv.height=Math.max(1,Math.round(img.height*sc));
+        cv.getContext("2d").drawImage(img,0,0,cv.width,cv.height);
+        var q=0.72;
+        d=cv.toDataURL("image/jpeg",q);
+        while(d.length>max && q>0.4){ q-=0.1; d=cv.toDataURL("image/jpeg",q); }
+        if(d.length<=max) break;
+      }
+      cb(d && d.length<=max ? d : null);
+    };
+    img.onerror=function(){ cb(null); };
+    img.src=URL.createObjectURL(f);
+  }
+  $("compImgFile").addEventListener("change",function(){
+    var f=$("compImgFile").files && $("compImgFile").files[0]; if(!f) return;
+    fileToPushData(f, function(d){
+      if(!d){ alert("Couldn't read that image."); return; }
+      setImg("compImgData", d); state.compImg="data"; save();
+      if($("mirror").classList.contains("show")) startComp();
+      else if(CTRLMODE) alert("Image ready — tap “Push settings to mirror” to send it.");
+    });
+    $("compImgFile").value="";
+  });
+  $("compImgClear").addEventListener("click",function(){
+    setImg("compImgData", ""); state.compImg="";
+    idbDel("compImgBlob").then(function(){
+      save();
+      if($("mirror").classList.contains("show")) startComp();
+    });
+  });
+
+  $("accentSw").addEventListener("click",function(e){
+    var b=e.target.closest("button"); if(!b) return;
+    Array.prototype.forEach.call(this.children,function(c){c.classList.remove("on");});
+    b.classList.add("on"); state.accent=b.getAttribute("data-v"); applyAccent();
+  });
+
+  $("advToggle").addEventListener("click",function(){
+    this.classList.toggle("open"); $("adv").classList.toggle("open");
+  });
+
+  function setSeg(id,val){
+    var box=$(id);
+    Array.prototype.forEach.call(box.children,function(c){
+      c.classList.toggle("on", c.getAttribute("data-v")===String(val));
+    });
+  }
+  function fillForm(){
+    $("loc").value=state.loc; $("name").value=state.name;
+    $("busUrl").value=state.busUrl||""; $("busId").value=state.busId||""; $("stockSym").value=state.stockSym||""; $("stock1").value=state.stock1||""; $("stock2").value=state.stock2||""; $("stock3").value=state.stock3||""; $("stock4").value=state.stock4||""; $("stock5").value=state.stock5||""; $("mirrorId").value=state.mirrorId||"main"; $("bizTop").value=(state.bizTop&&state.bizTop!=="idb"&&state.bizTop!=="data")?state.bizTop:""; $("bizMid").value=(state.bizMid&&state.bizMid!=="idb"&&state.bizMid!=="data")?state.bizMid:""; $("bizTopScale").value=state.bizTopScale||100; $("bizTopScaleVal").textContent=(state.bizTopScale||100)+"%"; $("bizMidScale").value=state.bizMidScale||100; $("bizMidScaleVal").textContent=(state.bizMidScale||100)+"%";
+    ["haUrl","haToken","haBattery","haRange","haOdometer","haCabinTemp","haTireFL","haTireFR","haTireRL","haTireRR",
+     "haCharging","haPlug","haLocked","haDoors","haWindows","haOnline","haTracker"].forEach(function(id){ $(id).value = state[id]||""; });
+    setSeg("unitSeg",state.unit); setSeg("clockSeg",state.clock);
+    setSeg("langSeg",state.lang); setSeg("secSeg",state.seconds); setSeg("compSeg",state.comments);
+    setSeg("accentSw",state.accent); applyAccent();
+    setSeg("zoneSeg",state.elzone); updateCompImgVis(); updateHaVis(); eyeBtnLabel();
+    setSeg("motionSeg",state.motion); setSeg("motionTimeoutSeg",state.motionFor); setSeg("motionSensSeg",state.motionSens); setSeg("camShareSeg",state.camShare); setSeg("modeSeg",state.biz); setSeg("stockRangeSeg",state.stockRange); setSeg("remoteSeg",state.remoteSync); applyMode();
+    setSeg("carMapSeg",state.carMap); setSeg("carSwipeSeg",state.carSwipe); updateCarMapVis();
+    if(state.busId){ $("advToggle").classList.add("open"); $("adv").classList.add("open"); }
+  }
+
+  // ---------- use my location (GPS) ----------
+  $("useLoc").addEventListener("click",function(){
+    var st=$("status"); st.className="status"; st.textContent="Getting location\u2026";
+    if(!navigator.geolocation){ st.className="status err"; st.textContent="This device can't share location \u2014 type a place instead."; return; }
+    // capture other fields first so they aren't lost
+    state.name=$("name").value.trim();
+    state.busUrl=$("busUrl").value.trim(); state.busId=$("busId").value.trim(); state.stockSym=$("stockSym").value.trim().toUpperCase(); state.stock1=$("stock1").value.trim().toUpperCase(); state.stock2=$("stock2").value.trim().toUpperCase(); state.stock3=$("stock3").value.trim().toUpperCase(); state.stock4=$("stock4").value.trim().toUpperCase(); state.stock5=$("stock5").value.trim().toUpperCase(); state.mirrorId=($("mirrorId").value.trim()||"main");
+    navigator.geolocation.getCurrentPosition(function(pos){
+      state.lat=pos.coords.latitude; state.lon=pos.coords.longitude; state.place="Current location"; state.loc="";
+      $("loc").value="";
+      st.className="status ok"; st.textContent="Location set";
+      save(); showMirror();
+    },function(err){
+      st.className="status err";
+      st.textContent = err && err.code===1 ? "Location blocked \u2014 allow it in settings, or type a place." : "Couldn't get location \u2014 type a place instead.";
+    },{enableHighAccuracy:false,timeout:10000,maximumAge:600000});
+  });
+
+  // ---------- start ----------
+  $("startBtn").addEventListener("click",function(){
+    var st=$("status"); st.className="status"; st.textContent="";
+    state.name=$("name").value.trim();
+    state.busUrl=$("busUrl").value.trim(); state.busId=$("busId").value.trim(); state.stockSym=$("stockSym").value.trim().toUpperCase(); state.stock1=$("stock1").value.trim().toUpperCase(); state.stock2=$("stock2").value.trim().toUpperCase(); state.stock3=$("stock3").value.trim().toUpperCase(); state.stock4=$("stock4").value.trim().toUpperCase(); state.stock5=$("stock5").value.trim().toUpperCase(); state.mirrorId=($("mirrorId").value.trim()||"main");
+    var loc=$("loc").value.trim();
+    if(loc){
+      st.textContent="Finding location\u2026";
+      geocode(loc).then(function(g){
+        state.loc=loc; state.lat=g.lat; state.lon=g.lon; state.place=g.place;
+        st.className="status ok"; st.textContent=g.place;
+        save(); showMirror();
+      }).catch(function(){
+        st.className="status err"; st.textContent="Couldn't find that \u2014 check spelling, or tap \u201cUse my location\u201d.";
+      });
+    } else if(state.lat!=null){
+      save(); showMirror();
+    } else {
+      st.className="status err"; st.textContent="Tap \u201cUse my location\u201d, or type a place.";
+    }
+  });
+  $("gear").addEventListener("click",showSetup);
+  $("pageDots").addEventListener("click",flipPage);      // tap fallback for the hand-swipe
+  $("carPageBtn").addEventListener("click",function(){
+    state.carFlip=(state.carFlip||0)+1; save();
+    if(state.busUrl){ pushConfig(); }                      // controller phone: flip on the mirror
+    else { cmPage = cmPage===1 ? 0 : 1; showMirror(); }    // standalone tablet: open on the flipped page
+  });
+  function eyeBtnLabel(){ $("eyeBtn").textContent = (state.busUrl && state.eyeMode==="on") ? "Stop eye screensaver (on mirror)" : "Eye screensaver"; }
+  $("eyeBtn").addEventListener("click",function(){
+    if(state.busUrl){
+      // Controller phone: toggle the eye screensaver on the mirror via the relay.
+      state.eyeMode = (state.eyeMode==="on") ? "off" : "on";
+      save(); pushConfig(); eyeBtnLabel();
+    } else {
+      // No relay configured: behave locally (tablet set up by hand).
+      state.eyeMode="on"; save(); showEye();
+    }
+  });
+  $("eyesaver").addEventListener("click",function(){ state.eyeMode="off"; save(); $("eyesaver").classList.remove("show"); showMirror(); });
+  $("focus").addEventListener("click",showMirror);
+  $("bizGear").addEventListener("click",showSetup);
+  $("bizTopPick").addEventListener("click",function(){ $("bizTopFile").click(); });
+  $("bizTopFile").addEventListener("change",function(){ bizPick($("bizTopFile"),"bizTopBlob",$("bizTop"),"bizTop"); });
+  $("bizMidPick").addEventListener("click",function(){ $("bizMidFile").click(); });
+  $("bizMidFile").addEventListener("change",function(){ bizPick($("bizMidFile"),"bizMidBlob",$("bizMid"),"bizMid"); });
+  $("bizTop").addEventListener("input",function(){ state.bizTop=$("bizTop").value.trim(); setImg("bizTopData",""); save(); });
+  $("bizMid").addEventListener("input",function(){ state.bizMid=$("bizMid").value.trim(); setImg("bizMidData",""); save(); });
+  $("modeSeg").addEventListener("click",function(){ setTimeout(function(){ applyMode(); if($("mirror").classList.contains("show")){ startBiz(); startComp(); startStockRows(); refreshBottomLeft(true); } },0); });
+  $("bizPdfPick").addEventListener("click",function(){ $("bizPdfFile").click(); });
+  $("bizPdfFile").addEventListener("change",function(){ var f=$("bizPdfFile").files&&$("bizPdfFile").files[0]; if(!f){return;} idbSet("bizPdfBlob",f).then(function(){ state.bizPdf="idb"; save(); if($("mirror").classList.contains("show")) startBiz(); }).catch(function(){ alert("Couldn't store that PDF (too large or blocked)."); }); $("bizPdfFile").value=""; });
+  $("bizPdfClear").addEventListener("click",function(){ state.bizPdf=""; idbDel("bizPdfBlob"); save(); if($("mirror").classList.contains("show")) startBiz(); });
+  $("pushBtn").addEventListener("click",function(){ save(); pushConfig(); });
+  $("camViewBtn").addEventListener("click",function(){
+    // Builds the viewer URL so nobody has to hand-type ?cam=1&id=… (a missing id
+    // silently falls back to "main" and connects to nothing).
+    var id=($("mirrorId").value.trim()||state.mirrorId||"main");
+    var u=location.origin+location.pathname+"?cam=1&id="+encodeURIComponent(id);
+    var b=$("busUrl").value.trim()||state.busUrl;
+    if(b && b!==DEFAULTS.busUrl) u+="&relay="+encodeURIComponent(b);
+    window.open(u,"_blank");
+  });
+  function renderPairQr(){
+    var box=$("pairQr"); if(!box) return;
+    if(CTRLMODE || !window.qrcode){ box.innerHTML=""; return; }
+    var id=(state.mirrorId||$("mirrorId").value.trim()||"main");
+    try{
+      var url=location.origin+location.pathname+"?mirror="+encodeURIComponent(id);
+      var qr=qrcode(0,"M"); qr.addData(url); qr.make();
+      box.innerHTML='<div class="qrbox">'+qr.createSvgTag({cellSize:4,margin:4})+'</div>'
+        +'<div class="qrhint">SCAN WITH YOUR PHONE TO CONTROL THIS MIRROR &middot; CODE: '+id+'</div>';
+    }catch(e){ box.innerHTML=""; }
+  }
+  $("genId").addEventListener("click",function(){
+    if(!confirm("Create a NEW code for THIS device?\n\nThis only changes the code here — if a phone was paired using the old code, it will lose access and must scan the new QR.")) return;
+    var A="amber birch cedar delta ember frost indigo koda lumen mint nova onyx opal pearl polar quartz sage terra velvet willow".split(" ");
+    var B="arc bay cove dune elm fern glen isle lake mesa peak reef rune star tide vale".split(" ");
+    // Three words + number (~55 billion combos): the code is the only lock on a
+    // mirror, and the QR does the typing anyway.
+    var w1=A[Math.floor(Math.random()*A.length)];
+    var w3=A[Math.floor(Math.random()*A.length)];
+    if(w3===w1) w3=A[(A.indexOf(w1)+1)%A.length];
+    var id=w1+"-"+B[Math.floor(Math.random()*B.length)]+"-"+w3+"-"+(1000+Math.floor(Math.random()*9000));
+    $("mirrorId").value=id; state.mirrorId=id; save(); renderPairQr();
+  });
+  $("mirrorId").addEventListener("change",function(){
+    state.mirrorId=($("mirrorId").value.trim()||"main"); save(); renderPairQr();
+  });
+  $("bizTopScale").addEventListener("input",function(){ var v=+$("bizTopScale").value; state.bizTopScale=v; $("bizTopScaleVal").textContent=v+"%"; save(); var im=$("bizTopImg"); if(im) im.style.width=v+"%"; });
+  $("bizMidScale").addEventListener("input",function(){ var v=+$("bizMidScale").value; state.bizMidScale=v; $("bizMidScaleVal").textContent=v+"%"; save(); var im=$("bizMidImg"); if(im) im.style.width=v+"%"; });
+
+  // ---------- boot ----------
+  // Ask the browser to keep our storage (helps stop mobile browsers evicting
+  // IndexedDB/localStorage when the tab closes). Best-effort; may be denied.
+  if(navigator.storage && navigator.storage.persist){ try{ navigator.storage.persist(); }catch(e){} }
+  load(); fillForm();
+  var kioskId=new URLSearchParams(location.search).get("kiosk");
+  var ctrlId=new URLSearchParams(location.search).get("mirror");
+  if(kioskId){
+    // Kiosk/demo mode (embedded on the website): boot straight into a live
+    // mirror with showcase defaults and a given ID, so visitors can control
+    // it from their own phone. Nothing is persisted (save() is a no-op).
+    KIOSK=true;
+    state=Object.assign({},DEFAULTS,{
+      lat:57.7089, lon:11.9746, loc:"Göteborg", name:"",
+      mirrorId:kioskId.trim(), remoteSync:"on",
+      comments:"sv", motion:"off", camShare:"off"
+    });
+    fillForm();
+    showMirror();
+  } else if(ctrlId){
+    // Controller mode (opened from the sign-in page): manage the mirror with this ID.
+    // Never becomes a mirror itself; pullConfig fills the form with the mirror's current settings.
+    CTRLMODE=true;
+    state.mirrorId=ctrlId.trim(); save(); fillForm();
+    // The mirror owns its code: on a controller phone, hide Generate and lock the ID.
+    $("genId").style.display="none";
+    $("mirrorId").readOnly=true;
+    $("mirrorIdHint").textContent="You're controlling the mirror with this code. To pair with a different mirror, scan its QR code (in its settings under Remote & phone control).";
+    showSetup();
+    pullConfig();
+  } else if(state.lat!=null){ showMirror(); } else { showSetup(); }
+  renderPairQr();
+  // Restore the business/centre images from IndexedDB (their persistent home),
+  // migrating any legacy localStorage copy, then re-render if a mirror is up.
+  if(!KIOSK) loadImages(function(){
+    fillForm();
+    if($("mirror").classList.contains("show")){ startBiz(); startComp(); }
+  });
+})();
+</script>
+
+<!-- OLED burn-in drift: slow sub-pixel orbit on the whole layout. MODE 1 = circle, 2 = Lissajous. -->
+<style>
+  body { will-change: transform; }
+  #sleepveil{position:fixed;inset:-24px;background:#000;z-index:9999;opacity:0;pointer-events:none;transition:opacity 1.2s ease}
+  #sleepveil.on{opacity:1}
+  #eyesaver{position:fixed;inset:0;background:#000;z-index:9000;display:none;align-items:center;justify-content:center;overflow:hidden}
+  #eyesaver.show{display:flex}
+  #eyesaver img{max-width:100%;max-height:100%;object-fit:contain;transform:scale(2);filter:contrast(1.4) brightness(1.15)}
+  .start.ghost{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.35);margin-top:8px}
+  .start.ghost:active{opacity:.7}
+  #pairQr{margin-top:12px;text-align:center}
+  #pairQr .qrbox{display:inline-block;background:#fff;padding:12px;border-radius:12px;line-height:0}
+  #pairQr .qrhint{font-family:var(--label);color:var(--faint);font-size:12px;letter-spacing:.08em;margin-top:8px}
+  #mirrorTag{position:absolute;bottom:6px;left:50%;transform:translateX(-50%);
+    font-family:var(--label);font-size:13px;letter-spacing:.12em;color:#555;white-space:nowrap}
+  #carmap{position:absolute;inset:0;background:#000;z-index:5;display:none}
+  #carmap.show{display:block}
+  #carmapMap{position:absolute;inset:0;background:#000}
+  #carmapTop{position:absolute;top:16px;left:0;right:0;text-align:center;z-index:600;pointer-events:none;text-shadow:0 1px 6px rgba(0,0,0,.9)}
+  #carmapTop .cm-title{font-family:'Roboto Condensed',sans-serif;font-weight:700;font-size:clamp(18px,3vmin,28px);letter-spacing:.12em;text-transform:uppercase;color:#fff}
+  #carmapTop .cm-sub{font-family:'Roboto Condensed',sans-serif;font-size:clamp(13px,2vmin,18px);color:#ddd;margin-top:4px}
+  #carmapMsg{position:absolute;top:42%;left:0;right:0;text-align:center;color:#bbb;z-index:600;padding:0 26px;display:none;font-family:'Roboto Condensed',sans-serif}
+  #pageDots{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);z-index:11;display:none;gap:12px;padding:10px 14px;cursor:pointer}
+  #pageDots .pd{width:9px;height:9px;border-radius:50%;background:#3a3a3a;transition:background .3s,transform .25s}
+  #pageDots .pd.on{background:#ccc}
+  #pageDots.flash .pd{transform:scale(1.8);background:#fff}
+  .cm-car{background:#4fc3f7;border:2px solid #fff;border-radius:50%;box-shadow:0 0 16px 6px rgba(79,195,247,.6)}
+  .cm-home{background:rgba(255,255,255,.25);border:2px solid #fff;border-radius:50%}
+  #carmap .leaflet-container{font-family:'Roboto Condensed',sans-serif}
+  #carmap .leaflet-control-attribution{background:rgba(0,0,0,.5);color:#777;font-size:9px}
+  #carmap .leaflet-control-attribution a{color:#999}
+  #focus{position:fixed;inset:0;background:#000;z-index:8000;display:none;align-items:center;justify-content:center;text-align:center;flex-direction:column}
+  #focus.show{display:flex}
+  #focus .f-time{font-family:'Roboto',sans-serif;font-weight:200;font-size:32vw;line-height:1;color:#fff}
+  #focus .f-wx{font-family:'Roboto',sans-serif;font-weight:200;font-size:30vw;line-height:1;color:#fff}
+  #focus .f-wxc{font-family:'Roboto Condensed',sans-serif;font-size:6vw;color:#fff;margin-top:2vh;text-transform:capitalize}
+  #biz{position:fixed;inset:0;background:var(--bg);z-index:7000;display:none;flex-direction:column;padding:clamp(14px,3vw,34px);box-sizing:border-box}
+  #biz.show{display:flex}
+  #biz #bizGear{z-index:3}
+  #setup.mode-home .opt-biz{display:none}
+  #setup.mode-biz .opt-home{display:none}
+  #setup.mode-home .opt-stock{display:none}
+  #setup.mode-biz .opt-stock{display:none}
+  #setup.mode-stock .opt-home{display:none}
+  #setup.mode-stock .opt-biz{display:none}
+  #setup .stock-range-field{display:none}
+  #setup.mode-home .stock-range-field{display:block}
+  #setup.mode-stock .stock-range-field{display:block}
+  #biz #bizPdf{position:absolute;inset:0;background:var(--bg);display:none;align-items:center;justify-content:center;z-index:1}
+  #biz #bizPdf canvas{max-width:100%;max-height:100%;display:block}
+  #biz #bizTopImg{align-self:center}
+  .sizerow{display:flex;align-items:center;gap:10px;margin-top:8px;font-family:var(--label);font-size:13px;color:var(--faint)}
+  .sizerow input[type=range]{flex:1}
+  #biz .biz-img{width:100%;height:auto;display:block}
+  #biz .biz-middle{flex:1 1 auto;display:flex;align-items:center;justify-content:center;min-height:0}
+  #biz .biz-foot{flex:0 0 auto;display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-top:18px}
+  .biz-time{font-family:var(--label);font-weight:300;line-height:1;color:var(--bright);font-size:clamp(40px,9vw,104px)}
+  .biz-time .sec{display:none}
+  .biz-date{font-family:var(--label);text-transform:uppercase;letter-spacing:.14em;color:var(--faint);margin-top:8px;font-size:clamp(12px,2.6vw,20px)}
+  .biz-wx{font-family:var(--label);font-weight:300;line-height:1;color:var(--bright);text-align:right;font-size:clamp(34px,7.5vw,84px)}
+  .biz-wx .biz-wxc{display:block;font-size:clamp(11px,2.2vw,16px);color:var(--faint);letter-spacing:.12em;text-transform:uppercase;margin-top:6px}
+</style>
+<script>
+(function () {
+  var AMP = 8;     // max shift in px (try 6-12)
+  var MODE = 2;    // 1 = circular orbit, 2 = Lissajous drift (path never repeats)
+  var P  = 200;    // mode 1: seconds per full circle
+  var PX = 181;    // mode 2: X period (s)
+  var PY = 233;    // mode 2: Y period (s)
+  var TAU = 2 * Math.PI;
+  function frame(now){
+    var t = now / 1000, x, y;
+    if (MODE === 1){
+      var a = (t / P) * TAU;
+      x = Math.sin(a) * AMP; y = Math.cos(a) * AMP;
+    } else {
+      x = Math.sin((t / PX) * TAU) * AMP;
+      y = Math.sin((t / PY) * TAU) * AMP;
+    }
+    document.body.style.transform = "translate(" + x.toFixed(2) + "px," + y.toFixed(2) + "px)";
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+</script>
+
+<script>
+/* Collapsible settings sections (Mirror 3 style) */
+(function(){
+  document.querySelectorAll(".m3sec-h").forEach(function(h){
+    h.addEventListener("click", function(){
+      h.parentElement.classList.toggle("open");
+    });
+  });
+})();
+</script>
+
+</body>
+</html>
