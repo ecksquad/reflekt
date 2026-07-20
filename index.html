@@ -959,13 +959,21 @@ if (FIREBASE_CONFIG) {
     $("busRegion").style.display="block";
     if(state.lat==null){ $("busHead").textContent="Departures"; $("busList").innerHTML='<div class="bus-msg">'+t("busWait")+'</div>'; return; }
     var now=Date.now();
-    if(!force && now-lastBus < 60*1000) return; // refresh each minute
+    // ResRobot's free key shares ONE monthly quota across every endpoint it
+    // has (confirmed 2026-07-20: nearbystops AND location.name reported the
+    // identical hardQuota/requestCounter) - polling every minute burns
+    // through it in ~9 days. 3 minutes keeps a full month's worth of
+    // departureBoard-only polling comfortably under the cap.
+    if(!force && now-lastBus < 180*1000) return;
     lastBus = now;
     var u = state.busUrl + (state.busUrl.indexOf("?")>=0?"&":"?")
           + "lat="+encodeURIComponent(state.lat) + "&lon="+encodeURIComponent(state.lon)
           + (state.busId ? "&id="+encodeURIComponent(state.busId) : "");
     fetch(u).then(function(r){return r.json();}).then(function(d){
       if(!d || d.error){ $("busHead").textContent="Departures"; $("busList").innerHTML='<div class="bus-msg">'+t("busErr")+'</div>'; return; }
+      // cache the resolved stop so every future poll skips the
+      // coordinate-lookup call entirely (see quota note above)
+      if(d.extId && !state.busId){ state.busId=String(d.extId); save(); }
       $("busHead").textContent = d.stop || "Departures";
       var deps = d.departures || [];
       if(!deps.length){ $("busList").innerHTML = '<div class="bus-msg">'+t("noBus")+'</div>'; return; }

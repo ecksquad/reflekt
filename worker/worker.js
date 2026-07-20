@@ -377,9 +377,16 @@ export default {
     const lon = url.searchParams.get("lon");
     let id = url.searchParams.get("id");
     let stopName = "";
+    let resolvedId = null; // only set when we had to resolve nearby-by-coords this call
 
     try {
       // 1) If no explicit stop, find the nearest one to the coordinates.
+      //    The caller SHOULD cache the returned extId and pass &id= on
+      //    future requests - ResRobot's whole key shares ONE monthly quota
+      //    across nearbystops/departureBoard/location.name (confirmed via
+      //    diagnostics 2026-07-20: identical hardQuota/requestCounter on
+      //    both endpoints), and re-resolving by coordinates on every poll
+      //    burns through it in days instead of the full month.
       if (!id) {
         if (!lat || !lon) return json({ error: "lat/lon required" }, 400);
         const nsUrl =
@@ -394,7 +401,11 @@ export default {
           id = sl.extId || sl.id;
           stopName = sl.name || "";
         }
-        if (!id) return json({ error: "no stop found nearby" }, 404);
+        if (!id) {
+          const code = ns.errorCode ? " (" + ns.errorCode + ")" : "";
+          return json({ error: "no stop found nearby" + code }, 404);
+        }
+        resolvedId = id;
       }
 
       // 2) Departures for that stop.
@@ -432,7 +443,7 @@ export default {
       // trim a trailing area suffix like "(Göteborg)" for a cleaner label
       stopName = stopName.replace(/\s*\([^)]*\)\s*$/, "").trim();
 
-      return json({ stop: stopName, departures });
+      return json({ stop: stopName, departures, extId: resolvedId });
     } catch (e) {
       return json({ error: "fetch failed: " + (e && e.message ? e.message : String(e)) }, 502);
     }
