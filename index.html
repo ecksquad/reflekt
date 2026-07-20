@@ -476,12 +476,12 @@ if (FIREBASE_CONFIG) {
     </div>
 
     <div class="field opt-home" id="carSwipeField">
-      <span class="label">Hand &amp; face gestures</span>
+      <span class="label">Hand gestures</span>
       <div class="seg" id="carSwipeSeg">
         <button data-v="off">Off</button>
         <button data-v="on" class="on">On</button>
       </div>
-      <div class="hint"><b>Close both eyes</b> for about half a second to flip between the mirror and the car map (a normal blink is too quick to count). <b>Hold an open palm</b> up to the camera for a second to switch between home and business mode. Because both need a deliberate, recognised gesture, simply walking past can&rsquo;t trigger them &mdash; unlike the old wave. Needs a lit room and you facing the mirror; the page dots pulse when a gesture lands, and the dots (tap) plus the &ldquo;Flip mirror page&rdquo; button on a connected phone still work as fallbacks. The gesture models load once from Google&rsquo;s MediaPipe CDN; all camera frames are processed on-device and never stored or sent anywhere.</div>
+      <div class="hint"><b>Thumbs up</b> held for about half a second flips between the mirror and the car map. <b>Thumbs down</b> held the same way switches between home and business mode. Because both need a deliberate, recognised gesture, simply walking past can&rsquo;t trigger them &mdash; unlike the old wave. Needs a lit room and you facing the mirror; the page dots pulse when a gesture lands, and the dots (tap) plus the &ldquo;Flip mirror page&rdquo; button on a connected phone still work as fallbacks. The gesture model loads once from Google&rsquo;s MediaPipe CDN; all camera frames are processed on-device and never stored or sent anywhere.</div>
     </div>
 
     <div class="field opt-home">
@@ -563,14 +563,26 @@ if (FIREBASE_CONFIG) {
     <button class="adv-toggle opt-home" id="advToggle"><span class="chev">›</span> Bus departures (optional)</button>
     <div id="adv" class="opt-home">
       <div class="field">
+        <span class="label">Departures source</span>
+        <div class="seg" id="busSourceSeg">
+          <button data-v="relay" class="on">Relay</button>
+          <button data-v="ha">Home Assistant</button>
+        </div>
+      </div>
+      <div class="field" id="busEntityField" style="display:none">
+        <span class="label">Bus entity ID</span>
+        <input id="busEntity" class="input" autocomplete="off">
+      </div>
+      <div class="field" id="busUrlField">
         <span class="label">Departures service URL</span>
         <input id="busUrl" class="input" placeholder="https://your-worker.workers.dev" autocomplete="off">
       </div>
-      <div class="field">
+      <div class="field" id="busIdField">
         <span class="label">Specific stop ID (optional)</span>
         <input id="busId" class="input" placeholder="leave blank for nearest stop" autocomplete="off" inputmode="numeric">
       </div>
-      <div class="hint">Departures for your nearest stop work automatically once location is allowed. Advanced: override the service URL or pin a specific stop ID.</div>
+      <div class="hint" id="busRelayHint">Departures for your nearest stop work automatically once location is allowed. Advanced: override the service URL or pin a specific stop ID.</div>
+      <div class="hint" id="busHaHint" style="display:none">Reads departures straight from a Home Assistant sensor (e.g. a Trafiklab/Västtrafik integration) using the same URL + token as the Home Assistant dashboard above — polls HA locally instead of an external API, so there&rsquo;s no outside quota to run out.</div>
     </div>
 
     </div>
@@ -813,7 +825,8 @@ if (FIREBASE_CONFIG) {
     haCharging:"binary_sensor.byd_atto3zuo_duo_charging", haPlug:"binary_sensor.byd_atto3zuo_duo_plug", haLocked:"binary_sensor.byd_atto3zuo_duo_locked",
     haDoors:"binary_sensor.byd_atto3zuo_duo_doors", haWindows:"binary_sensor.byd_atto3zuo_duo_windows", haOnline:"binary_sensor.byd_atto3zuo_duo_online",
     haTracker:"device_tracker.byd_atto3zuo_duo_location", carMap:"off", carSwipe:"on", carFlip:0,
-    busUrl:"https://still-wave-afbc.ecksquad.workers.dev", busId:"" };
+    busUrl:"https://still-wave-afbc.ecksquad.workers.dev", busId:"",
+    busSource:"relay", busEntity:"sensor.bjurslattsliden_goteborg" };
   var state = Object.assign({}, DEFAULTS);
   var KEY = "mirror.config.v1";
   // The business/centre images are data URLs — too big to sit in localStorage
@@ -952,9 +965,10 @@ if (FIREBASE_CONFIG) {
     }).catch(function(){ /* keep last shown */ });
   }
 
-  // ---------- bus (via your relay Worker: nearest stop to your coordinates) ----------
-  var lastBus = 0;
+  // ---------- bus (via your relay Worker, OR straight from Home Assistant) ----------
+  var lastBus = 0, lastBusHA = 0;
   function loadBus(force){
+    if(state.busSource==="ha"){ loadBusHA(force); return; }
     if(!state.busUrl){ $("busRegion").style.display="none"; return; }
     $("busRegion").style.display="block";
     if(state.lat==null){ $("busHead").textContent="Departures"; $("busList").innerHTML='<div class="bus-msg">'+t("busWait")+'</div>'; return; }
@@ -985,6 +999,37 @@ if (FIREBASE_CONFIG) {
       }).join("");
       $("busList").innerHTML = html;
     }).catch(function(){ $("busList").innerHTML = '<div class="bus-msg">'+t("busErr")+'</div>'; });
+  }
+  // Reads a Home Assistant sensor's departures_json attribute directly
+  // (e.g. a Trafiklab/Västtrafik HA integration) - a local API call to your
+  // own HA, so it has no external quota to exhaust the way the relay's
+  // Trafiklab key does. Polled far more often than the relay path since
+  // there's no shared monthly cap to protect.
+  function loadBusHA(force){
+    $("busRegion").style.display="block";
+    var now=Date.now();
+    if(!force && now-lastBusHA < 30*1000) return;
+    lastBusHA=now;
+    if(!state.haUrl || !state.haToken || !state.busEntity){
+      $("busHead").textContent="Departures";
+      $("busList").innerHTML='<div class="bus-msg">Set up Home Assistant + a bus entity in settings.</div>';
+      return;
+    }
+    haGet(state.busEntity).then(function(s){
+      if(!s || !s.attributes){ $("busHead").textContent="Departures"; $("busList").innerHTML='<div class="bus-msg">Couldn’t load departures from Home Assistant. Check the entity ID and connection.</div>'; return; }
+      $("busHead").textContent = s.attributes.station_name || "Departures";
+      var list = s.attributes.departures_json || [];
+      if(!list.length){ $("busList").innerHTML = '<div class="bus-msg">'+t("noBus")+'</div>'; return; }
+      var html = list.slice(0,8).map(function(dep){
+        var hay = (dep.line || "").toLowerCase();
+        var mode = /sp[åa]rv/.test(hay) ? "tram" : /tunnelbana|metro/.test(hay) ? "metro"
+          : /t[åa]g|pendel/.test(hay) ? "train" : /b[åa]t|f[äa]rja/.test(hay) ? "boat" : "bus";
+        var mins = (typeof dep.minutes_until==="number") ? dep.minutes_until : null;
+        var when = (mins!=null && mins<=20) ? (mins<=0? t("now") : mins+" "+t("min")) : (dep.departure_time||"");
+        return '<div class="dep">'+modeIcon(mode)+'<span class="ln">'+esc(dep.line||"")+'</span><span class="dst">'+esc(dep.destination||"")+'</span><span class="tm">'+esc(when)+'</span></div>';
+      }).join("");
+      $("busList").innerHTML = html;
+    });
   }
   function modeIcon(m){
     var g = {tram:"tram", bus:"directions_bus", train:"train", metro:"subway", boat:"directions_boat"}[m] || "directions_transit";
@@ -1190,45 +1235,36 @@ if (FIREBASE_CONFIG) {
     }).catch(function(){ setSleep(false); });             // denied / no camera -> never sleep
   }
 
-  // ---------- hand/face gestures (MediaPipe Tasks Vision) ----------
-  // Wink (one eye closed, the other open, held ~0.4s) = flip the page.
-  // Open palm held up ~1s = toggle home <-> business mode. Both require an
-  // INTENTIONAL, recognisable pose, so walking past can't trigger them
-  // (which is what plagued the old motion-only wave). Models load lazily
-  // from the MediaPipe CDN the first time gestures are enabled, then cache.
-  var gLoaded=false, gLoading=null, gFace=null, gHand=null, gTimer=null, gTick=0;
-  var winkStreak=0, gWinkCool=0, palmSince=0, palmSeen=0, gPalmCool=0;
-  function stopGestures(){ clearInterval(gTimer); gTimer=null; winkStreak=0; palmSince=0; }
+  // ---------- hand gestures (MediaPipe Tasks Vision) ----------
+  // Thumbs up held ~0.6s = flip to the car map (same toggle as before, just
+  // a clearer trigger). Thumbs down held ~0.6s = toggle home <-> business
+  // mode. Face/eye-blink detection removed entirely (2026-07-20) - it was
+  // the less reliable half of the old wink+palm combo; hand-only is
+  // simpler, cheaper (one model instead of two) and the canned thumb
+  // gestures are far less ambiguous than an eyelid-geometry threshold.
+  // Models load lazily from the MediaPipe CDN the first time gestures are
+  // enabled, then cache.
+  var gLoaded=false, gLoading=null, gHand=null, gTimer=null;
+  var thumbUpSince=0, thumbUpSeen=0, gThumbUpCool=0;
+  var thumbDownSince=0, thumbDownSeen=0, gThumbDownCool=0;
+  function stopGestures(){ clearInterval(gTimer); gTimer=null; thumbUpSince=0; thumbDownSince=0; }
   function loadGestures(){
     if(gLoaded) return Promise.resolve(true);
     if(gLoading) return gLoading;
     var V="https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
-    var FACE="https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task";
     var HANDM="https://storage.googleapis.com/mediapipe-models/gesture_recognizer/gesture_recognizer/float16/1/gesture_recognizer.task";
     gLoading=import(V+"/vision_bundle.mjs").then(function(m){
       return m.FilesetResolver.forVisionTasks(V+"/wasm").then(function(fs){
         // Try the GPU (WebGL) delegate for speed, fall back to CPU on any
         // device where GPU init fails — otherwise gestures silently die.
         function mk(deleg){
-          return Promise.all([
-            m.FaceLandmarker.createFromOptions(fs,{baseOptions:{modelAssetPath:FACE,delegate:deleg},outputFaceBlendshapes:true,runningMode:"VIDEO",numFaces:1}),
-            m.GestureRecognizer.createFromOptions(fs,{baseOptions:{modelAssetPath:HANDM,delegate:deleg},runningMode:"VIDEO",numHands:1})
-          ]);
+          return m.GestureRecognizer.createFromOptions(fs,{baseOptions:{modelAssetPath:HANDM,delegate:deleg},runningMode:"VIDEO",numHands:1});
         }
         return mk("GPU").catch(function(e){ console.warn("[reflekt] GPU gesture delegate failed, using CPU",e); return mk("CPU"); })
-          .then(function(r){ gFace=r[0]; gHand=r[1]; gLoaded=true; return true; });
+          .then(function(r){ gHand=r; gLoaded=true; return true; });
       });
-    }).catch(function(e){ gLoading=null; console.warn("[reflekt] gesture models failed to load",e); return false; });
+    }).catch(function(e){ gLoading=null; console.warn("[reflekt] gesture model failed to load",e); return false; });
     return gLoading;
-  }
-  function blendScore(cats,name){ for(var i=0;i<cats.length;i++){ if(cats[i].categoryName===name) return cats[i].score; } return 0; }
-  // Eye-aspect-ratio from face-mesh points (vertical eyelid gap / eye width).
-  // Open ~0.28-0.35, shut ~0.10. Uses geometry directly rather than the
-  // blendshape category names, so it can't be broken by a model/name change.
-  function eyeEAR(lm, top, bot, l, r){
-    var v=Math.hypot(lm[top].x-lm[bot].x, lm[top].y-lm[bot].y);
-    var h=Math.hypot(lm[l].x-lm[r].x, lm[l].y-lm[r].y);
-    return h>0 ? v/h : 1;
   }
   var gDebugEl=null;
   function gDebug(txt){
@@ -1238,45 +1274,35 @@ if (FIREBASE_CONFIG) {
   }
   function startGestures(video){
     stopGestures();
-    gDebug("gestures: loading models…");
+    gDebug("gestures: loading model…");
     loadGestures().then(function(ok){
-      if(!ok || !video){ gDebug("gestures: models FAILED to load"); return; }
+      if(!ok || !video){ gDebug("gestures: model FAILED to load"); return; }
       gDebug("gestures: ready");
-      // Face (eyes) checked every tick; hand (palm) on alternate ticks so the
-      // heavier hand model runs at half rate — plenty for a 1s hold.
+      // Only one (hand) model now, so it can run every tick.
       gTimer=setInterval(function(){
         if(!video || video.readyState<2) return;
         if(!$("mirror").classList.contains("show")) return;      // only on the mirror view
         if($("sleepveil").classList.contains("on")) return;      // asleep: ignore gestures
-        var now=performance.now(); gTick++;
-        var dbgFace="no face", dbgHand="";
+        var now=performance.now();
+        var dbgHand="";
         try{
-          var fr=gFace.detectForVideo(video, now);
-          var lm=(fr.faceLandmarks && fr.faceLandmarks[0]) || null;
-          if(lm){
-            var earR=eyeEAR(lm,159,145,33,133);                  // one eye
-            var earL=eyeEAR(lm,386,374,362,263);                 // other eye
-            // Page flip = BOTH eyes held shut ~0.5s. A natural blink (~0.1s)
-            // lands on 1 tick at most; we need >=3 (~0.55s) so it can't flip.
-            var shut=(earR<0.16 && earL<0.16);
-            winkStreak = shut ? winkStreak+1 : 0;
-            if(winkStreak>=3 && now>=gWinkCool){ gWinkCool=now+2500; winkStreak=0; flipPage(); }
-            dbgFace="EAR L:"+earL.toFixed(2)+" R:"+earR.toFixed(2)+(shut?" SHUT("+winkStreak+")":"");
-          }
-        }catch(e){ dbgFace="face err "+e.message; }
-        if(gTick%2===0){
-          try{
-            var hr=gHand.recognizeForVideo(video, now);
-            var g=(hr.gestures && hr.gestures[0] && hr.gestures[0][0]) ? hr.gestures[0][0].categoryName : null;
-            dbgHand="hand:"+(g||"-");
-            if(g==="Open_Palm"){
-              palmSeen=now;
-              if(!palmSince) palmSince=now;
-              else if(now-palmSince>=1000 && now>=gPalmCool){ gPalmCool=now+3000; palmSince=0; toggleBizMode(); }
-            } else if(palmSince && now-palmSeen>500){ palmSince=0; }   // palm dropped: reset the hold
-          }catch(e){ dbgHand="hand err "+e.message; }
-        }
-        gDebug(dbgFace+"  "+dbgHand);
+          var hr=gHand.recognizeForVideo(video, now);
+          var g=(hr.gestures && hr.gestures[0] && hr.gestures[0][0]) ? hr.gestures[0][0].categoryName : null;
+          dbgHand="hand:"+(g||"-");
+
+          if(g==="Thumb_Up"){
+            thumbUpSeen=now;
+            if(!thumbUpSince) thumbUpSince=now;
+            else if(now-thumbUpSince>=600 && now>=gThumbUpCool){ gThumbUpCool=now+2000; thumbUpSince=0; flipPage(); }
+          } else if(thumbUpSince && now-thumbUpSeen>400){ thumbUpSince=0; }
+
+          if(g==="Thumb_Down"){
+            thumbDownSeen=now;
+            if(!thumbDownSince) thumbDownSince=now;
+            else if(now-thumbDownSince>=600 && now>=gThumbDownCool){ gThumbDownCool=now+2000; thumbDownSince=0; toggleBizMode(); }
+          } else if(thumbDownSince && now-thumbDownSeen>400){ thumbDownSince=0; }
+        }catch(e){ dbgHand="hand err "+e.message; }
+        gDebug(dbgHand);
       }, 180);
     });
   }
@@ -2267,27 +2293,37 @@ if (FIREBASE_CONFIG) {
   seg("unitSeg","unit"); seg("clockSeg","clock"); seg("langSeg","lang"); seg("secSeg","seconds"); seg("compSeg","comments");
   seg("zoneSeg","elzone");
   seg("motionSeg","motion"); seg("motionTimeoutSeg","motionFor"); seg("motionSensSeg","motionSens"); seg("camShareSeg","camShare"); seg("modeSeg","biz"); seg("stockRangeSeg","stockRange"); seg("remoteSeg","remoteSync");
-  seg("carMapSeg","carMap"); seg("carSwipeSeg","carSwipe");
+  seg("carMapSeg","carMap"); seg("carSwipeSeg","carSwipe"); seg("busSourceSeg","busSource");
 
 
   function updateCompImgVis(){ $("compImgField").style.display = state.comments==="user" ? "block" : "none"; }
   function updateCarMapVis(){ var on=state.carMap==="on"; $("carPageBtn").style.display = on ? "" : "none"; }
   $("carMapSeg").addEventListener("click", function(){ setTimeout(function(){ updateCarMapVis(); updateHaVis(); },0); });
   function updateHaVis(){
-    // The HA URL/token fields serve both the centre dashboard and the car map page.
-    var show = state.comments==="ha" || state.carMap==="on";
+    // The HA URL/token fields serve the centre dashboard, the car map page,
+    // and HA-sourced bus departures.
+    var show = state.comments==="ha" || state.carMap==="on" || state.busSource==="ha";
     $("haField").style.display = show ? "block" : "none";
     $("haTokenField").style.display = show ? "block" : "none";
     $("haAdvToggle").style.display = show ? "flex" : "none";
     if(!show){ $("haAdv").classList.remove("open"); $("haAdvToggle").classList.remove("open"); }
   }
+  function updateBusSourceVis(){
+    var ha = state.busSource==="ha";
+    $("busEntityField").style.display = ha ? "block" : "none";
+    $("busUrlField").style.display = ha ? "none" : "block";
+    $("busIdField").style.display = ha ? "none" : "block";
+    $("busRelayHint").style.display = ha ? "none" : "block";
+    $("busHaHint").style.display = ha ? "block" : "none";
+  }
   $("compSeg").addEventListener("click", function(){ updateCompImgVis(); updateHaVis(); });
-  updateCompImgVis(); updateHaVis();
+  $("busSourceSeg").addEventListener("click", function(){ setTimeout(function(){ updateHaVis(); updateBusSourceVis(); },0); });
+  updateCompImgVis(); updateHaVis(); updateBusSourceVis();
   $("haAdvToggle").addEventListener("click",function(){
     this.classList.toggle("open"); $("haAdv").classList.toggle("open");
   });
   ["haUrl","haToken","haBattery","haRange","haOdometer","haCabinTemp","haTireFL","haTireFR","haTireRL","haTireRR",
-   "haCharging","haPlug","haLocked","haDoors","haWindows","haOnline","haTracker"].forEach(function(id){
+   "haCharging","haPlug","haLocked","haDoors","haWindows","haOnline","haTracker","busEntity"].forEach(function(id){
     $(id).addEventListener("input",function(){ state[id]=$(id).value.trim(); save(); });
   });
   $("compImgPick").addEventListener("click",function(){ $("compImgFile").click(); });
@@ -2367,13 +2403,14 @@ if (FIREBASE_CONFIG) {
     $("loc").value=state.loc; $("name").value=state.name;
     $("busUrl").value=state.busUrl||""; $("busId").value=state.busId||""; $("stockSym").value=state.stockSym||""; $("stock1").value=state.stock1||""; $("stock2").value=state.stock2||""; $("stock3").value=state.stock3||""; $("stock4").value=state.stock4||""; $("stock5").value=state.stock5||""; $("mirrorId").value=state.mirrorId||"main"; $("bizTop").value=(state.bizTop&&state.bizTop!=="idb"&&state.bizTop!=="data")?state.bizTop:""; $("bizMid").value=(state.bizMid&&state.bizMid!=="idb"&&state.bizMid!=="data")?state.bizMid:""; $("bizTopScale").value=state.bizTopScale||100; $("bizTopScaleVal").textContent=(state.bizTopScale||100)+"%"; $("bizMidScale").value=state.bizMidScale||100; $("bizMidScaleVal").textContent=(state.bizMidScale||100)+"%";
     ["haUrl","haToken","haBattery","haRange","haOdometer","haCabinTemp","haTireFL","haTireFR","haTireRL","haTireRR",
-     "haCharging","haPlug","haLocked","haDoors","haWindows","haOnline","haTracker"].forEach(function(id){ $(id).value = state[id]||""; });
+     "haCharging","haPlug","haLocked","haDoors","haWindows","haOnline","haTracker","busEntity"].forEach(function(id){ $(id).value = state[id]||""; });
     setSeg("unitSeg",state.unit); setSeg("clockSeg",state.clock);
     setSeg("langSeg",state.lang); setSeg("secSeg",state.seconds); setSeg("compSeg",state.comments);
     setSeg("accentSw",state.accent); applyAccent();
     setSeg("zoneSeg",state.elzone); updateCompImgVis(); updateHaVis(); eyeBtnLabel();
     setSeg("motionSeg",state.motion); setSeg("motionTimeoutSeg",state.motionFor); setSeg("motionSensSeg",state.motionSens); setSeg("camShareSeg",state.camShare); setSeg("modeSeg",state.biz); setSeg("stockRangeSeg",state.stockRange); setSeg("remoteSeg",state.remoteSync); applyMode();
     setSeg("carMapSeg",state.carMap); setSeg("carSwipeSeg",state.carSwipe); updateCarMapVis();
+    setSeg("busSourceSeg",state.busSource); updateBusSourceVis();
     if(state.busId){ $("advToggle").classList.add("open"); $("adv").classList.add("open"); }
   }
 
