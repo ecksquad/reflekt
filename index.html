@@ -481,7 +481,7 @@ if (FIREBASE_CONFIG) {
         <button data-v="off">Off</button>
         <button data-v="on" class="on">On</button>
       </div>
-      <div class="hint"><b>Thumbs up</b> held for about half a second flips between the mirror and the car map. <b>Thumbs down</b> held the same way switches between home and business mode. Because both need a deliberate, recognised gesture, simply walking past can&rsquo;t trigger them &mdash; unlike the old wave. Needs a lit room and you facing the mirror; the page dots pulse when a gesture lands, and the dots (tap) plus the &ldquo;Flip mirror page&rdquo; button on a connected phone still work as fallbacks. The gesture model loads once from Google&rsquo;s MediaPipe CDN; all camera frames are processed on-device and never stored or sent anywhere.</div>
+      <div class="hint"><b>Thumbs up</b> held for about half a second flips between the mirror and the car map. <b>Hold an open palm</b> up to the camera for a second to switch between home and business mode. Because both need a deliberate, recognised gesture, simply walking past can&rsquo;t trigger them &mdash; unlike the old wave. Needs a lit room and you facing the mirror; the page dots pulse when a gesture lands, and the dots (tap) plus the &ldquo;Flip mirror page&rdquo; button on a connected phone still work as fallbacks. The gesture model loads once from Google&rsquo;s MediaPipe CDN; all camera frames are processed on-device and never stored or sent anywhere.</div>
     </div>
 
     <div class="field opt-home">
@@ -1237,17 +1237,17 @@ if (FIREBASE_CONFIG) {
 
   // ---------- hand gestures (MediaPipe Tasks Vision) ----------
   // Thumbs up held ~0.6s = flip to the car map (same toggle as before, just
-  // a clearer trigger). Thumbs down held ~0.6s = toggle home <-> business
-  // mode. Face/eye-blink detection removed entirely (2026-07-20) - it was
-  // the less reliable half of the old wink+palm combo; hand-only is
-  // simpler, cheaper (one model instead of two) and the canned thumb
-  // gestures are far less ambiguous than an eyelid-geometry threshold.
-  // Models load lazily from the MediaPipe CDN the first time gestures are
-  // enabled, then cache.
+  // a clearer trigger). Open palm held ~1s = toggle home <-> business mode
+  // (thumbs down was tried 2026-07-20 and reported unreliable — reverted
+  // to palm, kept alongside thumbs-up in the same hand model). Face/eye-
+  // blink detection removed entirely (2026-07-20) - it was the less
+  // reliable half of the old wink+palm combo; hand-only is simpler,
+  // cheaper (one model instead of two). Models load lazily from the
+  // MediaPipe CDN the first time gestures are enabled, then cache.
   var gLoaded=false, gLoading=null, gHand=null, gTimer=null;
   var thumbUpSince=0, thumbUpSeen=0, gThumbUpCool=0;
-  var thumbDownSince=0, thumbDownSeen=0, gThumbDownCool=0;
-  function stopGestures(){ clearInterval(gTimer); gTimer=null; thumbUpSince=0; thumbDownSince=0; }
+  var palmSince=0, palmSeen=0, gPalmCool=0;
+  function stopGestures(){ clearInterval(gTimer); gTimer=null; thumbUpSince=0; palmSince=0; }
   function loadGestures(){
     if(gLoaded) return Promise.resolve(true);
     if(gLoading) return gLoading;
@@ -1296,11 +1296,11 @@ if (FIREBASE_CONFIG) {
             else if(now-thumbUpSince>=600 && now>=gThumbUpCool){ gThumbUpCool=now+2000; thumbUpSince=0; flipPage(); }
           } else if(thumbUpSince && now-thumbUpSeen>400){ thumbUpSince=0; }
 
-          if(g==="Thumb_Down"){
-            thumbDownSeen=now;
-            if(!thumbDownSince) thumbDownSince=now;
-            else if(now-thumbDownSince>=600 && now>=gThumbDownCool){ gThumbDownCool=now+2000; thumbDownSince=0; toggleBizMode(); }
-          } else if(thumbDownSince && now-thumbDownSeen>400){ thumbDownSince=0; }
+          if(g==="Open_Palm"){
+            palmSeen=now;
+            if(!palmSince) palmSince=now;
+            else if(now-palmSince>=1000 && now>=gPalmCool){ gPalmCool=now+3000; palmSince=0; toggleBizMode(); }
+          } else if(palmSince && now-palmSeen>500){ palmSince=0; }
         }catch(e){ dbgHand="hand err "+e.message; }
         gDebug(dbgHand);
       }, 180);
