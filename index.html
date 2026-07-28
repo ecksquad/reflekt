@@ -1026,7 +1026,11 @@ if (FIREBASE_CONFIG) {
           : /t[åa]g|pendel/.test(hay) ? "train" : /b[åa]t|f[äa]rja/.test(hay) ? "boat" : "bus";
         var mins = (typeof dep.minutes_until==="number") ? dep.minutes_until : null;
         var when = (mins!=null && mins<=20) ? (mins<=0? t("now") : mins+" "+t("min")) : (dep.departure_time||"");
-        return '<div class="dep">'+modeIcon(mode)+'<span class="ln">'+esc(dep.line||"")+'</span><span class="dst">'+esc(dep.destination||"")+'</span><span class="tm">'+esc(when)+'</span></div>';
+        // Trafiklab appends ", Påstigning fram" (board at front) to some
+        // destinations - real info but it just widens every row for no
+        // benefit here, so it's stripped before display.
+        var dst = (dep.destination||"").replace(/,\s*Påstigning fram$/i, "");
+        return '<div class="dep">'+modeIcon(mode)+'<span class="ln">'+esc(dep.line||"")+'</span><span class="dst">'+esc(dst)+'</span><span class="tm">'+esc(when)+'</span></div>';
       }).join("");
       $("busList").innerHTML = html;
     });
