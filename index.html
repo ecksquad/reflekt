@@ -1379,25 +1379,40 @@ if (FIREBASE_CONFIG) {
       body: JSON.stringify({image:b64, label:label})
     }).catch(function(e){ console.warn("[reflekt] snapshot upload failed",e); });
   }
+  // Reused across ticks (not recreated each time) - a small offscreen frame
+  // for the detector to run against instead of the raw camera resolution.
+  // EfficientDet-Lite0's cost scales with input pixels, and detectForVideo
+  // is a synchronous, blocking WASM call: at full camera resolution, once a
+  // second, on a tablet CPU (GPU delegate often fails to init in a WebView
+  // and falls back to CPU), this was slow enough to lock up the main
+  // thread entirely - reported as the app freezing, especially once "Start
+  // mirror" adds its own JS work (ICE/SDP polling) competing for the same
+  // thread. Downscaling and polling far less often cuts that cost a lot.
+  var dCv=null, dCtx=null, dBusy=false;
   function startDetect(video){
     stopDetect();
     loadObjectDetector().then(function(ok){
       if(!ok || !video) return;
+      if(!dCv){ dCv=document.createElement("canvas"); dCv.width=300; dCv.height=225; dCtx=dCv.getContext("2d",{willReadFrequently:true}); }
       dTimer=setInterval(function(){
-        if(!video || video.readyState<2) return;
-        var now=performance.now();
-        var res;
-        try{ res=dModel.detectForVideo(video, now); }catch(e){ return; }
-        var hit=null;
-        (res.detections||[]).forEach(function(d){
-          var cat=d.categories && d.categories[0];
-          if(cat && DETECT_CLASSES[cat.categoryName]) hit=cat.categoryName;
-        });
-        if(hit && (Date.now()-dLastFire) > DETECT_COOLDOWN_MS){
-          dLastFire=Date.now();
-          sendSnapshot(video, hit);
-        }
-      }, 1000);   // once a second is plenty - this doesn't need gesture-speed polling
+        if(dBusy || !video || video.readyState<2) return;
+        dBusy=true;
+        try{
+          dCtx.drawImage(video, 0, 0, dCv.width, dCv.height);
+          var now=performance.now();
+          var res=dModel.detectForVideo(dCv, now);
+          var hit=null;
+          (res.detections||[]).forEach(function(d){
+            var cat=d.categories && d.categories[0];
+            if(cat && DETECT_CLASSES[cat.categoryName]) hit=cat.categoryName;
+          });
+          if(hit && (Date.now()-dLastFire) > DETECT_COOLDOWN_MS){
+            dLastFire=Date.now();
+            sendSnapshot(video, hit);
+          }
+        }catch(e){ /* ignore a single bad frame */ }
+        dBusy=false;
+      }, 4000);   // person/animal presence doesn't need sub-second polling
     });
   }
 
