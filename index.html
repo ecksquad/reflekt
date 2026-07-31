@@ -484,23 +484,6 @@ if (FIREBASE_CONFIG) {
       <div class="hint"><b>Thumbs up</b> held for about half a second flips between the mirror and the car map. <b>Hold an open palm</b> up to the camera for a second to switch between home and business mode. Because both need a deliberate, recognised gesture, simply walking past can&rsquo;t trigger them &mdash; unlike the old wave. Needs a lit room and you facing the mirror; the page dots pulse when a gesture lands, and the dots (tap) plus the &ldquo;Flip mirror page&rdquo; button on a connected phone still work as fallbacks. The gesture model loads once from Google&rsquo;s MediaPipe CDN; all camera frames are processed on-device and never stored or sent anywhere.</div>
     </div>
 
-    <div class="field opt-home" id="detectField">
-      <span class="label">Person/animal detection</span>
-      <div class="seg" id="detectSeg">
-        <button data-v="off" class="on">Off</button>
-        <button data-v="on">On</button>
-      </div>
-      <div class="hint">On-device detection (COCO classes: person, dog, cat, bird, horse, sheep, cow and a few others &mdash; no literal &ldquo;goat&rdquo; category, so a goat may show up as &ldquo;sheep&rdquo; or not trigger at all) using the same camera as gestures/motion-wake. Unlike those, a match here <b>does</b> leave the device: one still frame is uploaded to your control server, which stores it in the byd-control repo (capped at the most recent 100, oldest auto-deleted). <b>That repo is public</b> &mdash; anyone with the link can see every snapshot. At most one upload per minute regardless of how long something stays in view. Off by default for exactly that reason.</div>
-    </div>
-    <div class="field opt-home" id="snapUrlField" style="display:none">
-      <span class="label">Control server URL</span>
-      <input id="snapUrl" class="input" placeholder="same one Stormbull/car-control uses" autocomplete="off">
-    </div>
-    <div class="field opt-home" id="snapKeyField" style="display:none">
-      <span class="label">Control server key</span>
-      <input id="snapKey" class="input" placeholder="same key as above" autocomplete="off">
-    </div>
-
     <div class="field opt-home">
       <span class="label">Stock symbol</span>
       <input id="stockSym" class="input" placeholder="e.g. AAPL, TSLA, MSFT" autocomplete="off">
@@ -843,8 +826,7 @@ if (FIREBASE_CONFIG) {
     haDoors:"binary_sensor.byd_atto3zuo_duo_doors", haWindows:"binary_sensor.byd_atto3zuo_duo_windows", haOnline:"binary_sensor.byd_atto3zuo_duo_online",
     haTracker:"device_tracker.byd_atto3zuo_duo_location", carMap:"off", carSwipe:"on", carFlip:0,
     busUrl:"https://still-wave-afbc.ecksquad.workers.dev", busId:"",
-    busSource:"relay", busEntity:"sensor.bjurslattsliden_goteborg",
-    detect:"off", snapUrl:"", snapKey:"" };
+    busSource:"relay", busEntity:"sensor.bjurslattsliden_goteborg" };
   var state = Object.assign({}, DEFAULTS);
   var KEY = "mirror.config.v1";
   // The business/centre images are data URLs — too big to sit in localStorage
@@ -1214,20 +1196,16 @@ if (FIREBASE_CONFIG) {
     if(mRAF){ cancelAnimationFrame(mRAF); mRAF=null; }
     clearTimeout(mTimer); mTimer=null;
     stopGestures();
-    stopDetect();
     if(mStream){ mStream.getTracks().forEach(function(t){t.stop();}); mStream=null; }
     mPrev=null; setSleep(false);
   }
   function startMotion(){
     stopMotion();
-    // The camera loop serves three features: motion wake (cheap 64x48 frame
-    // diff), hand/face gestures (MediaPipe: a wink flips the page, an
-    // open palm held ~1s toggles home/business mode), and person/animal
-    // snapshot detection (also MediaPipe, a different model). Run the
-    // camera if any of the three is on.
+    // The camera loop serves two features: motion wake (cheap 64x48 frame
+    // diff), and hand/face gestures (MediaPipe: a wink flips the page, an
+    // open palm held ~1s toggles home/business mode). Run it if either is on.
     var gestOn = state.carSwipe==="on";
-    var detectOn = state.detect==="on";
-    if(state.motion!=="on" && !gestOn && !detectOn) return;
+    if(state.motion!=="on" && !gestOn) return;
     if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
     navigator.mediaDevices.getUserMedia({video:{facingMode:"user"},audio:false}).then(function(stream){
       mStream=stream;
@@ -1237,10 +1215,6 @@ if (FIREBASE_CONFIG) {
       mCtx=mCv.getContext("2d",{willReadFrequently:true});
       if(state.motion==="on") wakeScreen();
       if(gestOn) startGestures(mVid);
-      // Detection deliberately ignores sleepveil/mirror-page state, unlike
-      // gestures - the point is catching something even while asleep or on
-      // another page, not just while someone's actively using the mirror.
-      if(detectOn) startDetect(mVid);
       // Frame diff now serves ONLY motion-wake — gestures moved to MediaPipe
       // (the old motion-centroid wave false-triggered on any big movement).
       if(state.motion==="on"){
@@ -1334,85 +1308,6 @@ if (FIREBASE_CONFIG) {
         }catch(e){ dbgHand="hand err "+e.message; }
         gDebug(dbgHand);
       }, 180);
-    });
-  }
-
-  // ---------- person/animal snapshot detection (MediaPipe Object Detector) ----------
-  // Runs on the SAME camera stream as gestures/motion-wake, via a different
-  // on-device model (EfficientDet-Lite0, COCO's 80 classes). Unlike those
-  // two, a match here deliberately leaves the device: one still frame gets
-  // uploaded to the control server's /mirror/snapshot route, which commits
-  // it into the byd-control repo (public - see the Settings hint for this
-  // field). At most one upload per DETECT_COOLDOWN_MS regardless of how
-  // long something stays in frame.
-  var DETECT_CLASSES = {person:1, dog:1, cat:1, bird:1, horse:1, sheep:1, cow:1, elephant:1, bear:1, zebra:1, giraffe:1};
-  var DETECT_COOLDOWN_MS = 60000;
-  var dLoaded=false, dLoading=null, dModel=null, dTimer=null, dLastFire=0;
-  function loadObjectDetector(){
-    if(dLoaded) return Promise.resolve(true);
-    if(dLoading) return dLoading;
-    var V="https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
-    var OBJM="https://storage.googleapis.com/mediapipe-tasks/object_detector/efficientdet_lite0_uint8.tflite";
-    dLoading=import(V+"/vision_bundle.mjs").then(function(m){
-      return m.FilesetResolver.forVisionTasks(V+"/wasm").then(function(fs){
-        function mk(deleg){
-          return m.ObjectDetector.createFromOptions(fs,{baseOptions:{modelAssetPath:OBJM,delegate:deleg},runningMode:"VIDEO",scoreThreshold:0.5});
-        }
-        return mk("GPU").catch(function(e){ console.warn("[reflekt] GPU object-detector delegate failed, using CPU",e); return mk("CPU"); })
-          .then(function(r){ dModel=r; dLoaded=true; return true; });
-      });
-    }).catch(function(e){ dLoading=null; console.warn("[reflekt] object detector model failed to load",e); return false; });
-    return dLoading;
-  }
-  function stopDetect(){ clearInterval(dTimer); dTimer=null; }
-  function sendSnapshot(video, label){
-    if(!state.snapUrl || !state.snapKey) return;
-    var cv=document.createElement("canvas");
-    cv.width=video.videoWidth||640; cv.height=video.videoHeight||480;
-    var ctx=cv.getContext("2d");
-    ctx.drawImage(video,0,0,cv.width,cv.height);
-    var b64=cv.toDataURL("image/jpeg",0.7).replace(/^data:image\/\w+;base64,/,"");
-    var base=state.snapUrl.replace(/\/+$/,"");
-    fetch(base+"/mirror/snapshot", {
-      method:"POST",
-      headers:{"X-Api-Key":state.snapKey,"Content-Type":"application/json"},
-      body: JSON.stringify({image:b64, label:label})
-    }).catch(function(e){ console.warn("[reflekt] snapshot upload failed",e); });
-  }
-  // Reused across ticks (not recreated each time) - a small offscreen frame
-  // for the detector to run against instead of the raw camera resolution.
-  // EfficientDet-Lite0's cost scales with input pixels, and detectForVideo
-  // is a synchronous, blocking WASM call: at full camera resolution, once a
-  // second, on a tablet CPU (GPU delegate often fails to init in a WebView
-  // and falls back to CPU), this was slow enough to lock up the main
-  // thread entirely - reported as the app freezing, especially once "Start
-  // mirror" adds its own JS work (ICE/SDP polling) competing for the same
-  // thread. Downscaling and polling far less often cuts that cost a lot.
-  var dCv=null, dCtx=null, dBusy=false;
-  function startDetect(video){
-    stopDetect();
-    loadObjectDetector().then(function(ok){
-      if(!ok || !video) return;
-      if(!dCv){ dCv=document.createElement("canvas"); dCv.width=300; dCv.height=225; dCtx=dCv.getContext("2d",{willReadFrequently:true}); }
-      dTimer=setInterval(function(){
-        if(dBusy || !video || video.readyState<2) return;
-        dBusy=true;
-        try{
-          dCtx.drawImage(video, 0, 0, dCv.width, dCv.height);
-          var now=performance.now();
-          var res=dModel.detectForVideo(dCv, now);
-          var hit=null;
-          (res.detections||[]).forEach(function(d){
-            var cat=d.categories && d.categories[0];
-            if(cat && DETECT_CLASSES[cat.categoryName]) hit=cat.categoryName;
-          });
-          if(hit && (Date.now()-dLastFire) > DETECT_COOLDOWN_MS){
-            dLastFire=Date.now();
-            sendSnapshot(video, hit);
-          }
-        }catch(e){ /* ignore a single bad frame */ }
-        dBusy=false;
-      }, 4000);   // person/animal presence doesn't need sub-second polling
     });
   }
 
@@ -2404,18 +2299,11 @@ if (FIREBASE_CONFIG) {
   seg("zoneSeg","elzone");
   seg("motionSeg","motion"); seg("motionTimeoutSeg","motionFor"); seg("motionSensSeg","motionSens"); seg("camShareSeg","camShare"); seg("modeSeg","biz"); seg("stockRangeSeg","stockRange"); seg("remoteSeg","remoteSync");
   seg("carMapSeg","carMap"); seg("carSwipeSeg","carSwipe"); seg("busSourceSeg","busSource");
-  seg("detectSeg","detect");
 
 
   function updateCompImgVis(){ $("compImgField").style.display = state.comments==="user" ? "block" : "none"; }
   function updateCarMapVis(){ var on=state.carMap==="on"; $("carPageBtn").style.display = on ? "" : "none"; }
-  function updateDetectVis(){
-    var on = state.detect==="on";
-    $("snapUrlField").style.display = on ? "block" : "none";
-    $("snapKeyField").style.display = on ? "block" : "none";
-  }
   $("carMapSeg").addEventListener("click", function(){ setTimeout(function(){ updateCarMapVis(); updateHaVis(); },0); });
-  $("detectSeg").addEventListener("click", function(){ setTimeout(updateDetectVis,0); });
   function updateHaVis(){
     // The HA URL/token fields serve the centre dashboard, the car map page,
     // and HA-sourced bus departures.
@@ -2440,7 +2328,7 @@ if (FIREBASE_CONFIG) {
     this.classList.toggle("open"); $("haAdv").classList.toggle("open");
   });
   ["haUrl","haToken","haBattery","haRange","haOdometer","haCabinTemp","haTireFL","haTireFR","haTireRL","haTireRR",
-   "haCharging","haPlug","haLocked","haDoors","haWindows","haOnline","haTracker","busEntity","snapUrl","snapKey"].forEach(function(id){
+   "haCharging","haPlug","haLocked","haDoors","haWindows","haOnline","haTracker","busEntity"].forEach(function(id){
     $(id).addEventListener("input",function(){ state[id]=$(id).value.trim(); save(); });
   });
   $("compImgPick").addEventListener("click",function(){ $("compImgFile").click(); });
@@ -2520,14 +2408,13 @@ if (FIREBASE_CONFIG) {
     $("loc").value=state.loc; $("name").value=state.name;
     $("busUrl").value=state.busUrl||""; $("busId").value=state.busId||""; $("stockSym").value=state.stockSym||""; $("stock1").value=state.stock1||""; $("stock2").value=state.stock2||""; $("stock3").value=state.stock3||""; $("stock4").value=state.stock4||""; $("stock5").value=state.stock5||""; $("mirrorId").value=state.mirrorId||"main"; $("bizTop").value=(state.bizTop&&state.bizTop!=="idb"&&state.bizTop!=="data")?state.bizTop:""; $("bizMid").value=(state.bizMid&&state.bizMid!=="idb"&&state.bizMid!=="data")?state.bizMid:""; $("bizTopScale").value=state.bizTopScale||100; $("bizTopScaleVal").textContent=(state.bizTopScale||100)+"%"; $("bizMidScale").value=state.bizMidScale||100; $("bizMidScaleVal").textContent=(state.bizMidScale||100)+"%";
     ["haUrl","haToken","haBattery","haRange","haOdometer","haCabinTemp","haTireFL","haTireFR","haTireRL","haTireRR",
-     "haCharging","haPlug","haLocked","haDoors","haWindows","haOnline","haTracker","busEntity","snapUrl","snapKey"].forEach(function(id){ $(id).value = state[id]||""; });
+     "haCharging","haPlug","haLocked","haDoors","haWindows","haOnline","haTracker","busEntity"].forEach(function(id){ $(id).value = state[id]||""; });
     setSeg("unitSeg",state.unit); setSeg("clockSeg",state.clock);
     setSeg("langSeg",state.lang); setSeg("secSeg",state.seconds); setSeg("compSeg",state.comments);
     setSeg("accentSw",state.accent); applyAccent();
     setSeg("zoneSeg",state.elzone); updateCompImgVis(); updateHaVis(); eyeBtnLabel();
     setSeg("motionSeg",state.motion); setSeg("motionTimeoutSeg",state.motionFor); setSeg("motionSensSeg",state.motionSens); setSeg("camShareSeg",state.camShare); setSeg("modeSeg",state.biz); setSeg("stockRangeSeg",state.stockRange); setSeg("remoteSeg",state.remoteSync); applyMode();
     setSeg("carMapSeg",state.carMap); setSeg("carSwipeSeg",state.carSwipe); updateCarMapVis();
-    setSeg("detectSeg",state.detect); updateDetectVis();
     setSeg("busSourceSeg",state.busSource); updateBusSourceVis();
     if(state.busId){ $("advToggle").classList.add("open"); $("adv").classList.add("open"); }
   }
